@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(conda run *)",
+      "Bash(git -C /home/zahid/Projects/Zahid/Fem_des_shop add kaira-1.0.0)",
+      "Bash(git -C /home/zahid/Projects/Zahid/Fem_des_shop commit -m 'T2: Move static assets into Django static tree *)"
+    ]
+  }
+}

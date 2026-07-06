@@ -32,6 +32,8 @@
 - 2026-07-06T15:45:00Z [CODE] T0 complete: created `legacy_static/index.html`, `legacy_static/readme.txt`, `.gitignore`, `.env.example`. All 7 validation checks passed. Original static files unmodified.
 - 2026-07-06T15:50:00Z [CODE] T1 complete: scaffolded Django 5.2.15 project (`femdes_site`) and `store` app. Installed deps in conda env `femdes`. Configured python-dotenv, dj-database-url, WhiteNoise, static/media paths. `manage.py check` passes (0 issues). All 12 validation checks passed. Original assets untouched.
 - 2026-07-06T15:55:00Z [CODE] TASK-001-FIX complete: removed `store/tests.py` to resolve `ImportError` conflict with `store/tests/` package. Test discovery now clean (`Ran 0 tests`). T2 is next ready task.
+- 2026-07-06T16:00:00Z [CODE] T2 complete: moved `css/`, `js/`, `images/`, `style.css` into `static/store/`. Removed `CompressedManifestStaticFilesStorage` (vendor.css references missing colorbox/loading.gif). `collectstatic` and `check` pass. T3 is next ready task.
+- 2026-07-06T15:55:06Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-002/T2 asset migration; updated handoff and future test commands to use `conda run -n femdes`.
 
 ## [OUTCOMES]
 - 2026-07-06T14:22:44Z [ASSUMPTION] Awaiting concrete task scope before editing site files.
@@ -41,3 +43,4 @@
 - 2026-07-06T15:45:00Z [CODE] T0 (baseline preservation) completed and verified. T1 (Django scaffold) is next ready task.
 - 2026-07-06T15:36:42Z [CODE] Current task now identifies TASK-001 as Django scaffold; feature implementation remains unstarted in this turn.
 - 2026-07-06T15:47:14Z [CODE] Review outcome for TASK-001 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-001-FIX for the test-discovery conflict.
+- 2026-07-06T15:55:06Z [CODE] Current task now identifies TASK-002 as the static asset move into `static/store/`; no assets were moved in this turn.

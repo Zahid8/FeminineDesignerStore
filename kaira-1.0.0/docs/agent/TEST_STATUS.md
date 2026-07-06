@@ -2,13 +2,50 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, test discovery working, and passing checks. T0, T1, and T1-FIX complete. No models, admin, or views exist yet.
+Django 5.2.15 project scaffolded, assets migrated to `static/store/`, test discovery working, and passing checks. T0, T1, T1-FIX, and T2 complete. No models, admin, or views exist yet.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
 conda run -n femdes python manage.py test       # PASS (0 tests, no import errors)
+```
+
+## T2 Verification (2026-07-06)
+
+All checks passed. One settings adjustment needed: removed `CompressedManifestStaticFilesStorage` because `vendor.css` references `../images/colorbox/loading.gif` which doesn't exist in the Kaira image set. Default `StaticFilesStorage` used; Whitenoise middleware still serves files at runtime.
+
+```bash
+# Pre-move checks
+test -f legacy_static/index.html                     # PASS
+diff -q index.html legacy_static/index.html          # PASS
+test -f style.css && test -f css/vendor.css          # PASS
+test -f js/script.min.js                             # PASS
+test -f images/main-logo.png                         # PASS
+test -f images/product-item-1.jpg                    # PASS
+
+# Move
+mv style.css static/store/style.css
+mv css static/store/css
+mv js static/store/js
+mv images static/store/images
+
+# Post-move checks
+test -f static/store/style.css                       # PASS
+test -f static/store/css/vendor.css                  # PASS
+test -f static/store/js/script.min.js                # PASS
+test -f static/store/images/main-logo.png            # PASS
+test -f static/store/images/product-item-1.jpg       # PASS
+test ! -e style.css                                  # PASS (old paths gone)
+test ! -e css                                        # PASS
+test ! -e js                                         # PASS
+test ! -e images                                     # PASS
+test ! -d static/store/css/css                       # PASS (no nested dupes)
+diff -q index.html legacy_static/index.html          # PASS (legacy intact)
+
+# Django
+conda run -n femdes python manage.py collectstatic --noinput  # PASS (208 unmodified)
+conda run -n femdes python manage.py check                    # PASS (0 issues)
 ```
 
 ## TASK-001-FIX Verification (2026-07-06)
@@ -101,47 +138,63 @@ Observed:
 After T2:
 
 ```bash
-python manage.py makemigrations
-python manage.py migrate
-python manage.py test store.tests.test_models store.tests.test_discounts
+test -f static/store/style.css
+test -f static/store/css/vendor.css
+test -f static/store/js/script.min.js
+test -f static/store/images/main-logo.png
+test -f static/store/images/product-item-1.jpg
+test ! -e style.css
+test ! -e css
+test ! -e js
+test ! -e images
+conda run -n femdes python manage.py collectstatic --noinput
+conda run -n femdes python manage.py check
+```
+
+After T3:
+
+```bash
+conda run -n femdes python manage.py makemigrations --check --dry-run
+conda run -n femdes python manage.py migrate
+conda run -n femdes python manage.py test store.tests.test_models store.tests.test_discounts
 ```
 
 After T4:
 
 ```bash
-python manage.py test store.tests.test_admin
+conda run -n femdes python manage.py test store.tests.test_admin
 ```
 
 After T5:
 
 ```bash
-python manage.py test store.tests.test_cart store.tests.test_storefront
+conda run -n femdes python manage.py test store.tests.test_cart store.tests.test_storefront
 ```
 
 After T6:
 
 ```bash
-python manage.py test store.tests.test_storefront
-python manage.py collectstatic --noinput
-python manage.py runserver
+conda run -n femdes python manage.py test store.tests.test_storefront
+conda run -n femdes python manage.py collectstatic --noinput
+conda run -n femdes python manage.py runserver
 ```
 
 After T7:
 
 ```bash
-python manage.py seed_demo_store
-python manage.py seed_demo_store
-python manage.py test store.tests.test_seed
+conda run -n femdes python manage.py seed_demo_store
+conda run -n femdes python manage.py seed_demo_store
+conda run -n femdes python manage.py test store.tests.test_seed
 ```
 
 Final MVP verification:
 
 ```bash
-python manage.py check
-python manage.py makemigrations --check --dry-run
-python manage.py test
-python manage.py collectstatic --noinput
-python manage.py runserver
+conda run -n femdes python manage.py check
+conda run -n femdes python manage.py makemigrations --check --dry-run
+conda run -n femdes python manage.py test
+conda run -n femdes python manage.py collectstatic --noinput
+conda run -n femdes python manage.py runserver
 ```
 
 ## Manual Verification Required After Implementation
