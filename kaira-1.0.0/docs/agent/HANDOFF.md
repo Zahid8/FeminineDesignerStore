@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation), T1 (Django scaffold), T1-FIX (test discovery), T2 (asset migration), T2-FIX (cleanup), T3 (database models), and T3-FIX (validation contracts) are complete. T4 (Django admin) is the next task.
+This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 through T4 (including T1-FIX, T2-FIX, T3-FIX) are complete. T5 (forms, selectors, services, URLs, views) is next.
 
 ## What Exists Now
 
@@ -40,12 +40,12 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
 ## Verification Status
 
 - `conda run -n femdes python manage.py check` — **PASS**
-- `conda run -n femdes python manage.py test` — **PASS** (0 tests)
+- `conda run -n femdes python manage.py test` — **PASS** (66 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
 
 ## Next Action
 
-**T4: Configure Django admin** — register all store models, configure list displays, filters, search, inlines, readonly fields. See `docs/agent/CURRENT_TASK.md`.
+**T5: Add forms, selectors, services, URLs, and views** — session cart, checkout, storefront routes. See `docs/agent/CURRENT_TASK.md`.
 
 ## Do Not Do Yet
 
