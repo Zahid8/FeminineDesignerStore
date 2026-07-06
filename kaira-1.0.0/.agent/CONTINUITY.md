@@ -41,9 +41,11 @@
 - 2026-07-06T16:45:00Z [CODE] TASK-003-FIX complete: SiteSettings uses full_clean() for one-row check. OrderItem has discount_amount, created_at, sku blank=True. Order.save() retries on order_number collision (10 attempts). All validation tests call full_clean(). 66 tests pass. T4 next.
 - 2026-07-06T17:00:00Z [CODE] T4 complete: all 8 models registered in Django admin. ProductAdmin with ProductImageInline, filters, search, slug prepop. OrderAdmin with readonly totals and readonly OrderItemInline (no add/delete). SiteSettingsAdmin restrict to one row. 82 tests pass (66 model + 16 admin). T5 next.
 - 2026-07-06T17:15:00Z [CODE] TASK-004-FIX complete: ProductImage and OrderItem now directly registered with admin.site. ProductImageAdmin with list_display/filters/search. OrderItemAdmin with all snapshot fields readonly, add/delete disabled. 91 tests pass (66 model + 25 admin). admin.site.is_registered() returns True for all 8 models. T5 next.
+- 2026-07-06T17:30:00Z [CODE] T5 complete: 4 forms (AddToCart, CartUpdate, Checkout, NewsletterSignup), 5 selectors, 8 services (session cart, checkout with stock revalidation, newsletter), 10 views, 10 routes. Minimal templates for all 7 pages. 132 tests pass (91 + 41 cart/storefront). T6 next.
 - 2026-07-06T15:55:06Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-002/T2 asset migration; updated handoff and future test commands to use `conda run -n femdes`.
 - 2026-07-06T16:08:27Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-003/T3 database models, migrations, and model tests; no application code was implemented in this turn.
 - 2026-07-06T16:27:35Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-004/T4 Django admin configuration; corrected stale T3 test-count docs from 64 to 66.
+- 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
 - 2026-07-06T14:22:44Z [ASSUMPTION] Awaiting concrete task scope before editing site files.
@@ -59,3 +61,5 @@
 - 2026-07-06T16:36:00Z [CODE] Review outcome for TASK-003 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-003-FIX for model validation, OrderItem snapshot fields, collision retry, and stronger tests.
 - 2026-07-06T16:27:35Z [CODE] Current task now identifies TASK-004 as configuring Django admin for all store models and admin access tests.
 - 2026-07-06T16:37:28Z [CODE] Review outcome for TASK-004 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-004-FIX for missing direct admin registration of `ProductImage` and `OrderItem` plus stronger tests.
+- 2026-07-06T16:42:26Z [TOOL] Review outcome for TASK-004-FIX is APPROVED WITH FOLLOW-UP TASKS; all validation commands pass, all 8 models are registered with `admin.site`, and only `docs/agent/HANDOFF.md` has stale nonblocking prose.
+- 2026-07-06T16:47:10Z [CODE] Current task now identifies TASK-005 as adding public storefront behavior, session cart, checkout, newsletter signup, and route wiring while leaving full template conversion to TASK-006.

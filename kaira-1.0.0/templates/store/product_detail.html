@@ -1,0 +1,9 @@
+<h1>{{ product.name }}</h1>
+<p>Price: {{ product.price }}</p>
+<p>Stock: {{ product.stock_quantity }}</p>
+<form method="post" action="{% url 'add_to_cart' product.pk %}">
+  {% csrf_token %}
+  {{ add_to_cart_form.as_p }}
+  <button type="submit">Add to Cart</button>
+</form>
+<p>Cart items: {{ cart.item_count }}</p>

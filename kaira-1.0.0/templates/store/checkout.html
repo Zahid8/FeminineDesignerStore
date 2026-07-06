@@ -1,0 +1,8 @@
+<h1>Checkout</h1>
+<p>Cart items: {{ cart.item_count }}</p>
+<p>Total: {{ cart.total }}</p>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Place Order</button>
+</form>

@@ -2,13 +2,26 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, 66 tests passing. T0 through T4 (with all FIX tasks) complete. 91 tests pass. T5 is next.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T5 complete. 132 tests pass. T6 (template conversion) is next.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (91 tests)
+conda run -n femdes python manage.py test       # PASS (132 tests)
+```
+
+## T4 Verification (2026-07-06)
+
+All 25 admin tests pass after T4-FIX. `ProductImage` and `OrderItem` are both
+registered directly with `admin.site` and remain available as inlines under
+Product and Order.
+
+```bash
+conda run -n femdes python manage.py test store.tests.test_admin -v 2  # 25 tests, OK
+conda run -n femdes python manage.py test                              # 91 tests, OK
+conda run -n femdes python manage.py check                             # 0 issues
+conda run -n femdes python manage.py makemigrations --check --dry-run  # No changes detected
 ```
 
 ## T3 Verification (2026-07-06)

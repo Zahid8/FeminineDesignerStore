@@ -1,0 +1,5 @@
+<h1>Shop</h1>
+{% if selected_category %}<p>Category: {{ selected_category }}</p>{% endif %}
+{% if query %}<p>Search: {{ query }}</p>{% endif %}
+<p>{{ products.count }} products</p>
+<p>Cart items: {{ cart.item_count }}</p>

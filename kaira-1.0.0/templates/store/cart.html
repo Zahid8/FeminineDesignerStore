@@ -1,0 +1,19 @@
+<h1>Cart</h1>
+<p>Items: {{ cart.item_count }}</p>
+<p>Total: {{ cart.total }}</p>
+<ul>
+{% for line in cart.lines %}
+  <li>{{ line.product_name }} x {{ line.quantity }} = {{ line.line_total }}
+    <form method="post" action="{% url 'update_cart' line.key %}">
+      {% csrf_token %}
+      <input type="number" name="quantity" value="{{ line.quantity }}" min="0" max="99">
+      <button type="submit">Update</button>
+    </form>
+    <form method="post" action="{% url 'remove_from_cart' line.key %}">
+      {% csrf_token %}
+      <button type="submit">Remove</button>
+    </form>
+  </li>
+{% endfor %}
+</ul>
+<a href="{% url 'checkout' %}">Checkout</a>

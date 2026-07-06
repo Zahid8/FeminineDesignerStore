@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 through T4 (including T1-FIX, T2-FIX, T3-FIX) are complete. T5 (forms, selectors, services, URLs, views) is next.
+This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 through T5 (including all FIX tasks) are complete. T6 (template conversion) is next.
 
 ## What Exists Now
 
@@ -29,6 +29,11 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
   - `docs/architecture.md`, `docs/decisions.md`
   - `docs/agent/IMPLEMENTATION_PLAN.md`, `docs/agent/TASK_BOARD.md`, `docs/agent/CURRENT_TASK.md`, `docs/agent/HANDOFF.md`, `docs/agent/TEST_STATUS.md`
   - `.agent/CONTINUITY.md`
+- Django admin (T4 + T4-FIX):
+  - all 8 store models registered with `admin.site`
+  - `ProductImage` editable directly and inline under Product
+  - `OrderItem` visible directly and inline under Order with readonly snapshots
+  - `SiteSettings` restricted to one row
 
 ## Key Configuration
 
@@ -40,17 +45,15 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
 ## Verification Status
 
 - `conda run -n femdes python manage.py check` — **PASS**
-- `conda run -n femdes python manage.py test` — **PASS** (66 tests)
+- `conda run -n femdes python manage.py test` — **PASS** (91 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
 
 ## Next Action
 
-**T5: Add forms, selectors, services, URLs, and views** — session cart, checkout, storefront routes. See `docs/agent/CURRENT_TASK.md`.
+**T6: Convert static HTML into Django templates** — split index.html into base, partials, and page templates. See `docs/agent/CURRENT_TASK.md`.
 
 ## Do Not Do Yet
 
-- Do not configure Django admin (that's T4).
-- Do not create storefront views/URLs.
 - Do not split `index.html` into templates.
 - Do not add payment integration.
 - Do not remove upstream attribution.
