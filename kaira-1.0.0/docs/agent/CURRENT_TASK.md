@@ -1,26 +1,27 @@
 # Current Task
 
 ## Task ID
-TASK-000 — COMPLETE (2026-07-06)
+TASK-001 — COMPLETE (2026-07-06)
 
 ## Completed
-T0: Confirm baseline and preserve static source. All validation checks passed.
+T1: Scaffold Django project shell. All 12 validation checks passed. `python manage.py check` reports 0 issues.
 
 ## Next Task
 
-**T1: Scaffold Django Project**
+**T2: Move Static Assets Into Django Static Tree**
 
-Use `docs/agent/IMPLEMENTATION_PLAN.md#task-1-scaffold-django-project`.
+Use `docs/agent/IMPLEMENTATION_PLAN.md#task-2-move-static-assets-into-django-static-tree`.
 
 ## Prerequisites
 
-- [x] T0 complete — `legacy_static/` copies exist and diff cleanly.
-- [ ] Implementation agent must read all mandatory files per `CLAUDE.md`.
-- [ ] Python 3.12+ available.
+- [x] T0 complete — `legacy_static/` copies exist.
+- [x] T1 complete — Django project scaffolded and passing checks.
+- [ ] Use conda env `femdes` for all Python commands.
 
 ## Guardrails
 
-- Do not move `css/`, `js/`, `images/`, or `style.css` until T2.
+- Confirm `legacy_static/index.html` exists before moving any assets.
+- Move `css/`, `js/`, `images/`, `style.css` into `static/store/`.
+- Do not rename files during the move.
 - Do not remove attribution from footer.
 - Do not implement optional payment/customer-account/wishlist work during MVP.
-- Update this file when the task completes.

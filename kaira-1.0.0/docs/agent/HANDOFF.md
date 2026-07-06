@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation) is complete. T1 (Django scaffold) is the next task.
+This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation) and T1 (Django scaffold) are complete. T2 (asset migration) is the next task.
 
 ## What Exists Now
 
@@ -13,49 +13,45 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
   - `js/`
   - `images/`
   - `readme.txt`
-- Baseline preservation (T0 complete):
-  - `legacy_static/index.html` — byte-identical copy of `index.html`
-  - `legacy_static/readme.txt` — byte-identical copy of `readme.txt`
-  - `.gitignore` — excludes env, venv, pycache, db, media, staticfiles, .omx
-  - `.env.example` — Django env template
+- Baseline preservation (T0):
+  - `legacy_static/index.html` — byte-identical copy
+  - `legacy_static/readme.txt` — byte-identical copy
+  - `.gitignore`
+  - `.env.example`
+- Django scaffold (T1):
+  - `requirements.txt` — Django 5.2.15, Pillow, dj-database-url, python-dotenv, whitenoise, psycopg[binary]
+  - `manage.py`
+  - `femdes_site/` — project package with env-loaded settings, WhiteNoise, dj-database-url, static/media config
+  - `store/` — app package with `tests/__init__.py`
+  - `static/`, `templates/` — empty directories ready for future tasks
+  - Conda environment: `femdes` (Python 3.12.13)
 - Agent/planning docs:
-  - `AGENTS.md`
-  - `CLAUDE.md`
-  - `docs/architecture.md`
-  - `docs/decisions.md`
-  - `docs/agent/IMPLEMENTATION_PLAN.md`
-  - `docs/agent/TASK_BOARD.md`
-  - `docs/agent/CURRENT_TASK.md`
-  - `docs/agent/HANDOFF.md`
-  - `docs/agent/TEST_STATUS.md`
-- Existing continuity:
+  - `AGENTS.md`, `CLAUDE.md`
+  - `docs/architecture.md`, `docs/decisions.md`
+  - `docs/agent/IMPLEMENTATION_PLAN.md`, `docs/agent/TASK_BOARD.md`, `docs/agent/CURRENT_TASK.md`, `docs/agent/HANDOFF.md`, `docs/agent/TEST_STATUS.md`
   - `.agent/CONTINUITY.md`
 
-## Key Findings
+## Key Configuration
 
-- No `.git/` directory exists in the project root (parent has a git repo).
-- No automated tests exist.
-- No package or backend configuration exists.
-- `index.html` has hard-coded product cards, cart rows, categories, newsletter form, and links.
-- `readme.txt` requires keeping the TemplatesJungle credit link unless a no-attribution license has been purchased.
+- **Environment:** Use `conda run -n femdes python manage.py <cmd>` (NOT `.venv`)
+- **Settings:** `.env` loaded via python-dotenv; `dj_database_url` for DATABASES; WhiteNoise for static files
+- **Default DB:** SQLite at `db.sqlite3` when `DATABASE_URL` is unset
+- **Installed apps:** `store` added to `INSTALLED_APPS`
 
-## Architecture Decision
+## Verification Status
 
-Use Django 5.2 LTS with server-rendered templates and Django admin.
+- `conda run -n femdes python manage.py check` — **PASS** (0 issues)
+- All 12 file-existence checks passed
 
 ## Next Action
 
-**T1: Scaffold Django Project** — create `requirements.txt`, `manage.py`, `femdes_site/`, `store/`. See `docs/agent/IMPLEMENTATION_PLAN.md#task-1`.
+**T2: Move static assets into Django static tree** — move `css/`, `js/`, `images/`, `style.css` into `static/store/`. See `docs/agent/IMPLEMENTATION_PLAN.md#task-2`.
 
 ## Do Not Do Yet
 
-- Do not move assets.
-- Do not delete static source.
 - Do not create database models.
+- Do not configure Django admin.
+- Do not create storefront views/URLs.
+- Do not split `index.html` into templates.
 - Do not add payment integration.
 - Do not remove upstream attribution.
-
-## Verification Performed
-
-- T0: All 7 validation checks passed (diff, file existence, .gitignore, .env.example).
-- Original static files remain unmodified.

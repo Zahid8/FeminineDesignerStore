@@ -15,6 +15,7 @@
 - 2026-07-06T14:29:58Z [CODE] Added root `implementation_plan.md` with repo assessment, target file tree, data model, admin design, storefront templates, services/views, migration steps, tests, deployment notes, and acceptance criteria.
 - 2026-07-06T14:50:40Z [CODE] Updated `AGENTS.md` and `CLAUDE.md`; added `docs/architecture.md`, `docs/decisions.md`, `docs/agent/IMPLEMENTATION_PLAN.md`, `docs/agent/TASK_BOARD.md`, `docs/agent/CURRENT_TASK.md`, `docs/agent/HANDOFF.md`, and `docs/agent/TEST_STATUS.md`.
 - 2026-07-06T15:22:32Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` into the requested structured current-task format for TASK-000, based on T0 from the implementation plan.
+- 2026-07-06T15:36:42Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-001, the Django project scaffold task, without creating project files.
 
 ## [DISCOVERIES]
 - 2026-07-06T14:22:44Z [TOOL] Text search found no existing `femdes` or `fem des` content in the template files.
@@ -28,6 +29,7 @@
 - 2026-07-06T14:50:40Z [CODE] Updated `AGENTS.md` and `CLAUDE.md`; added `docs/architecture.md`, `docs/decisions.md`, `docs/agent/IMPLEMENTATION_PLAN.md`, `docs/agent/TASK_BOARD.md`, `docs/agent/CURRENT_TASK.md`, `docs/agent/HANDOFF.md`, and `docs/agent/TEST_STATUS.md`.
 - 2026-07-06T15:22:32Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` into the requested structured current-task format for TASK-000, based on T0 from the implementation plan.
 - 2026-07-06T15:45:00Z [CODE] T0 complete: created `legacy_static/index.html`, `legacy_static/readme.txt`, `.gitignore`, `.env.example`. All 7 validation checks passed. Original static files unmodified.
+- 2026-07-06T15:50:00Z [CODE] T1 complete: scaffolded Django 5.2.15 project (`femdes_site`) and `store` app. Installed deps in conda env `femdes`. Configured python-dotenv, dj-database-url, WhiteNoise, static/media paths. `manage.py check` passes (0 issues). All 12 validation checks passed. Original assets untouched.
 
 ## [OUTCOMES]
 - 2026-07-06T14:22:44Z [ASSUMPTION] Awaiting concrete task scope before editing site files.
@@ -35,3 +37,4 @@
 - 2026-07-06T14:50:40Z [CODE] Architecture/planning documentation completed; feature implementation remains unstarted by request.
 - 2026-07-06T15:22:32Z [CODE] Current task now identifies TASK-000 as baseline preservation; no feature implementation was performed.
 - 2026-07-06T15:45:00Z [CODE] T0 (baseline preservation) completed and verified. T1 (Django scaffold) is next ready task.
+- 2026-07-06T15:36:42Z [CODE] Current task now identifies TASK-001 as Django scaffold; feature implementation remains unstarted in this turn.
