@@ -2,13 +2,29 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded and passing checks. T0 and T1 complete. No models, admin, or views exist yet.
+Django 5.2.15 project scaffolded, test discovery working, and passing checks. T0, T1, and T1-FIX complete. No models, admin, or views exist yet.
 
 Django commands now available:
 
 ```bash
-conda run -n femdes python manage.py check     # PASS
-conda run -n femdes python manage.py test       # no tests defined yet
+conda run -n femdes python manage.py check     # PASS (0 issues)
+conda run -n femdes python manage.py test       # PASS (0 tests, no import errors)
+```
+
+## TASK-001-FIX Verification (2026-07-06)
+
+**Problem found during review:** `store/tests.py` (Django default) conflicted with `store/tests/` package, causing:
+```
+ImportError: 'tests' module incorrectly imported from .../store/tests
+```
+
+**Fix:** Removed `store/tests.py`. All checks pass:
+
+```bash
+test ! -f store/tests.py                              # PASS
+test -f store/tests/__init__.py                       # PASS
+conda run -n femdes python manage.py check            # PASS: no issues
+conda run -n femdes python manage.py test -v 2        # PASS: Ran 0 tests, Found 0 test(s)
 ```
 
 ## T1 Verification (2026-07-06)
