@@ -2,7 +2,7 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated to `static/store/`, test discovery working, and passing checks. T0, T1, T1-FIX, and T2 complete. No models, admin, or views exist yet.
+Django 5.2.15 project scaffolded, assets migrated to `static/store/`, test discovery working, and passing checks. T0, T1, T1-FIX, T2, and T2-FIX complete. No models, admin, or views exist yet.
 
 Django commands now available:
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation), T1 (Django scaffold), T1-FIX (test discovery), and T2 (asset migration) are complete. T3 (database models) is the next task.
+This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation), T1 (Django scaffold), T1-FIX (test discovery), T2 (asset migration), and T2-FIX (cleanup) are complete. T3 (database models) is the next task.
 
 ## What Exists Now
 
@@ -17,12 +17,13 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
   - `femdes_site/` — project package with env-loaded settings
   - `store/` — app package
   - Conda env: `femdes` (Python 3.12.13)
-- Asset migration (T2):
+- Asset migration (T2 + T2-FIX):
   - `static/store/css/` — vendor CSS + Kaira CSS
   - `static/store/js/` — jQuery, plugins, SmoothScroll, script.min.js
   - `static/store/images/` — all Kaira images
   - `static/store/style.css` — Kaira custom stylesheet
   - `staticfiles/` — collected output (gitignored)
+  - `.claude/` — gitignored (local automation artifacts)
 - Agent/planning docs:
   - `AGENTS.md`, `CLAUDE.md`
   - `docs/architecture.md`, `docs/decisions.md`

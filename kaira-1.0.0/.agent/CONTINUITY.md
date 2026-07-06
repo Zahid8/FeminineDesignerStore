@@ -23,6 +23,7 @@
 - 2026-07-06T14:29:58Z [TOOL] No package manifest or backend framework files exist; all cart, product, newsletter, and category data in `index.html` is hard-coded.
 - 2026-07-06T14:50:40Z [TOOL] `AGENTS.md` and `CLAUDE.md` existed but were empty before this documentation pass; no `docs/` tree or automated tests existed.
 - 2026-07-06T15:47:14Z [TOOL] Review of TASK-001 found `conda run -n femdes python manage.py test -v 2` fails with `ImportError: 'tests' module incorrectly imported from .../store/tests` because both `store/tests.py` and `store/tests/` exist.
+- 2026-07-06T16:06:00Z [TOOL] Review of TASK-002 found asset validation, `collectstatic`, `check`, and test discovery pass, but the T2 commit accidentally tracked `.claude/settings.local.json.tmp.1438248.66feb44e9670`.
 
 ## [PROGRESS]
 - 2026-07-06T14:22:44Z [TOOL] Confirmed this directory contains a static Kaira fashion-store template with `index.html`, `style.css`, `css/`, `js/`, and `images/`.
@@ -33,6 +34,7 @@
 - 2026-07-06T15:50:00Z [CODE] T1 complete: scaffolded Django 5.2.15 project (`femdes_site`) and `store` app. Installed deps in conda env `femdes`. Configured python-dotenv, dj-database-url, WhiteNoise, static/media paths. `manage.py check` passes (0 issues). All 12 validation checks passed. Original assets untouched.
 - 2026-07-06T15:55:00Z [CODE] TASK-001-FIX complete: removed `store/tests.py` to resolve `ImportError` conflict with `store/tests/` package. Test discovery now clean (`Ran 0 tests`). T2 is next ready task.
 - 2026-07-06T16:00:00Z [CODE] T2 complete: moved `css/`, `js/`, `images/`, `style.css` into `static/store/`. Removed `CompressedManifestStaticFilesStorage` (vendor.css references missing colorbox/loading.gif). `collectstatic` and `check` pass. T3 is next ready task.
+- 2026-07-06T16:10:00Z [CODE] TASK-002-FIX complete: removed tracked `.claude/settings.local.json.tmp.*`, added `.claude/` to `.gitignore`. All checks still pass. T3 is next ready task.
 - 2026-07-06T15:55:06Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-002/T2 asset migration; updated handoff and future test commands to use `conda run -n femdes`.
 
 ## [OUTCOMES]
@@ -44,3 +46,4 @@
 - 2026-07-06T15:36:42Z [CODE] Current task now identifies TASK-001 as Django scaffold; feature implementation remains unstarted in this turn.
 - 2026-07-06T15:47:14Z [CODE] Review outcome for TASK-001 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-001-FIX for the test-discovery conflict.
 - 2026-07-06T15:55:06Z [CODE] Current task now identifies TASK-002 as the static asset move into `static/store/`; no assets were moved in this turn.
+- 2026-07-06T16:06:00Z [CODE] Review outcome for TASK-002 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-002-FIX for removing the tracked `.claude` temp artifact.
