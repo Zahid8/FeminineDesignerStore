@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone as tz
 
 
@@ -30,9 +30,13 @@ class SiteSettings(models.Model):
     def __str__(self):
         return self.store_name
 
-    def save(self, *args, **kwargs):
+    def clean(self):
+        super().clean()
         if not self.pk and SiteSettings.objects.exists():
             raise ValidationError("Only one SiteSettings row is allowed.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
         super().save(*args, **kwargs)
 
 
@@ -337,6 +341,16 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_number:
             self.order_number = self._generate_order_number()
+            for _ in range(10):
+                try:
+                    with transaction.atomic():
+                        super().save(*args, **kwargs)
+                    return
+                except IntegrityError:
+                    self.order_number = self._generate_order_number()
+            raise ValidationError(
+                "Could not generate a unique order number after 10 attempts."
+            )
         super().save(*args, **kwargs)
 
     def _generate_order_number(self):
@@ -353,9 +367,12 @@ class OrderItem(models.Model):
         Order, on_delete=models.CASCADE, related_name="items"
     )
     product_name = models.CharField(max_length=160)
-    sku = models.CharField(max_length=80)
+    sku = models.CharField(max_length=80, blank=True)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField()
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
     color = models.CharField(max_length=80, blank=True)
     size = models.CharField(max_length=80, blank=True)
@@ -366,6 +383,7 @@ class OrderItem(models.Model):
         null=True,
         related_name="order_items",
     )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"

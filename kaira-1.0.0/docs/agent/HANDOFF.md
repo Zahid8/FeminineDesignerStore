@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation), T1 (Django scaffold), T1-FIX (test discovery), T2 (asset migration), T2-FIX (cleanup), and T3 (database models) are complete. T4 (Django admin) is the next task.
+This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation), T1 (Django scaffold), T1-FIX (test discovery), T2 (asset migration), T2-FIX (cleanup), T3 (database models), and T3-FIX (validation contracts) are complete. T4 (Django admin) is the next task.
 
 ## What Exists Now
 

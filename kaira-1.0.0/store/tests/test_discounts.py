@@ -32,7 +32,7 @@ class DiscountEdgeCaseTests(TestCase):
             value=Decimal("150.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
     def test_fixed_discount_cannot_reduce_effective_price_below_zero(self):
         """Fixed discount cannot reduce effective price below zero."""
@@ -67,7 +67,7 @@ class DiscountEdgeCaseTests(TestCase):
             value=Decimal("10.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
         d2 = Discount(
             name="Bad product scope 2",
@@ -78,7 +78,7 @@ class DiscountEdgeCaseTests(TestCase):
             category=self.category,
         )
         with self.assertRaises(ValidationError):
-            d2.clean()
+            d2.full_clean()
 
         # Valid product discount
         d3 = Discount(
@@ -88,7 +88,7 @@ class DiscountEdgeCaseTests(TestCase):
             value=Decimal("10.00"),
             product=self.product,
         )
-        d3.clean()  # should not raise
+        d3.full_clean()  # should not raise
 
     def test_category_scoped_discount_requires_category_and_no_product(self):
         """Category-scoped discounts require a category and no product."""
@@ -99,7 +99,7 @@ class DiscountEdgeCaseTests(TestCase):
             value=Decimal("10.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
         d2 = Discount(
             name="Bad cat scope 2",
@@ -110,7 +110,7 @@ class DiscountEdgeCaseTests(TestCase):
             product=self.product,
         )
         with self.assertRaises(ValidationError):
-            d2.clean()
+            d2.full_clean()
 
         # Valid category discount
         d3 = Discount(
@@ -120,7 +120,7 @@ class DiscountEdgeCaseTests(TestCase):
             value=Decimal("10.00"),
             category=self.category,
         )
-        d3.clean()  # should not raise
+        d3.full_clean()  # should not raise
 
     def test_global_discount_requires_no_product_or_category(self):
         """Global discounts require no product/category."""
@@ -132,7 +132,7 @@ class DiscountEdgeCaseTests(TestCase):
             category=self.category,
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
         d2 = Discount(
             name="Bad global 2",
@@ -142,7 +142,7 @@ class DiscountEdgeCaseTests(TestCase):
             product=self.product,
         )
         with self.assertRaises(ValidationError):
-            d2.clean()
+            d2.full_clean()
 
         # Valid global discount
         d3 = Discount(
@@ -151,7 +151,7 @@ class DiscountEdgeCaseTests(TestCase):
             scope="global",
             value=Decimal("10.00"),
         )
-        d3.clean()  # should not raise
+        d3.full_clean()  # should not raise
 
     def test_compare_at_price_must_be_empty_or_gte_price(self):
         """compare_at_price must be empty or >= price."""
@@ -164,7 +164,7 @@ class DiscountEdgeCaseTests(TestCase):
             compare_at_price=Decimal("30.00"),
         )
         with self.assertRaises(ValidationError):
-            p.clean()
+            p.full_clean()
 
         # Valid: equal
         p2 = Product(
@@ -175,7 +175,7 @@ class DiscountEdgeCaseTests(TestCase):
             price=Decimal("50.00"),
             compare_at_price=Decimal("50.00"),
         )
-        p2.clean()  # should not raise
+        p2.full_clean()  # should not raise
 
         # Valid: null
         p3 = Product(
@@ -185,7 +185,7 @@ class DiscountEdgeCaseTests(TestCase):
             sku="SKU-COMP-003",
             price=Decimal("50.00"),
         )
-        p3.clean()  # should not raise
+        p3.full_clean()  # should not raise
 
     def test_only_one_primary_image_per_product(self):
         """Only one primary image should remain per product."""

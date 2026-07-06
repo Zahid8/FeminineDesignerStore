@@ -24,6 +24,7 @@
 - 2026-07-06T14:50:40Z [TOOL] `AGENTS.md` and `CLAUDE.md` existed but were empty before this documentation pass; no `docs/` tree or automated tests existed.
 - 2026-07-06T15:47:14Z [TOOL] Review of TASK-001 found `conda run -n femdes python manage.py test -v 2` fails with `ImportError: 'tests' module incorrectly imported from .../store/tests` because both `store/tests.py` and `store/tests/` exist.
 - 2026-07-06T16:06:00Z [TOOL] Review of TASK-002 found asset validation, `collectstatic`, `check`, and test discovery pass, but the T2 commit accidentally tracked `.claude/settings.local.json.tmp.1438248.66feb44e9670`.
+- 2026-07-06T16:36:00Z [TOOL] Review of TASK-003 found declared tests/checks pass, but `SiteSettings.full_clean()` does not reject a second row, `OrderItem` lacks required `discount_amount`/`created_at` and `sku blank=True`, order number collisions raise `IntegrityError`, and validation tests call `.clean()` directly.
 
 ## [PROGRESS]
 - 2026-07-06T14:22:44Z [TOOL] Confirmed this directory contains a static Kaira fashion-store template with `index.html`, `style.css`, `css/`, `js/`, and `images/`.
@@ -36,6 +37,7 @@
 - 2026-07-06T16:00:00Z [CODE] T2 complete: moved `css/`, `js/`, `images/`, `style.css` into `static/store/`. Removed `CompressedManifestStaticFilesStorage` (vendor.css references missing colorbox/loading.gif). `collectstatic` and `check` pass. T3 is next ready task.
 - 2026-07-06T16:10:00Z [CODE] TASK-002-FIX complete: removed tracked `.claude/settings.local.json.tmp.*`, added `.claude/` to `.gitignore`. All checks still pass. T3 is next ready task.
 - 2026-07-06T16:30:00Z [CODE] T3 complete: 8 models (SiteSettings, Category, Product, ProductImage, Discount, NewsletterSubscriber, Order, OrderItem) with validations, get_effective_price, apply_to_price, is_current, applies_to_product, auto order_number generation. 64 tests pass. Migrations clean. T4 is next ready task.
+- 2026-07-06T16:45:00Z [CODE] TASK-003-FIX complete: SiteSettings uses full_clean() for one-row check. OrderItem has discount_amount, created_at, sku blank=True. Order.save() retries on order_number collision (10 attempts). All validation tests call full_clean(). 66 tests pass. T4 next.
 - 2026-07-06T15:55:06Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-002/T2 asset migration; updated handoff and future test commands to use `conda run -n femdes`.
 - 2026-07-06T16:08:27Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-003/T3 database models, migrations, and model tests; no application code was implemented in this turn.
 
@@ -50,3 +52,4 @@
 - 2026-07-06T15:55:06Z [CODE] Current task now identifies TASK-002 as the static asset move into `static/store/`; no assets were moved in this turn.
 - 2026-07-06T16:06:00Z [CODE] Review outcome for TASK-002 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-002-FIX for removing the tracked `.claude` temp artifact.
 - 2026-07-06T16:08:27Z [CODE] Current task now identifies TASK-003 as adding store database models, initial migration, and model/discount tests.
+- 2026-07-06T16:36:00Z [CODE] Review outcome for TASK-003 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-003-FIX for model validation, OrderItem snapshot fields, collision retry, and stronger tests.

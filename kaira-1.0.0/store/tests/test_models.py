@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 from decimal import Decimal
+from unittest import mock
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -24,7 +25,13 @@ class SiteSettingsTests(TestCase):
         s = SiteSettings.objects.create(store_name="FemDes")
         self.assertEqual(str(s), "FemDes")
 
-    def test_only_one_row_allowed(self):
+    def test_full_clean_rejects_second_row(self):
+        SiteSettings.objects.create(store_name="First")
+        s2 = SiteSettings(store_name="Second")
+        with self.assertRaises(ValidationError):
+            s2.full_clean()
+
+    def test_only_one_row_allowed_via_save(self):
         SiteSettings.objects.create(store_name="First")
         with self.assertRaises(ValidationError):
             SiteSettings.objects.create(store_name="Second")
@@ -32,6 +39,7 @@ class SiteSettingsTests(TestCase):
     def test_update_existing_row_allowed(self):
         s = SiteSettings.objects.create(store_name="Original")
         s.store_name = "Updated"
+        s.full_clean()
         s.save()  # should not raise
         self.assertEqual(SiteSettings.objects.count(), 1)
 
@@ -85,7 +93,7 @@ class ProductTests(TestCase):
         )
         self.assertFalse(p.is_in_stock)
 
-    def test_clean_rejects_compare_at_price_lower_than_price(self):
+    def test_full_clean_rejects_compare_at_price_lower_than_price(self):
         p = Product(
             category=self.category,
             name="Test",
@@ -95,9 +103,9 @@ class ProductTests(TestCase):
             compare_at_price=Decimal("30.00"),
         )
         with self.assertRaises(ValidationError):
-            p.clean()
+            p.full_clean()
 
-    def test_clean_allows_compare_at_equal_to_price(self):
+    def test_full_clean_allows_compare_at_equal_to_price(self):
         p = Product(
             category=self.category,
             name="Test",
@@ -106,9 +114,9 @@ class ProductTests(TestCase):
             price=Decimal("50.00"),
             compare_at_price=Decimal("50.00"),
         )
-        p.clean()  # should not raise
+        p.full_clean()  # should not raise
 
-    def test_clean_allows_null_compare_at_price(self):
+    def test_full_clean_allows_null_compare_at_price(self):
         p = Product(
             category=self.category,
             name="Test",
@@ -116,7 +124,7 @@ class ProductTests(TestCase):
             sku="SKU-006",
             price=Decimal("50.00"),
         )
-        p.clean()  # should not raise
+        p.full_clean()  # should not raise
 
     def test_get_effective_price_no_discount(self):
         p = Product.objects.create(
@@ -256,7 +264,7 @@ class DiscountModelTests(TestCase):
         )
         self.assertEqual(str(d), "Summer Sale")
 
-    def test_clean_rejects_percent_above_100(self):
+    def test_full_clean_rejects_percent_above_100(self):
         d = Discount(
             name="Bad",
             discount_type="percent",
@@ -264,9 +272,9 @@ class DiscountModelTests(TestCase):
             value=Decimal("150.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_zero_value(self):
+    def test_full_clean_rejects_zero_value(self):
         d = Discount(
             name="Zero",
             discount_type="fixed",
@@ -274,9 +282,9 @@ class DiscountModelTests(TestCase):
             value=Decimal("0.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_negative_value(self):
+    def test_full_clean_rejects_negative_value(self):
         d = Discount(
             name="Neg",
             discount_type="fixed",
@@ -284,9 +292,9 @@ class DiscountModelTests(TestCase):
             value=Decimal("-5.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_ends_before_starts(self):
+    def test_full_clean_rejects_ends_before_starts(self):
         now = timezone.now()
         d = Discount(
             name="Bad dates",
@@ -297,9 +305,9 @@ class DiscountModelTests(TestCase):
             ends_at=now - timedelta(hours=1),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_global_with_category(self):
+    def test_full_clean_rejects_global_with_category(self):
         d = Discount(
             name="Bad scope",
             discount_type="percent",
@@ -308,9 +316,9 @@ class DiscountModelTests(TestCase):
             category=self.category,
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_global_with_product(self):
+    def test_full_clean_rejects_global_with_product(self):
         d = Discount(
             name="Bad scope",
             discount_type="percent",
@@ -319,9 +327,9 @@ class DiscountModelTests(TestCase):
             product=self.product,
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_category_without_category(self):
+    def test_full_clean_rejects_category_without_category(self):
         d = Discount(
             name="Bad scope",
             discount_type="percent",
@@ -329,9 +337,9 @@ class DiscountModelTests(TestCase):
             value=Decimal("10.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_category_with_product(self):
+    def test_full_clean_rejects_category_with_product(self):
         d = Discount(
             name="Bad scope",
             discount_type="percent",
@@ -341,9 +349,9 @@ class DiscountModelTests(TestCase):
             product=self.product,
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_product_without_product(self):
+    def test_full_clean_rejects_product_without_product(self):
         d = Discount(
             name="Bad scope",
             discount_type="percent",
@@ -351,9 +359,9 @@ class DiscountModelTests(TestCase):
             value=Decimal("10.00"),
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
-    def test_clean_rejects_product_with_category(self):
+    def test_full_clean_rejects_product_with_category(self):
         d = Discount(
             name="Bad scope",
             discount_type="percent",
@@ -363,7 +371,7 @@ class DiscountModelTests(TestCase):
             product=self.product,
         )
         with self.assertRaises(ValidationError):
-            d.clean()
+            d.full_clean()
 
     def test_is_current_active_no_dates(self):
         d = Discount.objects.create(
@@ -562,6 +570,31 @@ class OrderTests(TestCase):
             shipping_address="Addr",
         )
         self.assertEqual(order.status, "pending")
+
+    def test_order_number_collision_retry(self):
+        """Order saves after one collision by retrying number generation."""
+        o1 = Order.objects.create(
+            customer_name="First",
+            customer_email="first@example.com",
+            shipping_address="Addr 1",
+        )
+        # Mock _generate_order_number to collide once then return unique.
+        original = Order._generate_order_number
+        call_count = [0]
+
+        def collision_then_unique(self):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return o1.order_number  # collide
+            return "FD-20260101-UNIQUE"
+
+        with mock.patch.object(Order, "_generate_order_number", collision_then_unique):
+            o2 = Order.objects.create(
+                customer_name="Second",
+                customer_email="second@example.com",
+                shipping_address="Addr 2",
+            )
+        self.assertEqual(o2.order_number, "FD-20260101-UNIQUE")
 
 
 class OrderItemTests(TestCase):

@@ -15,7 +15,7 @@
 | T0 | Done | Confirm baseline and preserve static source | `.gitignore`, `.env.example`, `legacy_static/index.html`, `legacy_static/readme.txt` | `diff -q` checks and file existence checks |
 | T1 | Done | Scaffold Django project | `requirements.txt`, `manage.py`, `femdes_site/`, `store/` | `python manage.py check` |
 | T2 | Done | Move assets into Django static tree (+ cleanup) | `static/store/`, moved `css/`, `js/`, `images/`, `style.css`, `.gitignore` | `python manage.py collectstatic --noinput` |
-| T3 | Done | Add database models and migrations | `store/models.py`, `store/migrations/`, model tests | `python manage.py test store.tests.test_models store.tests.test_discounts` |
+| T3 | Done | Add database models and migrations (+ fixes) | `store/models.py`, `store/migrations/`, model tests | `python manage.py test store.tests.test_models store.tests.test_discounts` |
 | T4 | Ready | Configure Django admin | `store/admin.py`, `store/tests/test_admin.py` | `python manage.py test store.tests.test_admin` |
 | T5 | Blocked | Add forms, selectors, services, URLs, and views | `store/forms.py`, `store/selectors.py`, `store/services.py`, `store/views.py`, `store/urls.py`, URL config, cart/storefront tests | `python manage.py test store.tests.test_cart store.tests.test_storefront` |
 | T6 | Blocked | Convert static HTML into Django templates | `templates/` tree | storefront tests, `collectstatic`, manual browser check |
