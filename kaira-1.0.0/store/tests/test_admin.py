@@ -1,5 +1,6 @@
 """Tests for Django admin registration, configuration, and access control."""
 
+from django.contrib import admin
 from django.contrib.admin.sites import site
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
@@ -11,14 +12,19 @@ from store.admin import (
     DiscountAdmin,
     NewsletterSubscriberAdmin,
     OrderAdmin,
+    OrderItemAdmin,
     ProductAdmin,
+    ProductImageAdmin,
     SiteSettingsAdmin,
 )
 from store.models import (
     Category,
+    Discount,
     NewsletterSubscriber,
     Order,
+    OrderItem,
     Product,
+    ProductImage,
     SiteSettings,
 )
 
@@ -26,22 +32,22 @@ from store.models import (
 class AdminRegistrationTests(TestCase):
     """All eight store models are registered with admin.site."""
 
-    def test_all_models_registered(self):
-        # Six models registered directly with @admin.register
-        registered = {m._meta.model_name for m in site._registry.keys()}
-        expected_direct = {
-            "sitesettings",
-            "category",
-            "product",
-            "discount",
-            "newslettersubscriber",
-            "order",
-        }
-        for model_name in expected_direct:
-            self.assertIn(
-                model_name,
-                registered,
-                f"{model_name} not registered in admin",
+    ALL_MODELS = [
+        SiteSettings,
+        Category,
+        Product,
+        ProductImage,
+        Discount,
+        NewsletterSubscriber,
+        Order,
+        OrderItem,
+    ]
+
+    def test_all_eight_models_registered(self):
+        for model in self.ALL_MODELS:
+            self.assertTrue(
+                admin.site.is_registered(model),
+                f"{model.__name__} is not registered with admin.site",
             )
 
     def test_product_image_is_inline(self):
@@ -59,10 +65,9 @@ class ProductAdminConfigTests(TestCase):
     """ProductAdmin includes ProductImage inline and required config."""
 
     def test_inline_includes_product_image(self):
-        inlines = ProductAdmin.inlines
         from store.admin import ProductImageInline
 
-        self.assertIn(ProductImageInline, inlines)
+        self.assertIn(ProductImageInline, ProductAdmin.inlines)
 
     def test_list_filter_fields(self):
         self.assertEqual(
@@ -88,6 +93,25 @@ class ProductAdminConfigTests(TestCase):
         )
 
 
+class ProductImageAdminConfigTests(TestCase):
+    """Direct ProductImageAdmin list display, filters, and search."""
+
+    def test_list_display(self):
+        self.assertIn("product", ProductImageAdmin.list_display)
+        self.assertIn("image", ProductImageAdmin.list_display)
+        self.assertIn("alt_text", ProductImageAdmin.list_display)
+        self.assertIn("is_primary", ProductImageAdmin.list_display)
+        self.assertIn("sort_order", ProductImageAdmin.list_display)
+
+    def test_list_filter(self):
+        self.assertIn("is_primary", ProductImageAdmin.list_filter)
+        self.assertIn("product", ProductImageAdmin.list_filter)
+
+    def test_search_fields(self):
+        self.assertIn("product__name", ProductImageAdmin.search_fields)
+        self.assertIn("alt_text", ProductImageAdmin.search_fields)
+
+
 class OrderAdminConfigTests(TestCase):
     """OrderAdmin has required search and readonly fields."""
 
@@ -110,6 +134,41 @@ class OrderAdminConfigTests(TestCase):
         self.assertFalse(OrderItemInline.can_delete)
         self.assertEqual(OrderItemInline.max_num, 0)
         self.assertFalse(OrderItemInline.has_add_permission(None, None))
+
+
+class OrderItemAdminConfigTests(TestCase):
+    """Direct OrderItemAdmin: readonly snapshot, no add/delete."""
+
+    def test_readonly_fields_include_snapshots(self):
+        readonly = OrderItemAdmin.readonly_fields
+        for field in (
+            "product", "product_name", "sku", "quantity",
+            "unit_price", "discount_amount", "line_total",
+            "color", "size", "created_at",
+        ):
+            self.assertIn(field, readonly, f"{field} should be readonly")
+
+    def test_has_add_permission_false(self):
+        admin_instance = OrderItemAdmin(OrderItem, site)
+        self.assertFalse(admin_instance.has_add_permission(None))
+
+    def test_has_delete_permission_false(self):
+        admin_instance = OrderItemAdmin(OrderItem, site)
+        self.assertFalse(admin_instance.has_delete_permission(None))
+
+    def test_list_display(self):
+        self.assertIn("order", OrderItemAdmin.list_display)
+        self.assertIn("product_name", OrderItemAdmin.list_display)
+        self.assertIn("sku", OrderItemAdmin.list_display)
+        self.assertIn("quantity", OrderItemAdmin.list_display)
+
+    def test_search_fields(self):
+        self.assertIn("order__order_number", OrderItemAdmin.search_fields)
+        self.assertIn("product_name", OrderItemAdmin.search_fields)
+        self.assertIn("sku", OrderItemAdmin.search_fields)
+
+    def test_list_filter(self):
+        self.assertIn("created_at", OrderItemAdmin.list_filter)
 
 
 class SiteSettingsAdminTests(TestCase):
@@ -141,7 +200,6 @@ class AdminAccessTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.product_url = reverse("admin:store_product_changelist")
-        # Create a product content type for permissions
         self.product_ct = ContentType.objects.get_for_model(Product)
 
     def test_anonymous_redirected_from_product_changelist(self):
@@ -164,7 +222,6 @@ class AdminAccessTests(TestCase):
         staff.save()
         self.client.force_login(staff)
         response = self.client.get(self.product_url)
-        # Staff without explicit permission should be denied
         self.assertIn(response.status_code, (302, 403))
 
     def test_staff_with_permission_can_access_product_changelist(self):

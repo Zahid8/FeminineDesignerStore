@@ -46,6 +46,13 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline]
 
 
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ("product", "image", "alt_text", "is_primary", "sort_order")
+    list_filter = ("is_primary", "product")
+    search_fields = ("product__name", "alt_text")
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "is_active", "sort_order")
@@ -140,6 +147,43 @@ class OrderAdmin(admin.ModelAdmin):
         "updated_at",
     )
     inlines = [OrderItemInline]
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = (
+        "order",
+        "product_name",
+        "sku",
+        "quantity",
+        "unit_price",
+        "discount_amount",
+        "line_total",
+        "color",
+        "size",
+        "created_at",
+    )
+    search_fields = ("order__order_number", "product_name", "sku")
+    list_filter = ("created_at",)
+    readonly_fields = (
+        "order",
+        "product",
+        "product_name",
+        "sku",
+        "quantity",
+        "unit_price",
+        "discount_amount",
+        "line_total",
+        "color",
+        "size",
+        "created_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(SiteSettings)
