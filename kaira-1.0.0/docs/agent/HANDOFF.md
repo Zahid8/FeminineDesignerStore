@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation), T1 (Django scaffold), T1-FIX (test discovery), T2 (asset migration), and T2-FIX (cleanup) are complete. T3 (database models) is the next task.
+This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 (baseline preservation), T1 (Django scaffold), T1-FIX (test discovery), T2 (asset migration), T2-FIX (cleanup), and T3 (database models) are complete. T4 (Django admin) is the next task.
 
 ## What Exists Now
 
@@ -45,12 +45,11 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
 
 ## Next Action
 
-**T3: Add database models and migrations** — implement `store/models.py` with SiteSettings, Category, Product, ProductImage, Discount, NewsletterSubscriber, Order, OrderItem. See `docs/agent/CURRENT_TASK.md`.
+**T4: Configure Django admin** — register all store models, configure list displays, filters, search, inlines, readonly fields. See `docs/agent/CURRENT_TASK.md`.
 
 ## Do Not Do Yet
 
-- Do not create database models (that's T3).
-- Do not configure Django admin.
+- Do not configure Django admin (that's T4).
 - Do not create storefront views/URLs.
 - Do not split `index.html` into templates.
 - Do not add payment integration.

@@ -2,14 +2,27 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated to `static/store/`, test discovery working, and passing checks. T0, T1, T1-FIX, T2, and T2-FIX complete. No models, admin, or views exist yet.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, 64 tests passing. T0 through T3 complete. Admin configuration is next.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (0 tests, no import errors)
+conda run -n femdes python manage.py test       # PASS (64 tests)
 ```
+
+## T3 Verification (2026-07-06)
+
+All 64 tests pass. 8 models implemented with initial migration.
+
+```bash
+conda run -n femdes python manage.py makemigrations --check --dry-run  # No changes detected
+conda run -n femdes python manage.py migrate                           # OK
+conda run -n femdes python manage.py test                              # 64 tests, OK
+conda run -n femdes python manage.py check                             # 0 issues
+```
+
+Models: SiteSettings (one-row), Category, Product (with get_effective_price), ProductImage (one-primary), Discount (scope validation, apply_to_price), NewsletterSubscriber, Order (auto order_number), OrderItem.
 
 ## T2 Verification (2026-07-06)
 
