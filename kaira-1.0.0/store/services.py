@@ -146,6 +146,25 @@ def create_order_from_cart(request, checkout_data):
         )
         product_map = {p.pk: p for p in products}
 
+        # Aggregate quantities per product across all cart lines.
+        aggregate_qty = {}
+        for item in cart.values():
+            pid = item["product_id"]
+            aggregate_qty[pid] = aggregate_qty.get(pid, 0) + item["quantity"]
+
+        # Validate aggregate stock before creating order.
+        for pid, aggr in aggregate_qty.items():
+            product = product_map.get(pid)
+            if product is None:
+                raise ValueError(f"Product {pid} no longer exists.")
+            if not product.is_active:
+                raise ValueError(f"Product {product.name} is no longer available.")
+            if aggr > product.stock_quantity:
+                raise ValueError(
+                    f"Insufficient stock for {product.name} "
+                    f"(requested {aggr}, available {product.stock_quantity})."
+                )
+
         subtotal = Decimal("0.00")
         discount_total = Decimal("0.00")
         order_items_data = []
@@ -154,12 +173,6 @@ def create_order_from_cart(request, checkout_data):
             product = product_map.get(item["product_id"])
             if product is None:
                 raise ValueError(f"Product {item['product_id']} no longer exists.")
-            if not product.is_active:
-                raise ValueError(f"Product {product.name} is no longer available.")
-            if item["quantity"] > product.stock_quantity:
-                raise ValueError(
-                    f"Insufficient stock for {product.name}."
-                )
 
             qty = item["quantity"]
             unit_price = product.price

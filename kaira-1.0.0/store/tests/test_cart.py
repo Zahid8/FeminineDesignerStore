@@ -6,6 +6,8 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase
 
 from store.models import Category, Product
+from store.models import Order, OrderItem
+
 from store.services import (
     CART_SESSION_KEY,
     add_to_cart,
@@ -264,6 +266,60 @@ class CheckoutTests(TestCase):
         self.assertEqual(item.quantity, 2)
         self.assertEqual(item.unit_price, Decimal("50.00"))
         self.assertEqual(item.line_total, Decimal("100.00"))
+
+
+class MultiVariantCheckoutTests(TestCase):
+    """Aggregate stock validation across variant cart lines."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name="Dresses", slug="dresses")
+        self.product = Product.objects.create(
+            category=self.category,
+            name="Test Dress",
+            slug="test-dress-mv",
+            sku="SKU-CART-MV",
+            price=Decimal("50.00"),
+            stock_quantity=5,
+            is_active=True,
+        )
+
+    def test_multi_variant_oversell_raises_valueerror(self):
+        """Aggregate qty > stock raises ValueError, preserves cart/stock."""
+        request = _make_request()
+        add_to_cart(request, self.product, quantity=3, color="Red", size="M")
+        add_to_cart(request, self.product, quantity=3, color="Blue", size="L")
+        checkout_data = {
+            "customer_name": "Alice",
+            "customer_email": "alice@example.com",
+            "shipping_address": "123 Main St",
+        }
+        with self.assertRaises(ValueError):
+            create_order_from_cart(request, checkout_data)
+        # No order created
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(OrderItem.objects.count(), 0)
+        # Stock unchanged
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock_quantity, 5)
+        # Cart intact
+        cart = get_cart(request)
+        self.assertEqual(len(cart), 2)
+
+    def test_multi_variant_success_decrements_aggregate_stock(self):
+        """Two variants within stock create one order, two items."""
+        request = _make_request()
+        add_to_cart(request, self.product, quantity=2, color="Red", size="M")
+        add_to_cart(request, self.product, quantity=1, color="Blue", size="L")
+        checkout_data = {
+            "customer_name": "Bob",
+            "customer_email": "bob@example.com",
+            "shipping_address": "456 Oak Ave",
+        }
+        order = create_order_from_cart(request, checkout_data)
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(order.items.count(), 2)
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock_quantity, 2)
 
 
 class NewsletterTests(TestCase):

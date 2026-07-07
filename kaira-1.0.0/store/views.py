@@ -112,7 +112,7 @@ def remove_from_cart(request, cart_key):
 
 def checkout(request):
     summary = services.get_cart_summary(request)
-    if not summary["lines"] and request.method == "GET":
+    if not summary["lines"]:
         messages.info(request, "Your cart is empty.")
         return redirect("cart_detail")
 

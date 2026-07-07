@@ -150,6 +150,11 @@ class CheckoutViewTests(TestCase):
         # With empty cart, GET should redirect to cart
         self.assertEqual(response.status_code, 302)
 
+    def test_empty_cart_checkout_post_redirects(self):
+        response = self.client.post(reverse("checkout"), {})
+        self.assertRedirects(response, reverse("cart_detail"))
+        self.assertEqual(Order.objects.count(), 0)
+
     def test_checkout_get_with_items(self):
         # Add item to cart first
         self.client.post(
