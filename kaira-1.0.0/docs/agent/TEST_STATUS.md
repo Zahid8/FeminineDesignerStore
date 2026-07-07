@@ -2,13 +2,13 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T6 (with T6-FIX) complete. 149 tests pass. T7 is next.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T6 (with T6-FIX and T6-FIX2) complete. 152 tests pass. T7 is next.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (149 tests)
+conda run -n femdes python manage.py test       # PASS (152 tests)
 ```
 
 ## T5 Verification (2026-07-06)

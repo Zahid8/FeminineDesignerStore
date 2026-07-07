@@ -1,10 +1,10 @@
 # Current Task
 
 ## Task ID
-TASK-006-FIX — COMPLETE (2026-07-07)
+TASK-006-FIX2 — COMPLETE (2026-07-07)
 
 ## Completed
-T6-FIX: Restored Kaira-compatible carousel structure (product-carousel wrapper with descendant .swiper, icon-arrow navigation). Restored Kaira search popup classes (.search-popup, .search-popup-container, .search-popup-form) with search-button trigger. 149 tests pass.
+T6-FIX2: Added `search` and `close` SVG symbols. Search popup now has `.btn-close-search` close control. All search controls use `#search` icon (not `#shopping-bag`). Carousel tests strengthened with DOM-relationship checks and icon-arrow control assertions. 152 tests pass.
 
 ## Next Task
 

@@ -28,6 +28,8 @@
 - 2026-07-06T16:37:28Z [TOOL] Review of TASK-004 found declared tests/checks pass, but `ProductImage` and `OrderItem` are not registered with `admin.site`; `store/tests/test_admin.py` claims all eight models while only asserting six direct registrations.
 - 2026-07-06T17:06:56Z [TOOL] Review of TASK-005 found declared tests/checks pass, but checkout can oversell aggregate stock across multiple variant cart lines for the same product and raise a database `IntegrityError`; empty-cart checkout POST returns 200 instead of redirecting to cart.
 - 2026-07-07T04:55:56Z [TOOL] Review of TASK-006 found tests/checks pass, but carousel markup is incompatible with `static/store/js/script.min.js` because `.product-carousel` is placed on the `.swiper` node instead of an outer wrapper with descendant `.swiper`; search markup also replaced Kaira `.search-popup` contract with a Bootstrap modal.
+- 2026-07-07T05:02:28Z [TOOL] Review of TASK-006-FIX found validation commands pass, but the search popup still lacks a `.search-popup-close`/`.btn-close-search` close control, search controls still use `#shopping-bag` instead of the legacy `#search` symbol, and carousel tests still only check independent strings rather than actual DOM descendants.
+- 2026-07-07T05:06:31Z [TOOL] Follow-up review found no newer implementation commit after `cf0ab8c`; TASK-006-FIX2 remains the active corrective task for the same search-popup close/icon and DOM-test-strength gaps.
 
 ## [PROGRESS]
 - 2026-07-06T14:22:44Z [TOOL] Confirmed this directory contains a static Kaira fashion-store template with `index.html`, `style.css`, `css/`, `js/`, and `images/`.
@@ -47,6 +49,7 @@
 - 2026-07-06T17:45:00Z [CODE] TASK-005-FIX complete: aggregate stock validation per product across variant cart lines prevents oversells. Empty-cart POST redirects to cart. 135 tests pass (132 + 3 new). T6 next.
 - 2026-07-06T18:00:00Z [CODE] T6 complete: Kaira templates converted. base.html with Kaira shell, 7 partials (icons, navbar, search_popup, cart_offcanvas, product_card, category_card, footer), 6 page templates (home, product_list, product_detail, cart, checkout, order_success). Static references use {% static %}. TemplatesJungle/ThemeWagon attribution preserved. 145 tests pass (135 + 10 template assertions). collectstatic OK. T7 next.
 - 2026-07-07T05:00:00Z [CODE] TASK-006-FIX complete: restored Kaira-compatible carousel structure (product-carousel wrapper with descendant .swiper, icon-arrow-left/right navigation). Restored Kaira search popup (.search-popup, .search-popup-container, .search-popup-form) with search-button trigger. 149 tests pass (145 + 4 strengthened). T7 next.
+- 2026-07-07T05:15:00Z [CODE] TASK-006-FIX2 complete: added `search` and `close` SVG symbols to icons.html. Search popup has .btn-close-search close control with #close icon. All search controls use #search xlink (navbar trigger, search submit). Carousel tests use DOM-relationship checks and icon-arrow control assertions. 152 tests pass. T7 next.
 - 2026-07-06T15:55:06Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-002/T2 asset migration; updated handoff and future test commands to use `conda run -n femdes`.
 - 2026-07-06T16:08:27Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-003/T3 database models, migrations, and model tests; no application code was implemented in this turn.
 - 2026-07-06T16:27:35Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-004/T4 Django admin configuration; corrected stale T3 test-count docs from 64 to 66.
@@ -73,3 +76,4 @@
 - 2026-07-07T04:47:09Z [TOOL] Review outcome for TASK-005-FIX is APPROVED; 44 cart/storefront tests and 135 full tests pass, aggregate stock failure now raises `ValueError`, and empty-cart checkout POST redirects to `/cart/`.
 - 2026-07-07T04:47:09Z [CODE] Current task now identifies TASK-006 as converting Kaira static HTML into Django templates while preserving local static assets and attribution.
 - 2026-07-07T04:55:56Z [CODE] Review outcome for TASK-006 is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-006-FIX for Kaira-compatible carousel/search markup and stronger template-structure tests.
+- 2026-07-07T05:02:28Z [CODE] Review outcome for TASK-006-FIX is NEEDS FIXES; rewrote `docs/agent/CURRENT_TASK.md` to TASK-006-FIX2 for completing search popup close/icon behavior and dependency-free DOM-structure tests.

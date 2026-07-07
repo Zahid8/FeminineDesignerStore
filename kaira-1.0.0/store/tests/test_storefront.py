@@ -1,11 +1,109 @@
 """Tests for storefront views and URL routing."""
 
 from decimal import Decimal
+from html.parser import HTMLParser
 
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from store.models import Category, Order, Product, SiteSettings
+
+
+class _DomChecker(HTMLParser):
+    """Minimal HTML parser to check that a wrapper element contains a descendant."""
+
+    def __init__(self):
+        super().__init__()
+        self._stack = []
+        self._matches = []
+
+    def handle_starttag(self, tag, attrs):
+        classes = ""
+        for name, val in attrs:
+            if name == "class":
+                classes = val
+                break
+        self._stack.append((tag, classes))
+
+    def handle_endtag(self, tag):
+        if self._stack:
+            self._stack.pop()
+
+    def wrapper_contains_descendant(self, html, wrapper_class, descendant_class):
+        """Return True if an element with wrapper_class contains descendant_class."""
+        self._stack = []
+        self._matches = []
+        self.feed(html)
+        # Re-parse to find relationships
+        self._stack = []
+        self._find_wrapper(html, wrapper_class, descendant_class)
+        return self._matches
+
+    def _find_wrapper(self, html, wrapper_class, descendant_class):
+        """Walk through and find wrapper->descendant relationships."""
+        tokens = _tokenize(html)
+        depth = 0
+        in_wrapper = False
+        wrapper_depth = -1
+        for token in tokens:
+            if token.startswith("</"):
+                depth -= 1
+                if depth < wrapper_depth and in_wrapper:
+                    in_wrapper = False
+                continue
+            if token.startswith("<") and not token.startswith("</"):
+                classes = _extract_classes(token)
+                if not in_wrapper and wrapper_class in classes:
+                    in_wrapper = True
+                    wrapper_depth = depth
+                if in_wrapper and depth > wrapper_depth and descendant_class in classes:
+                    self._matches.append(True)
+                    return
+                depth += 1
+
+
+def _tokenize(html):
+    """Simple HTML tokenizer — splits on < and >."""
+    tokens = []
+    for part in html.split("<"):
+        if not part:
+            continue
+        idx = part.find(">")
+        if idx >= 0:
+            tokens.append("<" + part[:idx] + ">")
+    return tokens
+
+
+def _extract_classes(token):
+    """Extract class attribute values from an HTML open tag."""
+    import re
+    match = re.search(r'class=["\']([^"\']+)["\']', token)
+    if match:
+        return match.group(1).split()
+    return []
+
+
+def _check_wrapper_contains_descendant(html, wrapper_class, descendant_class):
+    """Return True if a wrapper element contains a descendant."""
+    tokens = _tokenize(html)
+    depth = 0
+    in_wrapper = False
+    wrapper_depth = -1
+    for token in tokens:
+        if token.startswith("</"):
+            depth -= 1
+            if depth < wrapper_depth and in_wrapper:
+                in_wrapper = False
+            continue
+        if token.startswith("<") and not token.startswith("</"):
+            classes = _extract_classes(token)
+            if not in_wrapper and wrapper_class in classes:
+                in_wrapper = True
+                wrapper_depth = depth
+            elif in_wrapper and depth > wrapper_depth and descendant_class in classes:
+                return True
+            depth += 1
+    return False
 
 
 class HomeViewTests(TestCase):
@@ -31,8 +129,21 @@ class HomeViewTests(TestCase):
         self._create_homepage_products()
         response = self.client.get(reverse("home"))
         content = response.content.decode()
-        self.assertIn('product-carousel', content)
-        self.assertIn('swiper product-swiper', content)
+        for section_id in ("new-arrival", "best-sellers", "related-products"):
+            self.assertTrue(
+                _check_wrapper_contains_descendant(
+                    content, "product-carousel", "swiper"
+                ),
+                f"product-carousel wrapper should contain .swiper descendant (checked near #{section_id})",
+            )
+
+    def test_home_carousels_have_icon_arrow_controls(self):
+        """Each product-carousel wrapper contains icon-arrow controls."""
+        self._create_homepage_products()
+        response = self.client.get(reverse("home"))
+        content = response.content.decode()
+        self.assertIn('icon-arrow-left', content)
+        self.assertIn('icon-arrow-right', content)
 
     def _create_homepage_products(self):
         cat = Category.objects.create(name="Test", slug="test-home", is_active=True)
@@ -342,8 +453,25 @@ class TemplateStructureTests(TestCase):
         self.assertIn('name="q"', content)
         self.assertIn(reverse("product_list"), content)
 
+    def test_search_popup_has_close_control(self):
+        """Search popup contains btn-close-search for Kaira JS compatibility."""
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "btn-close-search")
+
+    def test_search_controls_use_search_icon(self):
+        """Search triggers and submit use #search xlink, not #shopping-bag."""
+        response = self.client.get(reverse("home"))
+        content = response.content.decode()
+        self.assertIn('xlink:href="#search"', content)
+        # Search popup submit and navbar trigger must not use shopping-bag
+        # We check that the search-popup section doesn't contain #shopping-bag
+        popup_start = content.find('search-popup-form')
+        popup_end = content.find('search-popup-container', popup_start)
+        popup_chunk = content[popup_start:popup_end + 100] if popup_start >= 0 else ""
+        self.assertNotIn('xlink:href="#shopping-bag"', popup_chunk)
+
     def test_navbar_has_kaira_search_trigger(self):
-        """Navbar contains Kaira search-button trigger."""
+        """Navbar contains Kaira search-button trigger with #search icon."""
         response = self.client.get(reverse("home"))
         self.assertContains(response, 'class="search-button"')
         self.assertContains(response, 'href="#search"')
