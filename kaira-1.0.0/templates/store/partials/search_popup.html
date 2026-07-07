@@ -1,0 +1,17 @@
+<div class="modal fade" id="searchModal" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center">
+        <form action="{% url 'product_list' %}" method="get" class="w-75">
+          <div class="input-group input-group-lg">
+            <input type="search" name="q" class="form-control" placeholder="Search products..." aria-label="Search">
+            <button type="submit" class="btn btn-dark">Search</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

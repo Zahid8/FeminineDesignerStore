@@ -1,9 +1,106 @@
-<h1>{{ product.name }}</h1>
-<p>Price: {{ product.price }}</p>
-<p>Stock: {{ product.stock_quantity }}</p>
-<form method="post" action="{% url 'add_to_cart' product.pk %}">
-  {% csrf_token %}
-  {{ add_to_cart_form.as_p }}
-  <button type="submit">Add to Cart</button>
-</form>
-<p>Cart items: {{ cart.item_count }}</p>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} — {{ product.name }}{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <div class="row g-5">
+      <!-- Product images -->
+      <div class="col-md-6">
+        {% with primary=product.images.all|dictsort:"sort_order"|first %}
+        {% if primary %}
+        <img src="{{ primary.image.url }}" alt="{{ product.name }}" class="img-fluid rounded mb-3" id="main-product-image">
+        {% else %}
+        <img src="{% static 'store/images/product-item-1.jpg' %}" alt="{{ product.name }}" class="img-fluid rounded mb-3">
+        {% endif %}
+        {% endwith %}
+        {% if product.images.count > 1 %}
+        <div class="row g-2">
+          {% for img in product.images.all|dictsort:"sort_order" %}
+          <div class="col-3">
+            <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="img-fluid rounded product-thumb" style="cursor:pointer">
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <!-- Product info -->
+      <div class="col-md-6">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'product_list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+          </ol>
+        </nav>
+        <h1 class="mb-2">{{ product.name }}</h1>
+        <span class="text-muted">SKU: {{ product.sku }}</span>
+        <div class="my-3">
+          <span class="fs-3 text-primary fw-bold">${{ product.get_effective_price }}</span>
+          {% if product.compare_at_price and product.compare_at_price > product.price %}
+          <span class="text-muted text-decoration-line-through ms-2 fs-5">${{ product.compare_at_price }}</span>
+          {% endif %}
+        </div>
+        {% if product.short_description %}<p>{{ product.short_description }}</p>{% endif %}
+        {% if product.description %}<p class="text-muted">{{ product.description|linebreaks }}</p>{% endif %}
+        <p>
+          {% if product.is_in_stock %}
+          <span class="badge bg-success">In Stock ({{ product.stock_quantity }} available)</span>
+          {% else %}
+          <span class="badge bg-secondary">Out of Stock</span>
+          {% endif %}
+        </p>
+        {% if product.is_in_stock %}
+        <form method="post" action="{% url 'add_to_cart' product.pk %}" class="mt-4">
+          {% csrf_token %}
+          <div class="row g-3 align-items-end">
+            {% if product.color_options %}
+            <div class="col-md-4">
+              <label for="color" class="form-label">Color</label>
+              <select name="color" id="color" class="form-select">
+                <option value="">--</option>
+                {% for c in product.color_options.splitlines %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+              </select>
+            </div>
+            {% endif %}
+            {% if product.size_options %}
+            <div class="col-md-4">
+              <label for="size" class="form-label">Size</label>
+              <select name="size" id="size" class="form-select">
+                <option value="">--</option>
+                {% for s in product.size_options.splitlines %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+              </select>
+            </div>
+            {% endif %}
+            <div class="col-md-3">
+              <label for="quantity" class="form-label">Qty</label>
+              <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ product.stock_quantity }}" class="form-control">
+            </div>
+            <div class="col-md-auto">
+              <button type="submit" class="btn btn-dark btn-lg">Add to Cart</button>
+            </div>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Related products -->
+    {% if related_products %}
+    <section class="mt-5 pt-5 border-top">
+      <h3 class="mb-4">Related Products</h3>
+      <div id="related-products" class="swiper product-carousel">
+        <div class="swiper-wrapper">
+          {% for product in related_products %}
+          <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
+          {% endfor %}
+        </div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

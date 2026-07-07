@@ -1,0 +1,36 @@
+{% load static %}
+<footer class="bg-dark text-white py-5 mt-5">
+  <div class="container-lg">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <h5 class="fw-bold mb-3">{{ site_settings.store_name|default:"FemDes" }}</h5>
+        {% if site_settings.tagline %}<p>{{ site_settings.tagline }}</p>{% endif %}
+        {% if site_settings.address %}<p class="small">{{ site_settings.address }}</p>{% endif %}
+        {% if site_settings.contact_email %}<p class="small">Email: {{ site_settings.contact_email }}</p>{% endif %}
+        {% if site_settings.contact_phone %}<p class="small">Phone: {{ site_settings.contact_phone }}</p>{% endif %}
+        <div class="social-links mt-3">
+          {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}" class="text-white me-3"><svg width="20" height="20"><use xlink:href="#instagram"></use></svg></a>{% endif %}
+          {% if site_settings.facebook_url %}<a href="{{ site_settings.facebook_url }}" class="text-white me-3"><svg width="20" height="20"><use xlink:href="#facebook"></use></svg></a>{% endif %}
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <h5 class="fw-bold mb-3">Quick Links</h5>
+        <ul class="list-unstyled">
+          <li><a href="{% url 'home' %}" class="text-white-50">Home</a></li>
+          <li><a href="{% url 'product_list' %}" class="text-white-50">Shop</a></li>
+          <li><a href="{% url 'cart_detail' %}" class="text-white-50">Cart</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h5 class="fw-bold mb-3">Payment</h5>
+        <img src="{% static 'store/images/visa-card.png' %}" alt="Visa" class="me-2" height="30">
+        <img src="{% static 'store/images/master-card.png' %}" alt="Mastercard" class="me-2" height="30">
+        <img src="{% static 'store/images/paypal-card.png' %}" alt="PayPal" height="30">
+      </div>
+    </div>
+    <div class="text-center mt-4 pt-3 border-top border-secondary">
+      <p class="small text-white-50 mb-1">&copy; {% now "Y" %} {{ site_settings.store_name|default:"FemDes" }}. All rights reserved.</p>
+      <p class="small text-white-50 mb-0">Free template by <a href="https://templatesjungle.com/" class="text-white-50" target="_blank">TemplatesJungle</a>. Distributed by <a href="https://themewagon.com/" class="text-white-50" target="_blank">ThemeWagon</a>.</p>
+    </div>
+  </div>
+</footer>

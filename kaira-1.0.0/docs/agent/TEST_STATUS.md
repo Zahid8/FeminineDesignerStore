@@ -2,13 +2,27 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T5 (with T5-FIX) complete. 135 tests pass. T6 is next.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T6 complete. 145 tests pass. T7 (seed command) is next.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (135 tests)
+conda run -n femdes python manage.py test       # PASS (145 tests)
+```
+
+## T5 Verification (2026-07-06)
+
+T5 and T5-FIX are complete. Storefront forms, selectors, services, URLs, views,
+and temporary templates are in place. T5-FIX adds aggregate stock validation
+across variant cart lines and redirects empty-cart checkout POST requests back
+to the cart.
+
+```bash
+conda run -n femdes python manage.py test store.tests.test_cart store.tests.test_storefront -v 2  # 44 tests, OK
+conda run -n femdes python manage.py test                                                         # 135 tests, OK
+conda run -n femdes python manage.py check                                                        # 0 issues
+conda run -n femdes python manage.py makemigrations --check --dry-run                             # No changes detected
 ```
 
 ## T4 Verification (2026-07-06)

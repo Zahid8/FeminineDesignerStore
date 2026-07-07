@@ -1,3 +1,71 @@
-<h1>Order Confirmed</h1>
-<p>Order #: {{ order.order_number }}</p>
-<p>Total: {{ order.total }}</p>
+{% extends "base.html" %}
+
+{% block title %} — Order Confirmed{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <div class="text-center mb-5">
+      <h1 class="display-5 fw-bold">Thank You!</h1>
+      <p class="lead text-muted">Your order has been placed successfully.</p>
+      <p class="fs-4">Order #: <strong>{{ order.order_number }}</strong></p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card mb-4">
+          <div class="card-header"><h5 class="mb-0">Order Details</h5></div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-sm-6"><strong>Status:</strong> {{ order.get_status_display }}</div>
+              <div class="col-sm-6"><strong>Date:</strong> {{ order.created_at|date:"F j, Y" }}</div>
+            </div>
+            <table class="table">
+              <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+              <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                  <td>{{ item.product_name }}{% if item.color %}<br><small class="text-muted">{{ item.color }}{% if item.size %} / {{ item.size }}{% endif %}</small>{% endif %}</td>
+                  <td>{{ item.sku }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>${{ item.unit_price }}</td>
+                  <td>${{ item.line_total }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <hr>
+            <div class="row">
+              <div class="col-6"><strong>Subtotal:</strong></div>
+              <div class="col-6 text-end">${{ order.subtotal }}</div>
+            </div>
+            {% if order.discount_total > 0 %}
+            <div class="row text-success">
+              <div class="col-6"><strong>Discount:</strong></div>
+              <div class="col-6 text-end">-${{ order.discount_total }}</div>
+            </div>
+            {% endif %}
+            <div class="row fs-5">
+              <div class="col-6"><strong>Total:</strong></div>
+              <div class="col-6 text-end"><strong>${{ order.total }}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header"><h5 class="mb-0">Shipping Information</h5></div>
+          <div class="card-body">
+            <p><strong>{{ order.customer_name }}</strong><br>
+            {{ order.customer_email }}{% if order.customer_phone %}<br>{{ order.customer_phone }}{% endif %}</p>
+            <p class="mb-0"><strong>Address:</strong><br>{{ order.shipping_address|linebreaksbr }}</p>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="{% url 'product_list' %}" class="btn btn-outline-dark btn-lg">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

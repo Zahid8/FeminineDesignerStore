@@ -1,3 +1,146 @@
-<h1>{{ site_settings.store_name|default:"FemDes" }}</h1>
-<p>Featured: {{ featured.count }}, New: {{ new_arrivals.count }}, Best: {{ best_sellers.count }}, Recommended: {{ recommended.count }}</p>
-<p>Cart items: {{ cart.item_count }}</p>
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Hero / Billboard -->
+<section class="hero-section py-5 bg-light">
+  <div class="container-lg">
+    <div id="hero-carousel" class="swiper product-carousel">
+      <div class="swiper-wrapper">
+        {% for product in featured|default:new_arrivals %}
+        <div class="swiper-slide">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <h1 class="display-4 fw-bold">{{ product.name }}</h1>
+              <p class="lead">{{ product.short_description }}</p>
+              <p class="fs-3 text-primary fw-bold">${{ product.get_effective_price }}</p>
+              <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-lg">Shop Now</a>
+            </div>
+            <div class="col-md-6">
+              {% with first_img=product.images.all|dictsort:"sort_order"|first %}
+              <img src="{% if first_img %}{{ first_img.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="img-fluid" alt="{{ product.name }}">
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Services / Features Band -->
+<section class="py-4 border-bottom">
+  <div class="container-lg">
+    <div class="row g-4 text-center">
+      <div class="col-md-3"><h6>Free Shipping</h6><small class="text-muted">On orders over $50</small></div>
+      <div class="col-md-3"><h6>Secure Payment</h6><small class="text-muted">100% secure checkout</small></div>
+      <div class="col-md-3"><h6>Easy Returns</h6><small class="text-muted">30-day return policy</small></div>
+      <div class="col-md-3"><h6>24/7 Support</h6><small class="text-muted">Dedicated assistance</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories -->
+{% if categories %}
+<section class="py-5">
+  <div class="container-lg">
+    <h2 class="text-center mb-4">Shop by Category</h2>
+    <div class="row g-4">
+      {% for category in categories %}
+      <div class="col-6 col-md-4 col-lg-3">{% include "store/partials/category_card.html" %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- New Arrivals -->
+{% if new_arrivals %}
+<section class="py-5 border-top">
+  <div class="container-lg">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>New Arrivals</h2>
+      <a href="{% url 'product_list' %}" class="btn btn-outline-dark btn-sm">View All</a>
+    </div>
+    <div id="new-arrival-carousel" class="swiper product-carousel">
+      <div class="swiper-wrapper">
+        {% for product in new_arrivals %}
+        <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Best Sellers -->
+{% if best_sellers %}
+<section class="py-5 border-top">
+  <div class="container-lg">
+    <h2 class="mb-4">Best Sellers</h2>
+    <div id="best-sellers-carousel" class="swiper product-carousel">
+      <div class="swiper-wrapper">
+        {% for product in best_sellers %}
+        <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Recommended -->
+{% if recommended %}
+<section class="py-5 border-top">
+  <div class="container-lg">
+    <h2 class="mb-4">Recommended For You</h2>
+    <div id="related-products-carousel" class="swiper product-carousel">
+      <div class="swiper-wrapper">
+        {% for product in recommended %}
+        <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Newsletter -->
+<section id="newsletter" class="newsletter py-5 bg-light">
+  <div class="container-lg text-center">
+    <h2 class="mb-3">Subscribe to Our Newsletter</h2>
+    <p class="text-muted mb-4">Get the latest updates on new products and upcoming sales.</p>
+    <form method="post" action="{% url 'newsletter_subscribe' %}" class="row justify-content-center">
+      {% csrf_token %}
+      <div class="col-md-5">
+        <input type="email" name="email" class="form-control form-control-lg" placeholder="Your email address" required>
+      </div>
+      <div class="col-md-auto">
+        <button type="submit" class="btn btn-dark btn-lg">Subscribe</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Instagram Strip -->
+<section class="py-5">
+  <div class="container-lg">
+    <h5 class="text-center text-uppercase text-muted mb-4">Follow us on Instagram</h5>
+    <div class="row g-2">
+      {% for i in "123456" %}
+      <div class="col-4 col-md-2">
+        <img src="{% static 'store/images/insta-item' %}{{ i }}.jpg" alt="Instagram" class="img-fluid">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

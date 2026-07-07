@@ -17,6 +17,24 @@ class HomeViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "FemDes")
 
+    def test_home_uses_kaira_sections(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "product-carousel")
+        self.assertContains(response, "newsletter")
+
+    def test_home_includes_static_asset_paths(self):
+        response = self.client.get(reverse("home"))
+        content = response.content.decode()
+        self.assertIn("/static/store/style.css", content)
+        self.assertIn("/static/store/css/vendor.css", content)
+        self.assertIn("/static/store/js/script.min.js", content)
+        self.assertIn("/static/store/images/main-logo.png", content)
+
+    def test_home_preserves_templatesjungle_attribution(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "TemplatesJungle")
+        self.assertContains(response, "ThemeWagon")
+
 
 class ProductListViewTests(TestCase):
     def setUp(self):
@@ -50,6 +68,11 @@ class ProductListViewTests(TestCase):
     def test_product_list_search_no_matches(self):
         response = self.client.get(reverse("product_list") + "?q=zzznomatch")
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No products found")
+
+    def test_product_list_renders_product_names(self):
+        response = self.client.get(reverse("product_list"))
+        self.assertContains(response, self.product.name)
 
 
 class ProductDetailViewTests(TestCase):
@@ -75,6 +98,22 @@ class ProductDetailViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Summer Dress")
 
+    def test_product_detail_shows_add_to_cart_form(self):
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertContains(response, "Add to Cart")
+        self.assertContains(
+            response,
+            reverse("add_to_cart", kwargs={"product_id": self.product.pk}),
+        )
+
+    def test_product_detail_shows_related(self):
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertContains(response, "Related Products")
+
     def test_product_detail_inactive_404(self):
         self.product.is_active = False
         self.product.save()
@@ -91,6 +130,21 @@ class CartViewTests(TestCase):
     def test_cart_detail_renders(self):
         response = self.client.get(reverse("cart_detail"))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Your cart is empty")
+
+    def test_cart_detail_shows_checkout_link_when_items(self):
+        # Add product to cart first
+        cat = Category.objects.create(name="Dresses", slug="dresses", is_active=True)
+        prod = Product.objects.create(
+            category=cat, name="Test", slug="test-cc", sku="SKU-CC",
+            price=Decimal("10.00"), stock_quantity=5, is_active=True,
+        )
+        self.client.post(
+            reverse("add_to_cart", kwargs={"product_id": prod.pk}),
+            {"quantity": 1},
+        )
+        response = self.client.get(reverse("cart_detail"))
+        self.assertContains(response, reverse("checkout"))
 
 
 class AddToCartTests(TestCase):
@@ -199,6 +253,17 @@ class OrderSuccessViewTests(TestCase):
             )
         )
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.order.order_number)
+
+    def test_order_success_renders_order_number(self):
+        response = self.client.get(
+            reverse(
+                "order_success",
+                kwargs={"order_number": self.order.order_number},
+            )
+        )
+        self.assertContains(response, self.order.order_number)
+        self.assertContains(response, "Thank You")
 
     def test_order_success_404(self):
         response = self.client.get(
@@ -208,6 +273,23 @@ class OrderSuccessViewTests(TestCase):
             )
         )
         self.assertEqual(response.status_code, 404)
+
+
+class TemplateStructureTests(TestCase):
+    """Verify Kaira template markers and structure."""
+
+    def setUp(self):
+        self.client = Client()
+
+    def test_base_includes_offcanvas_cart(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, 'id="offcanvasCart"')
+
+    def test_base_includes_search_popup(self):
+        response = self.client.get(reverse("home"))
+        content = response.content.decode()
+        self.assertIn('name="q"', content)
+        self.assertIn(reverse("product_list"), content)
 
 
 class NewsletterViewTests(TestCase):

@@ -1,0 +1,15 @@
+{% load static %}
+<div class="category-item">
+  <a href="{% url 'product_list' %}?category={{ category.slug }}" class="text-decoration-none">
+    <div class="category-image overflow-hidden">
+      {% if category.image %}
+      <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid">
+      {% else %}
+      <img src="{% static 'store/images/cat-item1.jpg' %}" alt="{{ category.name }}" class="img-fluid">
+      {% endif %}
+    </div>
+    <div class="category-info mt-2 text-center">
+      <h5 class="text-dark">{{ category.name }}</h5>
+    </div>
+  </a>
+</div>

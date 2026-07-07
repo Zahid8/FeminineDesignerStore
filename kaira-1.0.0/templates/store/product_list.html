@@ -1,5 +1,38 @@
-<h1>Shop</h1>
-{% if selected_category %}<p>Category: {{ selected_category }}</p>{% endif %}
-{% if query %}<p>Search: {{ query }}</p>{% endif %}
-<p>{{ products.count }} products</p>
-<p>Cart items: {{ cart.item_count }}</p>
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <div class="row">
+      <!-- Category sidebar -->
+      <div class="col-md-3 mb-4">
+        <h5>Categories</h5>
+        <ul class="list-unstyled">
+          <li><a href="{% url 'product_list' %}" class="text-decoration-none {% if not selected_category %}fw-bold{% endif %}">All</a></li>
+          {% for cat in categories %}
+          <li><a href="{% url 'product_list' %}?category={{ cat.slug }}" class="text-decoration-none {% if selected_category == cat.slug %}fw-bold{% endif %}">{{ cat.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <!-- Product grid -->
+      <div class="col-md-9">
+        {% if query %}<p>Search results for: <strong>{{ query }}</strong></p>{% endif %}
+        {% if products %}
+        <div class="row g-4">
+          {% for product in products %}
+          <div class="col-6 col-lg-4">{% include "store/partials/product_card.html" %}</div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <h4>No products found</h4>
+          <p class="text-muted">Try a different search or browse our categories.</p>
+          <a href="{% url 'product_list' %}" class="btn btn-outline-dark">View All Products</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

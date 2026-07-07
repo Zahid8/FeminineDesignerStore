@@ -1,0 +1,37 @@
+{% load static %}
+<div class="product-item" data-category="{{ product.category.slug }}">
+  <div class="position-relative">
+    <a href="{% url 'product_detail' product.slug %}">
+      {% with first_img=product.images.all|dictsort:"sort_order"|first %}
+      <img src="{% if first_img %}{{ first_img.image.url }}{% else %}{% static 'store/images/product-item-1.jpg' %}{% endif %}"
+           alt="{{ product.name }}" class="product-image img-fluid">
+      {% endwith %}
+    </a>
+    {% if product.is_in_stock %}
+    <form method="post" action="{% url 'add_to_cart' product.pk %}" class="add-to-cart-form position-absolute bottom-0 end-0 m-2">
+      {% csrf_token %}
+      <input type="hidden" name="quantity" value="1">
+      <button type="submit" class="btn btn-dark btn-sm">
+        <svg width="18" height="18"><use xlink:href="#shopping-bag"></use></svg>
+      </button>
+    </form>
+    {% endif %}
+    {% if not product.is_in_stock %}
+    <span class="badge bg-secondary position-absolute top-0 start-0 m-2">Out of Stock</span>
+    {% elif product.is_new_arrival %}
+    <span class="badge bg-success position-absolute top-0 start-0 m-2">New</span>
+    {% endif %}
+  </div>
+  <div class="product-detail mt-2">
+    <span class="text-muted small">{{ product.category.name }}</span>
+    <h5 class="product-title fs-6 mt-1">
+      <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">{{ product.name }}</a>
+    </h5>
+    <div class="product-price">
+      <span class="text-primary fw-bold">${{ product.get_effective_price }}</span>
+      {% if product.compare_at_price and product.compare_at_price > product.price %}
+      <span class="text-muted text-decoration-line-through ms-2">${{ product.compare_at_price }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>

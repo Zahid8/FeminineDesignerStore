@@ -1,0 +1,40 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg bg-white border-bottom py-2">
+  <div class="container-lg">
+    <a class="navbar-brand" href="{% url 'home' %}">
+      <img src="{% static 'store/images/main-logo.png' %}" alt="{{ site_settings.store_name|default:'FemDes' }}" class="logo" height="40">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}">Shop</a></li>
+          {% for cat in categories %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
+          {% endfor %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'cart_detail' %}">Cart ({{ cart.item_count }})</a></li>
+        </ul>
+        <ul class="navbar-nav d-flex flex-row align-items-center">
+          <li class="nav-item me-3">
+            <a href="#" class="search-btn" data-bs-toggle="modal" data-bs-target="#searchModal">
+              <svg width="20" height="20"><use xlink:href="#shopping-bag"></use></svg>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="position-relative">
+              <svg width="24" height="24"><use xlink:href="#shopping-bag"></use></svg>
+              <span class="cart-count-badge">{{ cart.item_count }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>

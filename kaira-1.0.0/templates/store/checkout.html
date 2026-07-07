@@ -1,8 +1,67 @@
-<h1>Checkout</h1>
-<p>Cart items: {{ cart.item_count }}</p>
-<p>Total: {{ cart.total }}</p>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Place Order</button>
-</form>
+{% extends "base.html" %}
+
+{% block title %} — Checkout{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <h1 class="mb-4">Checkout</h1>
+
+    {% if cart.lines %}
+    <div class="row g-5">
+      <!-- Order summary -->
+      <div class="col-md-5 order-md-last">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Order Summary</h5>
+            {% for line in cart.lines %}
+            <div class="d-flex justify-content-between py-1">
+              <span>{{ line.product_name }} x {{ line.quantity }}</span>
+              <span>${{ line.line_total }}</span>
+            </div>
+            {% endfor %}
+            <hr>
+            <p class="d-flex justify-content-between fw-bold"><span>Total:</span> <span>${{ cart.total }}</span></p>
+          </div>
+        </div>
+      </div>
+      <!-- Checkout form -->
+      <div class="col-md-7">
+        <form method="post" id="checkout-form">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12"><h5>Contact Information</h5></div>
+            <div class="col-md-6">
+              <label for="id_customer_name" class="form-label">Full Name *</label>
+              <input type="text" name="customer_name" id="id_customer_name" class="form-control" required maxlength="160">
+            </div>
+            <div class="col-md-6">
+              <label for="id_customer_email" class="form-label">Email *</label>
+              <input type="email" name="customer_email" id="id_customer_email" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="id_customer_phone" class="form-label">Phone</label>
+              <input type="text" name="customer_phone" id="id_customer_phone" class="form-control" maxlength="40">
+            </div>
+            <div class="col-12 mt-3"><h5>Shipping Address</h5></div>
+            <div class="col-12">
+              <label for="id_shipping_address" class="form-label">Address *</label>
+              <textarea name="shipping_address" id="id_shipping_address" class="form-control" rows="3" required></textarea>
+            </div>
+            <div class="col-12">
+              <label for="id_notes" class="form-label">Order Notes</label>
+              <textarea name="notes" id="id_notes" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-12 mt-4">
+              <button type="submit" class="btn btn-dark btn-lg w-100">Place Order</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <p class="text-center text-muted">Your cart is empty. <a href="{% url 'product_list' %}">Continue shopping</a>.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

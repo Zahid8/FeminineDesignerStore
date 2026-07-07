@@ -1,24 +1,24 @@
 # Current Task
 
 ## Task ID
-TASK-005-FIX — COMPLETE (2026-07-06)
+TASK-006 — COMPLETE (2026-07-06)
 
 ## Completed
-T5-FIX: Aggregate stock validation per product across variant cart lines. Empty-cart POST now redirects to cart. 3 new tests (multi-variant oversell, multi-variant success, empty-cart POST). 135 tests pass.
+T6: Converted Kaira static HTML into Django templates. base.html with Kaira shell, 7 partials (icons, navbar, search_popup, cart_offcanvas, product_card, category_card, footer), 6 page templates. All static references use {% static %}. Attribution preserved. 145 tests pass.
 
 ## Next Task
 
-**T6: Convert Static HTML Into Django Templates**
+**T7: Add Seed Command**
 
-Use `docs/agent/IMPLEMENTATION_PLAN.md#task-6-convert-static-html-into-templates`.
+Use `docs/agent/IMPLEMENTATION_PLAN.md#task-7-add-seed-command`.
 
 ## Prerequisites
 
-- [x] T0–T5 complete (including all FIX tasks).
+- [x] T0–T6 complete.
 - [ ] Use conda env `femdes` for all Python commands.
 
 ## Guardrails
 
-- Preserve Kaira visual conventions.
 - Do not remove upstream attribution.
 - Do not implement optional features.
+- Seed must be idempotent.
