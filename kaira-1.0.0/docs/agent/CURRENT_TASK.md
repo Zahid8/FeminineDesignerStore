@@ -1,24 +1,18 @@
 # Current Task
 
 ## Task ID
-TASK-006-FIX2 — COMPLETE (2026-07-07)
+TASK-007 — COMPLETE (2026-07-07)
 
 ## Completed
-T6-FIX2: Added `search` and `close` SVG symbols. Search popup now has `.btn-close-search` close control. All search controls use `#search` icon (not `#shopping-bag`). Carousel tests strengthened with DOM-relationship checks and icon-arrow control assertions. 152 tests pass.
+T7: Idempotent seed_demo_store command. 1 SiteSettings, 5 categories, 7 products with primary images, 1 discount. Runs twice without duplication. 157 tests pass.
 
 ## Next Task
 
-**T7: Add Seed Command**
+**T8: Full Verification And Documentation Update**
 
-Use `docs/agent/IMPLEMENTATION_PLAN.md#task-7-add-seed-command`.
+Use `docs/agent/IMPLEMENTATION_PLAN.md#task-8-full-verification-and-documentation-update`.
 
 ## Prerequisites
 
-- [x] T0–T6 complete (including all FIX tasks).
+- [x] T0–T7 complete.
 - [ ] Use conda env `femdes` for all Python commands.
-
-## Guardrails
-
-- Seed must be idempotent.
-- Do not remove upstream attribution.
-- Do not implement optional features.

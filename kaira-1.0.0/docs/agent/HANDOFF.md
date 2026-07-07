@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 through T6 (including all FIX tasks) are complete. T7 (seed command) is next.
+This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 through T7 (including all FIX tasks) are complete. T8 (final verification) is next.
 
 ## What Exists Now
 
@@ -45,15 +45,14 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
 ## Verification Status
 
 - `conda run -n femdes python manage.py check` — **PASS**
-- `conda run -n femdes python manage.py test` — **PASS** (135 tests)
+- `conda run -n femdes python manage.py test` — **PASS** (152 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
 
 ## Next Action
 
-**T7: Add seed command** — idempotent demo data population. See `docs/agent/CURRENT_TASK.md`.
+**T8: Full verification and docs update** — final check/test/static pass. See `docs/agent/CURRENT_TASK.md`.
 
 ## Do Not Do Yet
 
 - Do not add payment integration.
-- Do not add seed data before T7.
 - Do not remove upstream attribution.
