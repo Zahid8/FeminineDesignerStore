@@ -18,9 +18,36 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "FemDes")
 
     def test_home_uses_kaira_sections(self):
+        self._create_homepage_products()
         response = self.client.get(reverse("home"))
-        self.assertContains(response, "product-carousel")
+        self.assertContains(response, 'id="new-arrival"')
+        self.assertContains(response, "new-arrival product-carousel")
+        self.assertContains(response, 'id="best-sellers"')
+        self.assertContains(response, "best-sellers product-carousel")
         self.assertContains(response, "newsletter")
+
+    def test_home_carousels_have_swiper_descendant(self):
+        """Each product-carousel wrapper contains a descendant .swiper."""
+        self._create_homepage_products()
+        response = self.client.get(reverse("home"))
+        content = response.content.decode()
+        self.assertIn('product-carousel', content)
+        self.assertIn('swiper product-swiper', content)
+
+    def _create_homepage_products(self):
+        cat = Category.objects.create(name="Test", slug="test-home", is_active=True)
+        Product.objects.create(
+            category=cat, name="New Arrival", slug="na-prod", sku="SKU-NA",
+            price=Decimal("10"), stock_quantity=5, is_active=True, is_new_arrival=True,
+        )
+        Product.objects.create(
+            category=cat, name="Best Seller", slug="bs-prod", sku="SKU-BS",
+            price=Decimal("10"), stock_quantity=5, is_active=True, is_best_seller=True,
+        )
+        Product.objects.create(
+            category=cat, name="Recommended", slug="rec-prod", sku="SKU-REC",
+            price=Decimal("10"), stock_quantity=5, is_active=True, is_recommended=True,
+        )
 
     def test_home_includes_static_asset_paths(self):
         response = self.client.get(reverse("home"))
@@ -113,6 +140,21 @@ class ProductDetailViewTests(TestCase):
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
         self.assertContains(response, "Related Products")
+
+    def test_product_detail_related_carousel_kaira_structure(self):
+        """Related products carousel uses Kaira product-carousel wrapper with .swiper descendant."""
+        # Create a related product in the same category so the section renders
+        Product.objects.create(
+            category=self.product.category, name="Related", slug="rel-prod",
+            sku="SKU-REL", price=Decimal("10"), stock_quantity=5, is_active=True,
+        )
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        content = response.content.decode()
+        self.assertIn('id="related-products"', content)
+        self.assertIn('product-carousel', content)
+        self.assertIn('swiper product-swiper', content)
 
     def test_product_detail_inactive_404(self):
         self.product.is_active = False
@@ -285,11 +327,26 @@ class TemplateStructureTests(TestCase):
         response = self.client.get(reverse("home"))
         self.assertContains(response, 'id="offcanvasCart"')
 
-    def test_base_includes_search_popup(self):
+    def test_search_popup_has_kaira_classes(self):
+        """Search popup uses .search-popup, .search-popup-container, .search-popup-form."""
+        response = self.client.get(reverse("home"))
+        content = response.content.decode()
+        self.assertIn('search-popup', content)
+        self.assertIn('search-popup-container', content)
+        self.assertIn('search-popup-form', content)
+
+    def test_search_popup_has_q_input_and_action(self):
+        """Search form submits to product_list with q input."""
         response = self.client.get(reverse("home"))
         content = response.content.decode()
         self.assertIn('name="q"', content)
         self.assertIn(reverse("product_list"), content)
+
+    def test_navbar_has_kaira_search_trigger(self):
+        """Navbar contains Kaira search-button trigger."""
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, 'class="search-button"')
+        self.assertContains(response, 'href="#search"')
 
 
 class NewsletterViewTests(TestCase):

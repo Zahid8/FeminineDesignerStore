@@ -5,7 +5,7 @@
 <!-- Hero / Billboard -->
 <section class="hero-section py-5 bg-light">
   <div class="container-lg">
-    <div id="hero-carousel" class="swiper product-carousel">
+    <div id="hero-carousel" class="swiper product-swiper">
       <div class="swiper-wrapper">
         {% for product in featured|default:new_arrivals %}
         <div class="swiper-slide">
@@ -58,57 +58,63 @@
 
 <!-- New Arrivals -->
 {% if new_arrivals %}
-<section class="py-5 border-top">
-  <div class="container-lg">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>New Arrivals</h2>
-      <a href="{% url 'product_list' %}" class="btn btn-outline-dark btn-sm">View All</a>
+<section id="new-arrival" class="new-arrival product-carousel py-5 position-relative overflow-hidden">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 mb-3">
+      <h4 class="text-uppercase">Our New Arrivals</h4>
+      <a href="{% url 'product_list' %}" class="btn-link">View All Products</a>
     </div>
-    <div id="new-arrival-carousel" class="swiper product-carousel">
-      <div class="swiper-wrapper">
+    <div class="swiper product-swiper open-up">
+      <div class="swiper-wrapper d-flex">
         {% for product in new_arrivals %}
         <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
         {% endfor %}
       </div>
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
     </div>
+    <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
+    <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
   </div>
 </section>
 {% endif %}
 
 <!-- Best Sellers -->
 {% if best_sellers %}
-<section class="py-5 border-top">
-  <div class="container-lg">
-    <h2 class="mb-4">Best Sellers</h2>
-    <div id="best-sellers-carousel" class="swiper product-carousel">
-      <div class="swiper-wrapper">
+<section id="best-sellers" class="best-sellers product-carousel py-5 position-relative overflow-hidden">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 mb-3">
+      <h4 class="text-uppercase">Best Sellers</h4>
+      <a href="{% url 'product_list' %}" class="btn-link">View All Products</a>
+    </div>
+    <div class="swiper product-swiper open-up">
+      <div class="swiper-wrapper d-flex">
         {% for product in best_sellers %}
         <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
         {% endfor %}
       </div>
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
     </div>
+    <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
+    <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
   </div>
 </section>
 {% endif %}
 
 <!-- Recommended -->
 {% if recommended %}
-<section class="py-5 border-top">
-  <div class="container-lg">
-    <h2 class="mb-4">Recommended For You</h2>
-    <div id="related-products-carousel" class="swiper product-carousel">
-      <div class="swiper-wrapper">
+<section id="related-products" class="related-products product-carousel py-5 position-relative overflow-hidden">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 mb-3">
+      <h4 class="text-uppercase">Recommended For You</h4>
+      <a href="{% url 'product_list' %}" class="btn-link">View All Products</a>
+    </div>
+    <div class="swiper product-swiper open-up">
+      <div class="swiper-wrapper d-flex">
         {% for product in recommended %}
         <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
         {% endfor %}
       </div>
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
     </div>
+    <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
+    <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
   </div>
 </section>
 {% endif %}
