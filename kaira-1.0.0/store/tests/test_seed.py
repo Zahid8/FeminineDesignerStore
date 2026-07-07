@@ -2,7 +2,6 @@
 
 import tempfile
 from pathlib import Path
-from unittest import mock
 
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
@@ -33,6 +32,17 @@ class SeedCommandTests(TestCase):
         with override_settings(MEDIA_ROOT=self.media_root):
             call_command("seed_demo_store")
 
+    def _list_media_files(self):
+        """Return sorted relative paths of all files under the temp media root."""
+        root = Path(self.media_root)
+        if not root.exists():
+            return []
+        return sorted(
+            str(p.relative_to(root))
+            for p in root.rglob("*")
+            if p.is_file()
+        )
+
     def test_seed_command_creates_core_records(self):
         self._call_seed()
         self.assertEqual(SiteSettings.objects.count(), 1)
@@ -54,6 +64,30 @@ class SeedCommandTests(TestCase):
         self.assertEqual(ProductImage.objects.count(), imgs1)
         self.assertEqual(Discount.objects.count(), discs1)
         self.assertEqual(SiteSettings.objects.count(), ss1)
+
+    def test_product_images_under_demo_path(self):
+        """Every seeded product image.name starts with products/demo/."""
+        self._call_seed()
+        for img in ProductImage.objects.all():
+            self.assertTrue(
+                img.image.name.startswith("products/demo/"),
+                f"Expected image under products/demo/, got: {img.image.name}",
+            )
+
+    def test_no_duplicate_image_files_after_repeat(self):
+        """Repeated seed runs do not create duplicate or suffixed image files."""
+        self._call_seed()
+        files1 = self._list_media_files()
+        self._call_seed()
+        files2 = self._list_media_files()
+        self.assertEqual(
+            files1, files2,
+            "Media files changed after second seed run",
+        )
+        # No file should have generated suffixes
+        for path in files2:
+            self.assertNotIn("_", Path(path).stem[-6:],
+                             f"Suspicious suffix in: {path}")
 
     def test_seed_command_attaches_primary_images(self):
         self._call_seed()
@@ -79,7 +113,6 @@ class SeedCommandTests(TestCase):
             / "static" / "store" / "images"
         )
         target = static_images / "product-item-1.jpg"
-        # Rename the file temporarily
         renamed = static_images / "product-item-1.jpg.tmp"
         try:
             if target.exists():

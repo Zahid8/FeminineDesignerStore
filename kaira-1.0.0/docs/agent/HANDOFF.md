@@ -45,8 +45,9 @@ This repo is a static Kaira Bootstrap fashion-store template being converted int
 ## Verification Status
 
 - `conda run -n femdes python manage.py check` — **PASS**
-- `conda run -n femdes python manage.py test` — **PASS** (152 tests)
+- `conda run -n femdes python manage.py test` — **PASS** (157 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
+- T7 review found `seed_demo_store` stores database image paths under `products/` with generated suffixes instead of deterministic `products/demo/` paths after repeated runs.
 
 ## Next Action
 

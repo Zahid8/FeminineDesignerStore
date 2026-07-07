@@ -19,7 +19,7 @@
 | T4 | Done | Configure Django admin (+ fixes) | `store/admin.py`, `store/tests/test_admin.py` | `python manage.py test store.tests.test_admin` |
 | T5 | Done | Add forms, selectors, services, URLs, and views | `store/forms.py`, `store/selectors.py`, `store/services.py`, `store/views.py`, `store/urls.py`, URL config, cart/storefront tests | `python manage.py test store.tests.test_cart store.tests.test_storefront` |
 | T6 | Done | Convert static HTML into Django templates | `templates/` tree | storefront tests, `collectstatic`, manual browser check |
-| T7 | Done | Add seed command | `store/management/commands/seed_demo_store.py`, `store/tests/test_seed.py` | run seed twice and seed tests |
+| T7 | Done | Fix seed command image storage idempotency | `store/management/commands/seed_demo_store.py`, `store/tests/test_seed.py` | run seed twice, seed tests, full tests |
 | T8 | Ready | Full verification and docs update | `docs/agent/TEST_STATUS.md`, `docs/agent/HANDOFF.md`, `.agent/CONTINUITY.md` | full Django check/test/static/manual pass |
 
 ## Dependency Order

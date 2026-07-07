@@ -2,14 +2,18 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T7 complete. 157 tests pass. T8 (final verification) is next.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T7 (with T7-FIX) complete. 159 tests pass. T8 (final verification) is next.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (157 tests)
+conda run -n femdes python manage.py test       # PASS (159 tests)
 ```
+
+## TASK-007 Review Finding (2026-07-07)
+
+`seed_demo_store` row-count tests pass, but review found seeded image files are not attached to deterministic `products/demo/` paths. After two seed runs with a temporary `MEDIA_ROOT`, `ProductImage.image.name` values used generated suffixes under `products/`, and duplicate files existed outside `products/demo/`. `docs/agent/CURRENT_TASK.md` now defines TASK-007-FIX.
 
 ## T5 Verification (2026-07-06)
 

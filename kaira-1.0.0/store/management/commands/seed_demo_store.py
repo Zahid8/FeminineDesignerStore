@@ -4,7 +4,6 @@ import shutil
 from pathlib import Path
 
 from django.conf import settings
-from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
@@ -195,15 +194,17 @@ class Command(BaseCommand):
                 # Remove existing demo images for idempotency
                 ProductImage.objects.filter(product=product).delete()
 
-                with dest_path.open("rb") as f:
-                    django_file = File(f, name=prod_data["image"])
-                    ProductImage.objects.create(
-                        product=product,
-                        image=django_file,
-                        alt_text=prod_data["name"],
-                        sort_order=0,
-                        is_primary=True,
-                    )
+                # Store image directly at products/demo/<filename> to avoid
+                # Django's upload_to generating suffixed paths on repeat runs.
+                relative_path = f"products/demo/{prod_data['image']}"
+                img = ProductImage(
+                    product=product,
+                    alt_text=prod_data["name"],
+                    sort_order=0,
+                    is_primary=True,
+                )
+                img.image.name = relative_path
+                img.save()
 
             # Discount
             disc, disc_created = Discount.objects.update_or_create(
