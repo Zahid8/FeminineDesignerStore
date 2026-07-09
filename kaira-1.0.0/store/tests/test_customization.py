@@ -164,6 +164,8 @@ class CustomizationViewTests(TestCase):
         content = response.content.decode()
         self.assertIn('aria-label="Previous image"', content)
         self.assertIn('aria-label="Next image"', content)
+        # Old thumbnail grid must be gone.
+        self.assertNotIn("product-gallery-scroll", content)
 
     def test_single_image_no_broken_controls(self):
         """Product with 1 image has no prev/next controls."""
@@ -198,12 +200,28 @@ class CustomizationViewTests(TestCase):
         self.assertNotIn('aria-label="Next image"', content)
 
     def test_no_images_renders_placeholder(self):
-        """Product with 0 images renders static fallback without error."""
+        """Product with 0 images renders static fallback without error or controls."""
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "product-item-1.jpg")
+        self.assertNotIn('aria-label="Previous image"', response.content.decode())
+        self.assertNotIn('aria-label="Next image"', response.content.decode())
+
+    def test_admin_edited_measurement_in_customization_defaults(self):
+        """Admin-edited measurement value appears in both ready-made specs and customization form."""
+        self.product.default_chest = Decimal("14.50")
+        self.product.save()
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        content = response.content.decode()
+        # Ready-made specs section
+        self.assertIn("14.50 in", content)
+        # Customization form input default
+        self.assertIn('name="chest"', content)
+        self.assertIn('value="14.50"', content)
 
     def test_product_detail_has_buy_now_and_customize(self):
         response = self.client.get(

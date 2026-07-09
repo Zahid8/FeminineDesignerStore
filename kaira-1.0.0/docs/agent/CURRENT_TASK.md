@@ -1,7 +1,7 @@
 # Current Task
 
 ## Task ID
-TASK-012-FIX — COMPLETE (2026-07-09)
+TASK-012-FIX2 — COMPLETE (2026-07-09)
 
 ## Completed
-T12-FIX: 7 strengthened tests (seed placeholder content proof, exact 15/60 counts, carousel one-active-item, prev/next, single-image no-controls, no-image fallback, admin-edited ready-made specs). Docs synced. 218 tests pass.
+T12-FIX2: 3 new assertions (no .product-gallery-scroll on multi-image, no prev/next on no-image, admin-edited value in customization defaults). HANDOFF synced (T0-T12, 219 tests). 219 tests pass.
