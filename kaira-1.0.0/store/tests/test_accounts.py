@@ -83,6 +83,51 @@ class LoginLogoutTests(TestCase):
         response = self.client.get(reverse("account_orders"))
         self.assertEqual(response.status_code, 302)
 
+    def test_login_safe_next_redirect(self):
+        response = self.client.post(
+            reverse("account_login") + "?next=/cart/",
+            {"username": "testuser", "password": "TestPass123!"},
+        )
+        self.assertRedirects(response, "/cart/")
+
+    def test_login_ignores_external_next(self):
+        response = self.client.post(
+            reverse("account_login") + "?next=https://evil.example/path",
+            {"username": "testuser", "password": "TestPass123!"},
+        )
+        self.assertRedirects(response, reverse("account_profile"))
+
+    def test_login_no_next_redirects_to_profile(self):
+        response = self.client.post(reverse("account_login"), {
+            "username": "testuser", "password": "TestPass123!",
+        })
+        self.assertRedirects(response, reverse("account_profile"))
+
+
+class NavbarAuthStateTests(TestCase):
+    """Navbar renders correctly for anonymous and authenticated users."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="navuser", password="TestPass123!"
+        )
+
+    def test_anonymous_navbar_shows_login_register(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "Login")
+        self.assertContains(response, "Register")
+
+    def test_authenticated_navbar_shows_account_orders_logout(self):
+        self.client.login(username="navuser", password="TestPass123!")
+        response = self.client.get(reverse("home"))
+        content = response.content.decode()
+        self.assertIn("Account", content)
+        self.assertIn("Orders", content)
+        self.assertIn('action="/accounts/logout/"', content)
+        self.assertNotIn('href="/accounts/login/"', content)
+        self.assertNotIn('href="/accounts/register/"', content)
+
 
 class AuthenticatedCheckoutTests(TestCase):
     def setUp(self):

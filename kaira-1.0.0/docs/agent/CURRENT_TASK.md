@@ -1,16 +1,7 @@
 # Current Task
 
 ## Task ID
-TASK-011 — COMPLETE (2026-07-09)
+TASK-011-FIX — COMPLETE (2026-07-09)
 
 ## Completed
-T11: Customer accounts (register/login/logout/profile/orders). Order.customer_user FK links authenticated orders. Guest checkout preserved. Navbar auth-aware. 13 account tests. 206 tests pass.
-
-## Optional Future Work
-
-- Payment gateway integration
-- Wishlist persistence
-- Shipping carrier APIs and tax calculation
-- Blog CMS
-- Instagram API integration
-- Custom admin dashboard
+T11-FIX: Fixed open redirect in account_login (uses url_has_allowed_host_and_scheme). Navbar now has POST logout form for authenticated users. Account views use _base_context. 5 new tests (safe/unsafe next redirect, navbar auth state). 211 tests pass.

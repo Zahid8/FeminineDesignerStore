@@ -23,7 +23,7 @@
 | T8 | Done | Full verification and docs update | `docs/agent/TEST_STATUS.md`, `docs/agent/HANDOFF.md`, `.agent/CONTINUITY.md` | full Django check/test/static/manual pass |
 | T9 | Done | Add blouse catalog + customization (+ fixes) | `store/models.py`, `store/admin.py`, `store/views.py`, seed, templates, tests | 183 tests, collectstatic, seed idempotent |
 | T10 | Done | Add production media storage (+ tests + docs) | `requirements.txt`, `femdes_site/settings.py`, `.env.example`, `store/tests/test_settings.py`, docs | 193 tests, check, collectstatic |
-| T11 | Done | Add optional customer accounts and order history | auth views/forms/templates, nullable order user link, account tests, docs | account tests, cart/storefront tests, full tests, check, migration dry-run |
+| T11 | Done | Add customer accounts (+ redirect fix + navbar logout) | auth views/forms/templates, nullable order user link, account tests, docs | account/storefront tests, full tests, check, migration dry-run |
 
 ## Dependency Order
 
