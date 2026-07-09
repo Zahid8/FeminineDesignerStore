@@ -73,6 +73,20 @@
           <span class="badge bg-secondary">Out of Stock</span>
           {% endif %}
         </p>
+      <!-- Ready-Made Measurements -->
+      <div class="mt-4 pt-3 border-top" id="ready-made-specs">
+        <h5>Ready-Made Specifications</h5>
+        <p class="text-muted small">Standard measurements included with your purchase.</p>
+        <div class="row g-2">
+          <div class="col-6"><strong>Length</strong> {{ product.default_length }} in</div>
+          <div class="col-6"><strong>Chest</strong> {{ product.default_chest }} in</div>
+          <div class="col-6"><strong>Waist</strong> {{ product.default_waist }} in</div>
+          <div class="col-6"><strong>Armhole</strong> {{ product.default_armhole }} in</div>
+          <div class="col-6"><strong>Opening</strong> {{ product.default_opening }} in</div>
+          <div class="col-6"><strong>Bicep</strong> {{ product.default_bicep }} in</div>
+        </div>
+      </div>
+
         {% if product.is_in_stock %}
         <div class="d-flex gap-2 mt-4">
           <form method="post" action="{% url 'buy_now' product.pk %}">
@@ -108,20 +122,6 @@
         <img src="{% static 'store/images/product-item-1.jpg' %}" alt="Measurement Guide (sample)" class="img-fluid rounded">
       </div>
       {% endif %}
-
-      <!-- Ready-Made Measurements -->
-      <div class="mt-5 pt-4 border-top" id="ready-made-specs">
-        <h4>Ready-Made Specifications</h4>
-        <p class="text-muted">These are the standard measurements included with your normal purchase.</p>
-        <table class="table table-sm w-auto">
-          <tr><td><strong>Length</strong></td><td>{{ product.default_length }} in</td></tr>
-          <tr><td><strong>Chest</strong></td><td>{{ product.default_chest }} in</td></tr>
-          <tr><td><strong>Waist</strong></td><td>{{ product.default_waist }} in</td></tr>
-          <tr><td><strong>Armhole</strong></td><td>{{ product.default_armhole }} in</td></tr>
-          <tr><td><strong>Opening</strong></td><td>{{ product.default_opening }} in</td></tr>
-          <tr><td><strong>Bicep</strong></td><td>{{ product.default_bicep }} in</td></tr>
-        </table>
-      </div>
 
       <!-- Customization Section -->
       <div class="mt-5 pt-4 border-top" id="customize-section">

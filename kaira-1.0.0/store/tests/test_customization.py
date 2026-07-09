@@ -223,6 +223,17 @@ class CustomizationViewTests(TestCase):
         self.assertIn('name="chest"', content)
         self.assertIn('value="14.50"', content)
 
+    def test_ready_made_specs_before_buy_now(self):
+        """Ready-Made Specifications appear before Buy Now / Qty / Add to Cart."""
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        content = response.content.decode()
+        specs_pos = content.find("Ready-Made Specifications")
+        buy_now_pos = content.find("Buy Now")
+        self.assertGreater(buy_now_pos, specs_pos,
+                           "Ready-Made Specifications must appear before Buy Now")
+
     def test_product_detail_has_buy_now_and_customize(self):
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})

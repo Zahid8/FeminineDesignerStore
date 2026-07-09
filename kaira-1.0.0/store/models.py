@@ -428,11 +428,13 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         # Auto-set paid_at when payment_status changes to paid.
+        transitioning_to_paid = self.payment_status == "paid"
         if self.pk:
             old = Order.objects.filter(pk=self.pk).first()
-            if old and old.payment_status != "paid" and self.payment_status == "paid":
-                if self.paid_at is None:
-                    self.paid_at = tz.now()
+            if old and old.payment_status == "paid":
+                transitioning_to_paid = False
+        if transitioning_to_paid and self.paid_at is None:
+            self.paid_at = tz.now()
         if not self.order_number:
             self.order_number = self._generate_order_number()
             for _ in range(10):
@@ -531,6 +533,16 @@ class CustomizationRequest(models.Model):
     payment_notes = models.TextField(blank=True)
     paid_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        transitioning_to_paid = self.payment_status == "paid"
+        if self.pk:
+            old = CustomizationRequest.objects.filter(pk=self.pk).first()
+            if old and old.payment_status == "paid":
+                transitioning_to_paid = False
+        if transitioning_to_paid and self.paid_at is None:
+            self.paid_at = tz.now()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Customization for {self.customer_name} ({self.product.name})"

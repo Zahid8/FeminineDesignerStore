@@ -276,6 +276,35 @@ class ProductAdminTagWorkflowTests(TestCase):
         self.assertIn("Silk", result)
 
 
+class PaymentAdminConfigTests(TestCase):
+    """OrderAdmin and CustomizationRequestAdmin expose payment fields."""
+
+    def test_order_payment_status_in_list_display(self):
+        self.assertIn("payment_status", OrderAdmin.list_display)
+
+    def test_order_payment_filters(self):
+        self.assertIn("payment_status", OrderAdmin.list_filter)
+        self.assertIn("payment_method", OrderAdmin.list_filter)
+
+    def test_order_payment_reference_searchable(self):
+        self.assertIn("payment_reference", OrderAdmin.search_fields)
+
+    def test_order_paid_at_readonly(self):
+        self.assertIn("paid_at", OrderAdmin.readonly_fields)
+
+    def test_customization_payment_status_in_list_display(self):
+        self.assertIn("payment_status", CustomizationRequestAdmin.list_display)
+
+    def test_customization_payment_filter(self):
+        self.assertIn("payment_status", CustomizationRequestAdmin.list_filter)
+
+    def test_customization_payment_reference_searchable(self):
+        self.assertIn("payment_reference", CustomizationRequestAdmin.search_fields)
+
+    def test_customization_paid_at_readonly(self):
+        self.assertIn("paid_at", CustomizationRequestAdmin.readonly_fields)
+
+
 class AdminAccessTests(TestCase):
     """Anonymous, superuser, staff without perms, and staff with perms."""
 

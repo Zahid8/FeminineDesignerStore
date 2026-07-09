@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from store.models import (
     Category,
+    CustomizationRequest,
     Discount,
     NewsletterSubscriber,
     Order,
@@ -550,6 +551,50 @@ class PaymentTrackingTests(TestCase):
         order.save()
         order.refresh_from_db()
         self.assertIsNotNone(order.paid_at)
+
+    def test_paid_at_not_cleared_when_reverted(self):
+        order = Order.objects.create(
+            customer_name="Test", customer_email="t@t.com",
+            shipping_address="Addr", payment_status="paid",
+        )
+        self.assertIsNotNone(order.paid_at)
+        order.payment_status = "pending"
+        order.save()
+        order.refresh_from_db()
+        self.assertIsNotNone(order.paid_at)
+
+
+class CustomizationPaymentTests(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(name="Blouses", slug="blouses")
+        self.product = Product.objects.create(
+            category=self.category, name="Test", slug="test-cpay",
+            sku="SKU-CPAY", price=50,
+        )
+
+    def test_customization_paid_at_set(self):
+        cr = CustomizationRequest.objects.create(
+            product=self.product, customer_name="A", customer_phone="1",
+            length=1, chest=1, waist=1, armhole=1, opening=1, bicep=1,
+        )
+        self.assertIsNone(cr.paid_at)
+        cr.payment_status = "paid"
+        cr.save()
+        cr.refresh_from_db()
+        self.assertIsNotNone(cr.paid_at)
+
+    def test_customization_paid_at_not_cleared(self):
+        cr = CustomizationRequest.objects.create(
+            product=self.product, customer_name="A", customer_phone="1",
+            length=1, chest=1, waist=1, armhole=1, opening=1, bicep=1,
+            payment_status="paid",
+        )
+        self.assertIsNotNone(cr.paid_at)
+        paid_before = cr.paid_at
+        cr.payment_status = "pending"
+        cr.save()
+        cr.refresh_from_db()
+        self.assertEqual(cr.paid_at, paid_before)
 
 
 class NullCategoryProductTests(TestCase):
