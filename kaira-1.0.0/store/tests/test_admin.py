@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from store.admin import (
     CategoryAdmin,
+    CustomizationRequestAdmin,
     DiscountAdmin,
     NewsletterSubscriberAdmin,
     OrderAdmin,
@@ -195,6 +196,35 @@ class SiteSettingsAdminTests(TestCase):
         request = self.factory.get("/")
         request.user = self.superuser
         self.assertFalse(admin_instance.has_add_permission(request))
+
+
+class ProductAdminFieldsTests(TestCase):
+    """ProductAdmin fieldsets expose measurement fields and guide image."""
+
+    def test_fieldsets_include_measurements(self):
+        field_names = set()
+        for name, opts in ProductAdmin.fieldsets:
+            if name == "Measurements":
+                field_names.update(opts["fields"])
+        expected = {
+            "default_length", "default_chest", "default_waist",
+            "default_armhole", "default_opening", "default_bicep",
+            "measurement_guide_image",
+        }
+        self.assertTrue(
+            expected.issubset(field_names),
+            f"Missing measurement fields in fieldsets: {expected - field_names}",
+        )
+
+
+class CustomizationRequestAdminTests(TestCase):
+    """CustomizationRequestAdmin has required search fields."""
+
+    def test_search_fields(self):
+        self.assertIn("customer_name", CustomizationRequestAdmin.search_fields)
+        self.assertIn("customer_phone", CustomizationRequestAdmin.search_fields)
+        self.assertIn("product__name", CustomizationRequestAdmin.search_fields)
+        self.assertIn("token", CustomizationRequestAdmin.search_fields)
 
 
 class AdminAccessTests(TestCase):

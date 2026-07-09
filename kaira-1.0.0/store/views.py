@@ -189,11 +189,7 @@ def customization_create(request, slug):
                 opening=form.cleaned_data["opening"],
                 bicep=form.cleaned_data["bicep"],
             )
-            return render(request, "store/customization_created.html", {
-                "customization": cr,
-                "product": product,
-                **_base_context(request),
-            })
+            return redirect("customization_created", token=cr.token)
     else:
         form = CustomizationForm(initial={
             "length": product.default_length,
@@ -206,6 +202,13 @@ def customization_create(request, slug):
     ctx = _base_context(request)
     ctx.update({"product": product, "customization_form": form})
     return render(request, "store/product_detail.html", ctx)
+
+
+def customization_created(request, token):
+    cr = get_object_or_404(CustomizationRequest, token=token)
+    ctx = _base_context(request)
+    ctx.update({"customization": cr, "product": cr.product})
+    return render(request, "store/customization_created.html", ctx)
 
 
 def customization_detail(request, token):

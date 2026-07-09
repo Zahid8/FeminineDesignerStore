@@ -32,4 +32,9 @@ urlpatterns = [
         views.customization_detail,
         name="customization_detail",
     ),
+    path(
+        "customizations/<uuid:token>/created/",
+        views.customization_created,
+        name="customization_created",
+    ),
 ]

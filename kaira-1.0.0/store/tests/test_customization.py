@@ -10,7 +10,6 @@ from store.models import (
     Category,
     CustomizationRequest,
     Product,
-    SiteSettings,
 )
 
 
@@ -44,25 +43,20 @@ class ProductMeasurementTests(TestCase):
             p.full_clean()
 
 
-class CustomizationRequestTests(TestCase):
+class CustomizationRequestModelTests(TestCase):
     def setUp(self):
         self.category = Category.objects.create(name="Blouses", slug="blouses")
         self.product = Product.objects.create(
-            category=self.category, name="Test Blouse", slug="test-blouse",
-            sku="SKU-CR-001", price=Decimal("70"), stock_quantity=5,
+            category=self.category, name="Test", slug="test-cr",
+            sku="SKU-CR-M", price=Decimal("70"), stock_quantity=5,
         )
 
     def test_create_customization_request(self):
         cr = CustomizationRequest.objects.create(
             product=self.product,
-            customer_name="Alice",
-            customer_phone="+1234567890",
-            length=Decimal("24"),
-            chest=Decimal("36"),
-            waist=Decimal("30"),
-            armhole=Decimal("12"),
-            opening=Decimal("10"),
-            bicep=Decimal("14"),
+            customer_name="Alice", customer_phone="+1234567890",
+            length=Decimal("24"), chest=Decimal("36"), waist=Decimal("30"),
+            armhole=Decimal("12"), opening=Decimal("10"), bicep=Decimal("14"),
         )
         self.assertIsNotNone(cr.token)
         self.assertIn("Alice", str(cr))
@@ -78,6 +72,22 @@ class CustomizationRequestTests(TestCase):
         )
         self.assertNotEqual(cr1.token, cr2.token)
 
+    def test_negative_measurement_fails_full_clean(self):
+        cr = CustomizationRequest(
+            product=self.product, customer_name="A", customer_phone="1",
+            length=Decimal("-1"), chest=1, waist=1, armhole=1, opening=1, bicep=1,
+        )
+        with self.assertRaises(ValidationError):
+            cr.full_clean()
+
+    def test_zero_measurement_fails_full_clean(self):
+        cr = CustomizationRequest(
+            product=self.product, customer_name="A", customer_phone="1",
+            length=Decimal("0"), chest=1, waist=1, armhole=1, opening=1, bicep=1,
+        )
+        with self.assertRaises(ValidationError):
+            cr.full_clean()
+
 
 class CustomizationViewTests(TestCase):
     def setUp(self):
@@ -87,18 +97,44 @@ class CustomizationViewTests(TestCase):
             category=self.category, name="Silk Blouse", slug="silk-blouse",
             sku="SKU-CV-001", price=Decimal("70"), stock_quantity=5,
         )
+        self.valid_data = {
+            "customer_name": "Alice", "customer_phone": "1234567890",
+            "length": "24", "chest": "36", "waist": "30",
+            "armhole": "12", "opening": "10", "bicep": "14",
+        }
 
-    def test_product_detail_has_measurement_fields(self):
+    def test_product_detail_has_all_six_measurement_labels(self):
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
         content = response.content.decode()
-        self.assertIn("Length (in)", content)
-        self.assertIn("Chest (in)", content)
-        self.assertIn("Waist (in)", content)
-        self.assertIn("Buy Now", content)
-        self.assertIn("Customize", content)
-        self.assertIn("Disclaimer", content)
+        for label in ("Length (in)", "Chest (in)", "Waist (in)",
+                       "Armhole (in)", "Opening (in)", "Bicep (in)"):
+            self.assertIn(label, content, f"Missing measurement label: {label}")
+
+    def test_product_detail_has_gallery_container(self):
+        # Seed to get a product with 4 images, then check gallery.
+        from django.core.management import call_command
+        with self.settings(MEDIA_ROOT="/tmp/test-media-gallery"):
+            call_command("seed_demo_store")
+        p = Product.objects.filter(sku__startswith="FD-BLOUSE-").first()
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": p.slug})
+        )
+        self.assertContains(response, "product-gallery-scroll")
+
+    def test_product_detail_has_buy_now_and_customize(self):
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertContains(response, "Buy Now")
+        self.assertContains(response, "Customize")
+
+    def test_product_detail_has_disclaimer(self):
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertContains(response, "Disclaimer")
 
     def test_product_detail_has_measurement_guide(self):
         response = self.client.get(
@@ -114,20 +150,36 @@ class CustomizationViewTests(TestCase):
         cart = self.client.session.get("femdes_cart", {})
         self.assertEqual(len(cart), 1)
 
-    def test_customization_create(self):
+    def test_customization_create_redirects(self):
         response = self.client.post(
             reverse("customization_create", kwargs={"slug": self.product.slug}),
-            {
-                "customer_name": "Alice",
-                "customer_phone": "1234567890",
-                "length": "24", "chest": "36", "waist": "30",
-                "armhole": "12", "opening": "10", "bicep": "14",
-            },
+            self.valid_data,
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(CustomizationRequest.objects.count(), 1)
+
+    def test_customization_success_page_shows_details(self):
+        response = self.client.post(
+            reverse("customization_create", kwargs={"slug": self.product.slug}),
+            self.valid_data,
+            follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(CustomizationRequest.objects.count(), 1)
         cr = CustomizationRequest.objects.first()
         self.assertContains(response, str(cr.token))
+        self.assertContains(response, "Alice")
+        self.assertContains(response, "1234567890")
+        self.assertContains(response, "24")
+        self.assertContains(response, "/customizations/")
+        self.assertContains(response, "Share Your Customization")
+
+    def test_customization_created_unknown_token_404(self):
+        response = self.client.get(
+            reverse("customization_created", kwargs={
+                "token": "00000000-0000-0000-0000-000000000000",
+            })
+        )
+        self.assertEqual(response.status_code, 404)
 
     def test_customization_detail_renders(self):
         cr = CustomizationRequest.objects.create(

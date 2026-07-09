@@ -7,6 +7,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import Q
 
 from store.models import (
     Category,
@@ -91,10 +92,11 @@ class Command(BaseCommand):
         updated = 0
 
         with transaction.atomic():
-            # Deactivate old non-blouse seed products
-            Product.objects.filter(
-                sku__startswith=_OLD_SKU_PREFIXES, is_active=True
-            ).update(is_active=False)
+            # Deactivate old non-blouse seed products (explicit per-prefix Q)
+            old_q = Q()
+            for prefix in _OLD_SKU_PREFIXES:
+                old_q |= Q(sku__startswith=prefix)
+            Product.objects.filter(old_q, is_active=True).update(is_active=False)
 
             # SiteSettings
             ss, ss_created = SiteSettings.objects.update_or_create(

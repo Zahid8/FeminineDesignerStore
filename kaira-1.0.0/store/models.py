@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone as tz
 
@@ -430,12 +431,30 @@ class CustomizationRequest(models.Model):
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     customer_name = models.CharField(max_length=160)
     customer_phone = models.CharField(max_length=40)
-    length = models.DecimalField(max_digits=6, decimal_places=2)
-    chest = models.DecimalField(max_digits=6, decimal_places=2)
-    waist = models.DecimalField(max_digits=6, decimal_places=2)
-    armhole = models.DecimalField(max_digits=6, decimal_places=2)
-    opening = models.DecimalField(max_digits=6, decimal_places=2)
-    bicep = models.DecimalField(max_digits=6, decimal_places=2)
+    length = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    chest = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    waist = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    armhole = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    opening = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    bicep = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

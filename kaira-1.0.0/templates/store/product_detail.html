@@ -17,12 +17,14 @@
         {% endif %}
         {% endwith %}
         {% if product.images.count > 1 %}
-        <div class="row g-2">
-          {% for img in product.images.all|dictsort:"sort_order" %}
-          <div class="col-3">
-            <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="img-fluid rounded product-thumb" style="cursor:pointer">
+        <div class="product-gallery-scroll overflow-auto" style="max-height: 500px;">
+          <div class="row g-2">
+            {% for img in product.images.all|dictsort:"sort_order" %}
+            <div class="col-3">
+              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="img-fluid rounded product-thumb" style="cursor:pointer">
+            </div>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
         {% endif %}
       </div>

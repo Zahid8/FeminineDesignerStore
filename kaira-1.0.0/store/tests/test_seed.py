@@ -123,6 +123,41 @@ class SeedCommandTests(TestCase):
         self.assertIn('id="best-sellers"', content)
         self.assertIn('id="related-products"', content)
 
+    def test_seed_deactivates_old_skus(self):
+        """Old seed prefixes become inactive; exactly 15 FD-BLOUSE- remain."""
+        cat = Category.objects.create(name="Old", slug="old", is_active=True)
+        Product.objects.create(
+            category=cat, name="Old Dress", slug="old-dress",
+            sku="FD-DRESS-01", price=Decimal("50"), is_active=True, stock_quantity=1,
+        )
+        Product.objects.create(
+            category=cat, name="Old Shirt", slug="old-shirt",
+            sku="FD-SHIRT-01", price=Decimal("50"), is_active=True, stock_quantity=1,
+        )
+        self._call_seed()
+        self.assertFalse(
+            Product.objects.filter(sku="FD-DRESS-01").first().is_active
+        )
+        self.assertFalse(
+            Product.objects.filter(sku="FD-SHIRT-01").first().is_active
+        )
+        self.assertEqual(
+            Product.objects.filter(sku__startswith="FD-BLOUSE-", is_active=True).count(),
+            15,
+        )
+
+    def test_seed_preserves_admin_created_products(self):
+        """Products outside old seed prefixes stay active."""
+        cat = Category.objects.create(name="Custom", slug="custom", is_active=True)
+        Product.objects.create(
+            category=cat, name="Admin Product", slug="admin-prod",
+            sku="ADMIN-001", price=Decimal("99"), is_active=True, stock_quantity=1,
+        )
+        self._call_seed()
+        self.assertTrue(
+            Product.objects.filter(sku="ADMIN-001").first().is_active
+        )
+
     def test_seed_command_errors_when_required_image_missing(self):
         static_images = (
             Path(__file__).resolve().parent.parent.parent

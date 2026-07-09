@@ -1,10 +1,10 @@
 # Current Task
 
 ## Task ID
-TASK-009 — COMPLETE (2026-07-07)
+TASK-009-FIX — COMPLETE (2026-07-07)
 
 ## Completed
-Blouse-only catalog with 15 seeded blouse products, 4 images each. 6 measurement fields + measurement guide image on Product. CustomizationRequest model with UUID token, form, views, URLs, and templates. Disclaimer text. Buy Now button. 172 tests pass.
+T9-FIX: Fixed seed SKU cleanup (Q objects per prefix), customization POST now redirects, CustomizationRequest has MinValueValidator on all 6 measurements, scrollable gallery in product detail, stronger tests. 183 tests pass.
 
 ## Remaining Optional Work
 
