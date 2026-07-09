@@ -11,9 +11,20 @@ conda run -n femdes python manage.py check     # PASS (0 issues)
 conda run -n femdes python manage.py test       # PASS (183 tests)
 ```
 
-## TASK-007 Review Finding (2026-07-07)
+## T9/T9-FIX Verification (2026-07-07)
 
-`seed_demo_store` row-count tests pass, but review found seeded image files are not attached to deterministic `products/demo/` paths. After two seed runs with a temporary `MEDIA_ROOT`, `ProductImage.image.name` values used generated suffixes under `products/`, and duplicate files existed outside `products/demo/`. `docs/agent/CURRENT_TASK.md` now defines TASK-007-FIX.
+Blouse catalog and customization flow complete. All historical review findings resolved:
+
+- **T7 image storage (RESOLVED by T7-FIX):** `ProductImage.image.name` uses deterministic `products/demo/<filename>` paths. File-system idempotency tests pass.
+- **T9 seed cleanup (RESOLVED by T9-FIX):** Per-prefix `Q()` objects deactivate old SKUs; admin products preserved.
+- **T9 customization redirect (RESOLVED by T9-FIX):** POST returns 302 → `/customizations/<uuid>/created/`.
+- **T9 measurement validators (RESOLVED by T9-FIX):** `MinValueValidator(Decimal("0.01"))` on all 6 fields.
+- **T9 product gallery (RESOLVED by T9-FIX):** Scrollable `.product-gallery-scroll` container.
+
+```bash
+conda run -n femdes python manage.py test  # 183 tests, OK
+conda run -n femdes python manage.py check  # 0 issues
+```
 
 ## T5 Verification (2026-07-06)
 

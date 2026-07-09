@@ -2,58 +2,53 @@
 
 ## Summary
 
-This repo is a static Kaira Bootstrap fashion-store template being converted into a database-backed FemDes webstore. T0 through T7 (including all FIX tasks) are complete. T8 (final verification) is next.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T9 (including all FIX subtasks) are complete. No required implementation tasks remain — only optional improvements below.
 
-## What Exists Now
+## Completed Tasks
 
-- Static source preserved:
-  - `legacy_static/index.html` — byte-identical copy
-  - `legacy_static/readme.txt` — byte-identical copy
-  - `index.html` — original template (unchanged)
-  - `readme.txt` — original license (unchanged)
-- Django scaffold (T1):
-  - `requirements.txt` — Django 5.2.15, Pillow, dj-database-url, python-dotenv, whitenoise, psycopg[binary]
-  - `manage.py`
-  - `femdes_site/` — project package with env-loaded settings
-  - `store/` — app package
-  - Conda env: `femdes` (Python 3.12.13)
-- Asset migration (T2 + T2-FIX):
-  - `static/store/css/` — vendor CSS + Kaira CSS
-  - `static/store/js/` — jQuery, plugins, SmoothScroll, script.min.js
-  - `static/store/images/` — all Kaira images
-  - `static/store/style.css` — Kaira custom stylesheet
-  - `staticfiles/` — collected output (gitignored)
-  - `.claude/` — gitignored (local automation artifacts)
-- Agent/planning docs:
-  - `AGENTS.md`, `CLAUDE.md`
-  - `docs/architecture.md`, `docs/decisions.md`
-  - `docs/agent/IMPLEMENTATION_PLAN.md`, `docs/agent/TASK_BOARD.md`, `docs/agent/CURRENT_TASK.md`, `docs/agent/HANDOFF.md`, `docs/agent/TEST_STATUS.md`
-  - `.agent/CONTINUITY.md`
-- Django admin (T4 + T4-FIX):
-  - all 8 store models registered with `admin.site`
-  - `ProductImage` editable directly and inline under Product
-  - `OrderItem` visible directly and inline under Order with readonly snapshots
-  - `SiteSettings` restricted to one row
+- **T0**: Baseline preservation — `legacy_static/` copies, `.gitignore`, `.env.example`
+- **T1**: Django 5.2.15 scaffold — `femdes_site/`, `store/`, conda env `femdes`
+- **T2**: Static asset migration — `css/`, `js/`, `images/`, `style.css` → `static/store/`
+- **T3**: 8 database models + migrations + 66 model/discount tests
+- **T4**: Django admin configured for all models (ProductImage + OrderItem inlines)
+- **T5**: Forms, selectors, services (session cart, checkout with stock revalidation), views, URLs
+- **T6**: Kaira HTML converted to Django templates (base.html, 7 partials, 6 page templates)
+- **T7**: Idempotent `seed_demo_store` command with deterministic `products/demo/` image storage
+- **T8**: Final MVP verification + docs update
+- **T9**: Blouse catalog (15 products, 4 images each), 6 measurement defaults, `CustomizationRequest` model, customization form → redirect → shareable UUID link, Buy Now button, scrollable image gallery, disclaimer text
+
+## Resolved Historical Issues
+
+- T7 image storage: `ProductImage.image.name` now uses deterministic `products/demo/<filename>` paths (T7-FIX)
+- T9 seed cleanup: old non-blouse SKU prefixes properly deactivated using per-prefix `Q()` objects (T9-FIX)
+- T9 customization redirect: POST now returns 302 redirect to `/customizations/<uuid>/created/` (T9-FIX)
+- T9 measurement validation: `CustomizationRequest` fields use `MinValueValidator(Decimal("0.01"))` (T9-FIX)
+- T9 product detail: scrollable `.product-gallery-scroll` container for product images (T9-FIX)
 
 ## Key Configuration
 
 - **Environment:** `conda run -n femdes python manage.py <cmd>`
 - **Settings:** python-dotenv, dj-database-url (SQLite default), WhiteNoise middleware
-- **Static storage:** Django default `StaticFilesStorage` (not manifest — `vendor.css` references missing `colorbox/loading.gif`)
+- **Static storage:** Django default `StaticFilesStorage`
 - **Installed apps:** `store`
 
 ## Verification Status
 
-- `conda run -n femdes python manage.py check` — **PASS**
-- `conda run -n femdes python manage.py test` — **PASS** (157 tests)
+- `conda run -n femdes python manage.py check` — **PASS** (0 issues)
+- `conda run -n femdes python manage.py test` — **PASS** (183 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
-- T7 review found `seed_demo_store` stores database image paths under `products/` with generated suffixes instead of deterministic `products/demo/` paths after repeated runs.
+- `conda run -n femdes python manage.py makemigrations --check --dry-run` — **PASS** (no changes)
+- `conda run -n femdes python manage.py seed_demo_store` — **PASS** (idempotent, 18 records updated on repeat)
 
-## Next Action
+## Optional Future Work
 
-**T8: Full verification and docs update** — final check/test/static pass. See `docs/agent/CURRENT_TASK.md`.
+Do not start these unless the owner explicitly requests them:
 
-## Do Not Do Yet
-
-- Do not add payment integration.
-- Do not remove upstream attribution.
+- Payment gateway integration (Stripe/PayPal)
+- Customer accounts and authentication
+- Wishlist persistence
+- Shipping carrier APIs and tax calculation
+- Blog CMS
+- Instagram API integration
+- Custom admin dashboard
+- Production media storage (S3/object storage)
