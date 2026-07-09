@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T9 (including all FIX subtasks) are complete. No required implementation tasks remain — only optional improvements below.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T10 (including all FIX subtasks) are complete. No required implementation tasks remain — only optional improvements below.
 
 ## Completed Tasks
 
@@ -16,6 +16,7 @@ This repo has been converted from a static Kaira Bootstrap fashion-store templat
 - **T7**: Idempotent `seed_demo_store` command with deterministic `products/demo/` image storage
 - **T8**: Final MVP verification + docs update
 - **T9**: Blouse catalog (15 products, 4 images each), 6 measurement defaults, `CustomizationRequest` model, customization form → redirect → shareable UUID link, Buy Now button, scrollable image gallery, disclaimer text
+- **T10**: Optional S3-compatible media storage (`django-storages`), local default preserved, supports custom endpoints and CDN domains
 
 ## Resolved Historical Issues
 

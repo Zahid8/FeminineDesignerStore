@@ -22,6 +22,7 @@
 | T7 | Done | Fix seed command image storage idempotency | `store/management/commands/seed_demo_store.py`, `store/tests/test_seed.py` | run seed twice, seed tests, full tests |
 | T8 | Done | Full verification and docs update | `docs/agent/TEST_STATUS.md`, `docs/agent/HANDOFF.md`, `.agent/CONTINUITY.md` | full Django check/test/static/manual pass |
 | T9 | Done | Add blouse catalog + customization (+ fixes) | `store/models.py`, `store/admin.py`, `store/views.py`, seed, templates, tests | 183 tests, collectstatic, seed idempotent |
+| T10 | Done | Add production media storage support | `requirements.txt`, `femdes_site/settings.py`, `.env.example`, docs | 183 tests, check, collectstatic |
 
 ## Dependency Order
 

@@ -139,6 +139,42 @@ STATICFILES_DIRS = [
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Optional S3-compatible media storage for production deployments.
+# Set DJANGO_MEDIA_STORAGE=s3 to enable.  Requires:
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME,
+#   and optional: AWS_S3_REGION_NAME, AWS_S3_ENDPOINT_URL, AWS_S3_CUSTOM_DOMAIN.
+MEDIA_STORAGE_MODE = os.getenv("DJANGO_MEDIA_STORAGE", "local")
+if MEDIA_STORAGE_MODE == "s3":
+    bucket = os.getenv("AWS_STORAGE_BUCKET_NAME")
+    if not bucket:
+        raise ValueError(
+            "DJANGO_MEDIA_STORAGE=s3 requires AWS_STORAGE_BUCKET_NAME."
+        )
+    s3_kwargs = {
+        "bucket_name": bucket,
+        "access_key": os.getenv("AWS_ACCESS_KEY_ID", ""),
+        "secret_key": os.getenv("AWS_SECRET_ACCESS_KEY", ""),
+        "file_overwrite": False,
+    }
+    region = os.getenv("AWS_S3_REGION_NAME")
+    if region:
+        s3_kwargs["region_name"] = region
+    endpoint = os.getenv("AWS_S3_ENDPOINT_URL")
+    if endpoint:
+        s3_kwargs["endpoint_url"] = endpoint
+    custom_domain = os.getenv("AWS_S3_CUSTOM_DOMAIN")
+    if custom_domain:
+        s3_kwargs["custom_domain"] = custom_domain
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": s3_kwargs,
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
