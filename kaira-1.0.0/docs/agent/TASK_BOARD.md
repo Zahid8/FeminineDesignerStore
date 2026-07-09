@@ -26,7 +26,8 @@
 | T11 | Done | Add customer accounts (+ redirect fix + navbar logout + docs) | auth views/forms/templates, nullable order user link, account tests, docs | 211 tests, check, migration dry-run |
 | T12 | Done | Use placeholder images, carousel, ready-made specs (+ tests + docs) | seed command, product detail template, tests, docs | 218 tests, seed idempotent |
 | T13 | Done | Add admin-managed categories and storefront product tags | models, migration, admin, selectors/views, templates, tests, docs | 224 tests, check, migration dry-run |
-| T14 | Done | Add manual UPI payment tracking for orders/customizations | order/customization payment fields, admin, templates, tests, docs | 241 tests, check, migration dry-run |
+| T14 | Done | Add manual UPI payment tracking for orders/customizations (+ T14-FIX) | order/customization payment fields, admin, templates, tests, docs | 253 tests, check, migration dry-run |
+| T15 | Ready | Add customer wishlist persistence plus T14 docs/test carryover | wishlist model/session services, views, templates, admin, tests, docs | focused wishlist tests, full suite, check, migration dry-run |
 
 ## Dependency Order
 
@@ -42,6 +43,7 @@
 10. T12 depends on T9 and T11.
 11. T13 depends on T12.
 12. T14 depends on T13.
+13. T15 depends on T14.
 
 ## Required Changes
 
@@ -51,13 +53,14 @@
   remaining T12 documentation sync as preflight cleanup.
 - T14 is an owner-requested next task carrying the remaining T13 test/docs
   cleanup into a manual UPI payment-tracking implementation.
+- T15 is an owner-requested optional store feature carrying the remaining T14
+  docs/test cleanup into wishlist persistence.
 
 ## Optional Improvements
 
 Do not start these until T8 is done:
 
 - Live payment gateway integration.
-- Customer accounts.
 - Wishlist persistence.
 - Shipping and tax integrations.
 - Blog CMS.

@@ -1540,3 +1540,20 @@ a.btn-link.text-light:after {
   background-size: cover;
   transition: transform .3s ease-out;
 }
+
+/* Square product images (1080 × 1080) */
+.product-image,
+.product-gallery .carousel-item img,
+.product-item .image-holder img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  width: 100%;
+}
+.product-gallery .carousel-item {
+  aspect-ratio: 1 / 1;
+}
+.category-image img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  width: 100%;
+}
