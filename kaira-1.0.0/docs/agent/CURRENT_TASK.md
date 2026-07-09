@@ -1,57 +1,54 @@
 # Current Task
 
 ## Task ID
-TASK-011-FIX3
+TASK-011-FIX4
 
 ## Title
-Remove remaining stale T11 documentation match
+Fix the remaining stale test-count line in TEST_STATUS
 
 ## Goal
-Finish the documentation-only cleanup for T11 by making the required stale-doc
-search pass exactly as specified.
+Make the required stale-documentation search pass by editing the one remaining
+stale line in `docs/agent/TEST_STATUS.md`.
 
 ## Scope
-Documentation only. Do not change application code, tests, migrations,
-templates, settings, requirements, static assets, or README.
+Documentation only. This is not a code task.
 
 ## Files Expected to Change
 - `docs/agent/TEST_STATUS.md`
-- `docs/agent/TASK_BOARD.md`
 - `docs/agent/CURRENT_TASK.md`
 - `.agent/CONTINUITY.md`
 
 ## Required Behavior
-1. Remove or reword the remaining `193 tests` text in `docs/agent/TEST_STATUS.md`.
-2. Preserve useful historical T10 storage verification context without causing
-   this required command to match:
+1. Edit `docs/agent/TEST_STATUS.md` line in the T10/T10-FIX verification block
+   that currently says:
 
 ```bash
-rg -n "T0 through T10|193 tests|Customer accounts and authentication" docs/agent/HANDOFF.md docs/agent/TEST_STATUS.md
+conda run -n femdes python manage.py test                                  # 193 tests, OK
 ```
 
-3. Keep `HANDOFF.md` and `TEST_STATUS.md` aligned on current state:
-   - T0 through T11 complete;
-   - 211 tests pass;
-   - customer accounts are not listed as future work.
-4. Mark T11 done in `TASK_BOARD.md` after the stale-doc search passes.
-5. Add a short `.agent/CONTINUITY.md` entry for the docs-only cleanup.
+2. Reword that historical T10 line so it preserves the meaning without
+   containing the exact text `193 tests`.
+3. Do not remove the current-state `211 tests` text.
+4. Do not edit application code, tests, migrations, templates, README,
+   settings, static assets, or requirements.
+5. Do not write the next feature task in this fix.
 
 ## Non-Goals
-- Do not edit account behavior.
-- Do not edit category/tag functionality.
-- Do not edit README.
-- Do not add the next feature task in this fix.
+- Do not change account behavior.
+- Do not change category/tag behavior.
+- Do not add product images or measurement specs.
+- Do not run migrations or alter the database.
 
 ## Acceptance Criteria
-- The stale-doc search exits with no matches:
+- This command exits with no matches:
 
 ```bash
 rg -n "T0 through T10|193 tests|Customer accounts and authentication" docs/agent/HANDOFF.md docs/agent/TEST_STATUS.md
 ```
 
-- `docs/agent/TEST_STATUS.md` still reports 211 current tests.
-- `docs/agent/TASK_BOARD.md` marks T11 as done.
-- Only the documentation/continuity files listed above are modified.
+- `docs/agent/TEST_STATUS.md` still reports `211 tests` in the current state.
+- Only `docs/agent/TEST_STATUS.md`, `docs/agent/CURRENT_TASK.md`, and
+  `.agent/CONTINUITY.md` are modified.
 
 ## Validation Commands
 ```bash

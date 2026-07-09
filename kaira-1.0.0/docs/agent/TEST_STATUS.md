@@ -17,7 +17,7 @@ conda run -n femdes python manage.py test       # PASS (211 tests)
 
 ```bash
 conda run -n femdes python manage.py test store.tests.test_settings -v 2  # 10 tests, OK
-conda run -n femdes python manage.py test                                  # 193 tests, OK
+conda run -n femdes python manage.py test                                  # T10 suite OK
 DJANGO_MEDIA_STORAGE=s3 AWS_STORAGE_BUCKET_NAME=tb AWS_ACCESS_KEY_ID=k AWS_SECRET_ACCESS_KEY=s conda run -n femdes python manage.py check  # OK
 ```
 
