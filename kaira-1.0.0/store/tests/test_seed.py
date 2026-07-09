@@ -66,6 +66,39 @@ class SeedCommandTests(TestCase):
             self.assertEqual(product.default_length, Decimal("10.00"))
             self.assertEqual(product.default_chest, Decimal("10.00"))
 
+    def test_exactly_15_active_blouses_and_60_images(self):
+        self._call_seed()
+        self.assertEqual(
+            Product.objects.filter(sku__startswith="FD-BLOUSE-", is_active=True).count(),
+            15,
+        )
+        self.assertEqual(
+            ProductImage.objects.filter(product__sku__startswith="FD-BLOUSE-").count(),
+            60,
+        )
+
+    def test_all_seeded_images_share_same_placeholder_content(self):
+        """All 60 seeded images originate from the same placeholder source."""
+        self._call_seed()
+        imgs = list(
+            ProductImage.objects.filter(
+                product__sku__startswith="FD-BLOUSE-"
+            ).order_by("id")
+        )
+        self.assertEqual(len(imgs), 60)
+        # Collect unique media file hashes to prove same visual content.
+        import hashlib
+        hashes = set()
+        for img in imgs:
+            path = Path(self.media_root) / img.image.name
+            if path.exists():
+                hashes.add(hashlib.md5(path.read_bytes()).hexdigest())
+        # All images share the same placeholder source → exactly one unique hash.
+        self.assertEqual(
+            len(hashes), 1,
+            f"Expected 1 unique image hash (shared placeholder), got {len(hashes)}",
+        )
+
     def test_seed_command_is_idempotent(self):
         self._call_seed()
         cats1 = Category.objects.count()

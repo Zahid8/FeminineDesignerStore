@@ -24,7 +24,7 @@
 | T9 | Done | Add blouse catalog + customization (+ fixes) | `store/models.py`, `store/admin.py`, `store/views.py`, seed, templates, tests | 183 tests, collectstatic, seed idempotent |
 | T10 | Done | Add production media storage (+ tests + docs) | `requirements.txt`, `femdes_site/settings.py`, `.env.example`, `store/tests/test_settings.py`, docs | 193 tests, check, collectstatic |
 | T11 | Done | Add customer accounts (+ redirect fix + navbar logout + docs) | auth views/forms/templates, nullable order user link, account tests, docs | 211 tests, check, migration dry-run |
-| T12 | Done | Use placeholder blouse images, add carousel controls, and show ready-made specs | seed command, product detail template, tests, docs | 212 tests, seed idempotent, check |
+| T12 | Done | Use placeholder images, carousel, ready-made specs (+ tests + docs) | seed command, product detail template, tests, docs | 218 tests, seed idempotent |
 
 ## Dependency Order
 

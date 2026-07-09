@@ -126,7 +126,10 @@ class CustomizationViewTests(TestCase):
         self.assertContains(response, 'aria-label="Next image"')
 
     def test_product_detail_ready_made_specs(self):
-        """Product detail shows all 6 ready-made measurement labels and values."""
+        """Product detail shows all 6 ready-made measurement labels and values from product."""
+        # Change one value to prove it's not hardcoded.
+        self.product.default_length = Decimal("12.50")
+        self.product.save()
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
@@ -134,7 +137,73 @@ class CustomizationViewTests(TestCase):
         self.assertIn("Ready-Made Specifications", content)
         for label in ("Length", "Chest", "Waist", "Armhole", "Opening", "Bicep"):
             self.assertIn(f"{label}</strong>", content)
-        self.assertIn("10.00 in", content)
+        self.assertIn("12.50 in", content)
+
+    def test_multi_image_carousel_has_one_active_item(self):
+        """Carousel with 4 images has exactly one .carousel-item.active."""
+        from django.core.management import call_command
+        with self.settings(MEDIA_ROOT="/tmp/test-media-carousel"):
+            call_command("seed_demo_store")
+        p = Product.objects.filter(sku__startswith="FD-BLOUSE-").first()
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": p.slug})
+        )
+        content = response.content.decode()
+        # Exactly one active carousel item
+        self.assertEqual(content.count("carousel-item active"), 1)
+
+    def test_multi_image_carousel_has_prev_next_controls(self):
+        """Multi-image product renders prev/next controls."""
+        from django.core.management import call_command
+        with self.settings(MEDIA_ROOT="/tmp/test-media-carousel-2"):
+            call_command("seed_demo_store")
+        p = Product.objects.filter(sku__startswith="FD-BLOUSE-").first()
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": p.slug})
+        )
+        content = response.content.decode()
+        self.assertIn('aria-label="Previous image"', content)
+        self.assertIn('aria-label="Next image"', content)
+
+    def test_single_image_no_broken_controls(self):
+        """Product with 1 image has no prev/next controls."""
+        from store.models import ProductImage
+        ProductImage.objects.create(
+            product=self.product, is_primary=True, sort_order=0,
+        )
+        # Set image path directly
+        from pathlib import Path
+        import shutil
+        dest = Path("/tmp/test-media-single/products/demo")
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(
+            Path(__file__).resolve().parent.parent.parent
+            / "static/store/images/product-item-1.jpg",
+            dest / "single.jpg",
+        )
+        img = ProductImage.objects.filter(product=self.product).first()
+        img.image.name = "products/demo/single.jpg"
+        img.save()
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.images.count(), 1)
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        content = response.content.decode()
+        self.assertIn("product-gallery", content)
+        self.assertIn("carousel-item active", content)
+        # No prev/next controls for single image
+        self.assertNotIn('aria-label="Previous image"', content)
+        self.assertNotIn('aria-label="Next image"', content)
+
+    def test_no_images_renders_placeholder(self):
+        """Product with 0 images renders static fallback without error."""
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "product-item-1.jpg")
 
     def test_product_detail_has_buy_now_and_customize(self):
         response = self.client.get(
