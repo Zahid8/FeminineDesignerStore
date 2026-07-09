@@ -25,6 +25,7 @@
 | T10 | Done | Add production media storage (+ tests + docs) | `requirements.txt`, `femdes_site/settings.py`, `.env.example`, `store/tests/test_settings.py`, docs | 193 tests, check, collectstatic |
 | T11 | Done | Add customer accounts (+ redirect fix + navbar logout + docs) | auth views/forms/templates, nullable order user link, account tests, docs | 211 tests, check, migration dry-run |
 | T12 | Done | Use placeholder images, carousel, ready-made specs (+ tests + docs) | seed command, product detail template, tests, docs | 218 tests, seed idempotent |
+| T13 | Done | Add admin-managed categories and storefront product tags | models, migration, admin, selectors/views, templates, tests, docs | 224 tests, check, migration dry-run |
 
 ## Dependency Order
 
@@ -38,11 +39,14 @@
 8. T7 depends on T2, T3, and T6.
 9. T8 depends on all previous tasks.
 10. T12 depends on T9 and T11.
+11. T13 depends on T12.
 
 ## Required Changes
 
 - T0 through T8 are required for MVP.
 - T12 is an owner-requested storefront polish task after the account work.
+- T13 is an owner-requested category/tag management task and includes the
+  remaining T12 documentation sync as preflight cleanup.
 
 ## Optional Improvements
 

@@ -45,16 +45,21 @@ def home(request):
 
 def product_list(request):
     category_slug = request.GET.get("category", "")
+    tag_slug = request.GET.get("tag", "")
     query = request.GET.get("q", "")
     products = selectors.filter_products(
-        category_slug=category_slug or None, query=query or None
+        category_slug=category_slug or None,
+        tag_slug=tag_slug or None,
+        query=query or None,
     )
     ctx = _base_context(request)
     ctx.update(
         {
             "products": products,
             "selected_category": category_slug,
+            "selected_tag": tag_slug,
             "query": query,
+            "active_tags": selectors.get_active_tags(),
         }
     )
     return render(request, "store/product_list.html", ctx)
@@ -62,7 +67,9 @@ def product_list(request):
 
 def product_detail(request, slug):
     product = selectors.get_product_by_slug(slug)
-    related = selectors.filter_products(category_slug=product.category.slug)[:8]
+    related = []
+    if product.category:
+        related = selectors.filter_products(category_slug=product.category.slug)[:8]
     ctx = _base_context(request)
     ctx.update(
         {

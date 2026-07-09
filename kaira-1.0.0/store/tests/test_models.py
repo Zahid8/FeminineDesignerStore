@@ -6,6 +6,7 @@ from unittest import mock
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from store.models import (
@@ -521,6 +522,41 @@ class DiscountModelTests(TestCase):
         self.assertEqual(
             d.apply_to_price(Decimal("100.00")), Decimal("0.00")
         )
+
+
+class ProductTagTests(TestCase):
+    def test_str_returns_name(self):
+        from store.models import ProductTag
+        tag = ProductTag.objects.create(name="Cotton", slug="cotton")
+        self.assertEqual(str(tag), "Cotton")
+
+
+class NullCategoryProductTests(TestCase):
+    """Products survive category deletion and render without errors."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name="Temp", slug="temp")
+
+    def test_category_deletion_preserves_product(self):
+        p = Product.objects.create(
+            category=self.category, name="Safe", slug="safe",
+            sku="SKU-SAFE", price=50,
+        )
+        self.category.delete()
+        p.refresh_from_db()
+        self.assertIsNone(p.category)
+        self.assertTrue(p.is_active)
+
+    def test_product_without_category_renders_detail(self):
+        p = Product.objects.create(
+            category=None, name="Orphan", slug="orphan",
+            sku="SKU-ORPHAN", price=50,
+        )
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": "orphan"})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Orphan")
 
 
 class NewsletterSubscriberTests(TestCase):

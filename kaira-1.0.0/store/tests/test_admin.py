@@ -27,6 +27,7 @@ from store.models import (
     OrderItem,
     Product,
     ProductImage,
+    ProductTag,
     SiteSettings,
 )
 
@@ -44,6 +45,7 @@ class AdminRegistrationTests(TestCase):
         Order,
         OrderItem,
         CustomizationRequest,
+        ProductTag,
     ]
 
 

@@ -45,12 +45,19 @@
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            {% if product.category %}
             <li class="breadcrumb-item"><a href="{% url 'product_list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+            {% endif %}
             <li class="breadcrumb-item active">{{ product.name }}</li>
           </ol>
         </nav>
         <h1 class="mb-2">{{ product.name }}</h1>
         <span class="text-muted">SKU: {{ product.sku }}</span>
+        {% for tag in product.tags.all %}
+        {% if tag.is_active %}
+        <a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="badge bg-light text-dark text-decoration-none me-1">{{ tag.name }}</a>
+        {% endif %}
+        {% endfor %}
         <div class="my-3">
           <span class="fs-3 text-primary fw-bold">${{ product.get_effective_price }}</span>
           {% if product.compare_at_price and product.compare_at_price > product.price %}

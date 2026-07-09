@@ -1,7 +1,7 @@
 from django.db import models
 from django.shortcuts import get_object_or_404
 
-from store.models import Category, Product
+from store.models import Category, Product, ProductTag
 
 
 def get_active_categories():
@@ -10,7 +10,10 @@ def get_active_categories():
 
 def get_active_products():
     return (
-        Product.objects.filter(is_active=True, category__is_active=True)
+        Product.objects.filter(is_active=True)
+        .filter(
+            models.Q(category__isnull=True) | models.Q(category__is_active=True)
+        )
         .select_related("category")
         .prefetch_related("images")
     )
@@ -22,6 +25,10 @@ def get_product_by_slug(slug):
         slug=slug,
         is_active=True,
     )
+
+
+def get_active_tags():
+    return ProductTag.objects.filter(is_active=True).order_by("sort_order", "name")
 
 
 def get_homepage_products():
@@ -40,14 +47,16 @@ def get_homepage_products():
     }
 
 
-def filter_products(category_slug=None, query=None):
+def filter_products(category_slug=None, tag_slug=None, query=None):
     qs = get_active_products()
     if category_slug:
         qs = qs.filter(category__slug=category_slug)
+    if tag_slug:
+        qs = qs.filter(tags__slug=tag_slug, tags__is_active=True)
     if query:
         qs = qs.filter(
             models.Q(name__icontains=query)
             | models.Q(sku__icontains=query)
             | models.Q(short_description__icontains=query)
         )
-    return qs
+    return qs.distinct()

@@ -9,6 +9,7 @@ from store.models import (
     OrderItem,
     Product,
     ProductImage,
+    ProductTag,
     SiteSettings,
 )
 
@@ -41,7 +42,8 @@ class ProductAdmin(admin.ModelAdmin):
         "is_recommended",
         "allow_discounts",
     )
-    search_fields = ("name", "sku", "short_description")
+    search_fields = ("name", "sku", "short_description", "tags__name")
+    filter_horizontal = ("tags",)
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
     inlines = [ProductImageInline]
@@ -80,6 +82,15 @@ class ProductImageAdmin(admin.ModelAdmin):
     list_display = ("product", "image", "alt_text", "is_primary", "sort_order")
     list_filter = ("is_primary", "product")
     search_fields = ("product__name", "alt_text")
+
+
+@admin.register(ProductTag)
+class ProductTagAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "is_active", "sort_order")
+    list_filter = ("is_active",)
+    search_fields = ("name", "description")
+    prepopulated_fields = {"slug": ("name",)}
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(Category)

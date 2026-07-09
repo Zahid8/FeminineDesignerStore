@@ -14,6 +14,14 @@
           <li><a href="{% url 'product_list' %}?category={{ cat.slug }}" class="text-decoration-none {% if selected_category == cat.slug %}fw-bold{% endif %}">{{ cat.name }}</a></li>
           {% endfor %}
         </ul>
+        {% if active_tags %}
+        <h5 class="mt-4">Tags</h5>
+        <ul class="list-unstyled">
+          {% for tag in active_tags %}
+          <li><a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="text-decoration-none {% if selected_tag == tag.slug %}fw-bold{% endif %}">{{ tag.name }}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
       </div>
       <!-- Product grid -->
       <div class="col-md-9">

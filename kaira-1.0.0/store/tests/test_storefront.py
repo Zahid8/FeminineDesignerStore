@@ -208,6 +208,22 @@ class ProductListViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "No products found")
 
+    def test_product_list_tag_filter(self):
+        from store.models import ProductTag
+        tag = ProductTag.objects.create(name="Cotton", slug="cotton", is_active=True)
+        self.product.tags.add(tag)
+        response = self.client.get(reverse("product_list") + "?tag=cotton")
+        self.assertEqual(response.status_code, 200)
+
+    def test_product_list_combined_category_and_tag(self):
+        from store.models import ProductTag
+        tag = ProductTag.objects.create(name="Silk", slug="silk", is_active=True)
+        self.product.tags.add(tag)
+        response = self.client.get(
+            reverse("product_list") + "?category=dresses&tag=silk"
+        )
+        self.assertEqual(response.status_code, 200)
+
     def test_product_list_renders_product_names(self):
         response = self.client.get(reverse("product_list"))
         self.assertContains(response, self.product.name)

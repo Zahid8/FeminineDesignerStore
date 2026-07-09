@@ -62,11 +62,30 @@ class Category(models.Model):
         return self.name
 
 
+class ProductTag(models.Model):
+    """Reusable product tag managed from Django admin."""
+
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=140, unique=True)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     """Sellable catalog item with prices, stock, flags, and discount-aware pricing."""
 
     category = models.ForeignKey(
-        Category, on_delete=models.PROTECT, related_name="products"
+        Category, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="products",
     )
     name = models.CharField(max_length=160)
     slug = models.SlugField(max_length=180, unique=True)
@@ -108,6 +127,9 @@ class Product(models.Model):
     measurement_guide_image = models.ImageField(
         upload_to="measurement-guides/", blank=True, null=True
     )
+    tags = models.ManyToManyField(
+        "ProductTag", blank=True, related_name="products"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -117,6 +139,9 @@ class Product(models.Model):
     @property
     def is_in_stock(self):
         return self.stock_quantity > 0
+
+    def active_tags(self):
+        return self.tags.filter(is_active=True)
 
     def clean(self):
         super().clean()

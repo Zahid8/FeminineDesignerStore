@@ -23,10 +23,17 @@
     {% endif %}
   </div>
   <div class="product-detail mt-2">
+    {% if product.category %}
     <span class="text-muted small">{{ product.category.name }}</span>
+    {% endif %}
     <h5 class="product-title fs-6 mt-1">
       <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">{{ product.name }}</a>
     </h5>
+    {% for tag in product.tags.all %}
+    {% if tag.is_active %}
+    <a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="badge bg-light text-dark text-decoration-none me-1">{{ tag.name }}</a>
+    {% endif %}
+    {% endfor %}
     <div class="product-price">
       <span class="text-primary fw-bold">${{ product.get_effective_price }}</span>
       {% if product.compare_at_price and product.compare_at_price > product.price %}
