@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T10 (including all FIX subtasks) are complete. No required implementation tasks remain — only optional improvements below.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T11 (including all FIX subtasks) are complete. No required implementation tasks remain — only optional improvements below.
 
 ## Completed Tasks
 
@@ -17,6 +17,7 @@ This repo has been converted from a static Kaira Bootstrap fashion-store templat
 - **T8**: Final MVP verification + docs update
 - **T9**: Blouse catalog (15 products, 4 images each), 6 measurement defaults, `CustomizationRequest` model, customization form → redirect → shareable UUID link, Buy Now button, scrollable image gallery, disclaimer text
 - **T10**: Optional S3-compatible media storage (`django-storages`), local default preserved, supports custom endpoints and CDN domains
+- **T11**: Customer accounts (register/login/logout/profile/orders), auth-aware navbar with POST logout, authenticated checkout links orders, guest checkout preserved
 
 ## Resolved Historical Issues
 
@@ -36,7 +37,7 @@ This repo has been converted from a static Kaira Bootstrap fashion-store templat
 ## Verification Status
 
 - `conda run -n femdes python manage.py check` — **PASS** (0 issues)
-- `conda run -n femdes python manage.py test` — **PASS** (193 tests)
+- `conda run -n femdes python manage.py test` — **PASS** (211 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
 - `conda run -n femdes python manage.py makemigrations --check --dry-run` — **PASS** (no changes)
 - `conda run -n femdes python manage.py seed_demo_store` — **PASS** (idempotent, 18 records updated on repeat)
@@ -46,7 +47,6 @@ This repo has been converted from a static Kaira Bootstrap fashion-store templat
 Do not start these unless the owner explicitly requests them:
 
 - Payment gateway integration (Stripe/PayPal)
-- Customer accounts and authentication
 - Wishlist persistence
 - Shipping carrier APIs and tax calculation
 - Blog CMS
