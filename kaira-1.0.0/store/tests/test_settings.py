@@ -27,8 +27,7 @@ class LocalMediaStorageTests(SimpleTestCase):
             self.assertTrue(hasattr(conf.settings, "MEDIA_ROOT"))
 
     def test_media_url_default(self):
-        # MEDIA_URL is set at startup; should contain "media"
-        self.assertIn("media", conf.settings.MEDIA_URL)
+        self.assertEqual(conf.settings.MEDIA_URL, "/media/")
 
     def test_staticfiles_storage_in_storages(self):
         """Static files storage is configured in STORAGES when S3 is off."""

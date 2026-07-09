@@ -11,6 +11,18 @@ conda run -n femdes python manage.py check     # PASS (0 issues)
 conda run -n femdes python manage.py test       # PASS (193 tests)
 ```
 
+## T10/T10-FIX Verification (2026-07-09)
+
+10 storage tests verify local and S3 media modes:
+
+```bash
+conda run -n femdes python manage.py test store.tests.test_settings -v 2  # 10 tests, OK
+conda run -n femdes python manage.py test                                  # 193 tests, OK
+DJANGO_MEDIA_STORAGE=s3 AWS_STORAGE_BUCKET_NAME=tb AWS_ACCESS_KEY_ID=k AWS_SECRET_ACCESS_KEY=s conda run -n femdes python manage.py check  # OK
+```
+
+Coverage: local FileSystemStorage default, MEDIA_URL="/media/", S3Storage backend, region/endpoint/custom-domain in options, static storage unchanged, missing bucket raises ValueError.
+
 ## T9/T9-FIX Verification (2026-07-07)
 
 Blouse catalog and customization flow complete. All historical review findings resolved:

@@ -214,12 +214,37 @@ python manage.py collectstatic --noinput
 
 Review every `check --deploy` warning. Configure HTTPS redirects, secure cookies, and proxy headers according to the hosting provider before accepting real traffic.
 
-### 9. Media files
+### 9. Media files (production object storage)
 
-Uploaded product images use `MEDIA_ROOT=media/` by default. Many app hosts have ephemeral filesystems, so production product uploads need one of:
+Local development uses filesystem storage at `media/` by default — no configuration needed.
 
-- a persistent disk mounted as `media/`;
-- S3-compatible object storage added later;
-- manual re-upload after deploys for temporary testing only.
+For production, enable S3-compatible object storage so uploaded product images survive deploys:
 
-Do not rely on ephemeral local media storage for a real store.
+```env
+DJANGO_MEDIA_STORAGE=s3
+AWS_ACCESS_KEY_ID=<your-access-key>
+AWS_SECRET_ACCESS_KEY=<your-secret-key>
+AWS_STORAGE_BUCKET_NAME=<your-bucket-name>
+```
+
+Optional variables for S3-compatible providers (Cloudflare R2, DigitalOcean Spaces, Backblaze B2, etc.):
+
+```env
+AWS_S3_REGION_NAME=auto           # or your provider's region
+AWS_S3_ENDPOINT_URL=https://<account-id>.r2.cloudflarestorage.com
+AWS_S3_CUSTOM_DOMAIN=cdn.example.com   # if using a CDN
+```
+
+Example for Cloudflare R2:
+
+```env
+DJANGO_MEDIA_STORAGE=s3
+AWS_ACCESS_KEY_ID=abc123
+AWS_SECRET_ACCESS_KEY=xyz789
+AWS_STORAGE_BUCKET_NAME=my-bucket
+AWS_S3_ENDPOINT_URL=https://abc123.r2.cloudflarestorage.com
+```
+
+Static files (`css/`, `js/`, `images/`) still use `collectstatic` and are not affected by the media storage setting.
+
+If `DJANGO_MEDIA_STORAGE` is not set or is `local`, the local `media/` directory is used. Missing `AWS_STORAGE_BUCKET_NAME` in S3 mode will cause a clear startup error.
