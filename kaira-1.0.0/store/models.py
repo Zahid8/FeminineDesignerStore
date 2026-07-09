@@ -84,6 +84,28 @@ class Product(models.Model):
     allow_discounts = models.BooleanField(default=True)
     color_options = models.TextField(blank=True)
     size_options = models.TextField(blank=True)
+    # Blouse measurement defaults (admin-editable, positive only)
+    default_length = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal("10.00")
+    )
+    default_chest = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal("10.00")
+    )
+    default_waist = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal("10.00")
+    )
+    default_armhole = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal("10.00")
+    )
+    default_opening = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal("10.00")
+    )
+    default_bicep = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal("10.00")
+    )
+    measurement_guide_image = models.ImageField(
+        upload_to="measurement-guides/", blank=True, null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -103,6 +125,16 @@ class Product(models.Model):
             raise ValidationError(
                 {"compare_at_price": "Compare-at price must be >= price."}
             )
+        # Measurement defaults must be positive
+        for field in [
+            "default_length", "default_chest", "default_waist",
+            "default_armhole", "default_opening", "default_bicep",
+        ]:
+            val = getattr(self, field, None)
+            if val is not None and val <= 0:
+                raise ValidationError(
+                    {field: "Measurement default must be positive."}
+                )
 
     def get_effective_price(self, now=None):
         """Return the discounted price as a 2-decimal Decimal.
@@ -387,3 +419,24 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
+
+
+class CustomizationRequest(models.Model):
+    """Blouse customization request with measurements and shareable token."""
+
+    product = models.ForeignKey(
+        Product, on_delete=models.PROTECT, related_name="customization_requests"
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    customer_name = models.CharField(max_length=160)
+    customer_phone = models.CharField(max_length=40)
+    length = models.DecimalField(max_digits=6, decimal_places=2)
+    chest = models.DecimalField(max_digits=6, decimal_places=2)
+    waist = models.DecimalField(max_digits=6, decimal_places=2)
+    armhole = models.DecimalField(max_digits=6, decimal_places=2)
+    opening = models.DecimalField(max_digits=6, decimal_places=2)
+    bicep = models.DecimalField(max_digits=6, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Customization for {self.customer_name} ({self.product.name})"

@@ -1,18 +1,17 @@
 # Current Task
 
 ## Task ID
-TASK-007-FIX — COMPLETE (2026-07-07)
+TASK-009 — COMPLETE (2026-07-07)
 
 ## Completed
-T7-FIX: ProductImage.image.name now uses deterministic `products/demo/<filename>` paths. No duplicate suffixed files on repeated runs. 159 tests pass (157 + 2 new file-system idempotency tests).
+Blouse-only catalog with 15 seeded blouse products, 4 images each. 6 measurement fields + measurement guide image on Product. CustomizationRequest model with UUID token, form, views, URLs, and templates. Disclaimer text. Buy Now button. 172 tests pass.
 
-## Next Task
+## Remaining Optional Work
 
-**T8: Full Verification And Documentation Update**
-
-Use `docs/agent/IMPLEMENTATION_PLAN.md#task-8-full-verification-and-documentation-update`.
-
-## Prerequisites
-
-- [x] T0–T7 complete (including all FIX tasks).
-- [ ] Use conda env `femdes` for all Python commands.
+- Payment integration
+- Customer accounts
+- Wishlist persistence
+- Shipping and tax integrations
+- Blog CMS
+- Instagram API integration
+- Custom admin dashboard

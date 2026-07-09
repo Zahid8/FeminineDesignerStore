@@ -7,9 +7,10 @@ from store.forms import (
     AddToCartForm,
     CartUpdateForm,
     CheckoutForm,
+    CustomizationForm,
     NewsletterSignupForm,
 )
-from store.models import Order, Product, SiteSettings
+from store.models import CustomizationRequest, Order, Product, SiteSettings
 
 
 def _get_site_settings():
@@ -61,6 +62,14 @@ def product_detail(request, slug):
             "product": product,
             "related_products": related,
             "add_to_cart_form": AddToCartForm(),
+            "customization_form": CustomizationForm(initial={
+                "length": product.default_length,
+                "chest": product.default_chest,
+                "waist": product.default_waist,
+                "armhole": product.default_armhole,
+                "opening": product.default_opening,
+                "bicep": product.default_bicep,
+            }),
         }
     )
     return render(request, "store/product_detail.html", ctx)
@@ -149,3 +158,58 @@ def newsletter_subscribe(request):
     if form.is_valid():
         services.subscribe_newsletter(form.cleaned_data["email"])
     return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+
+
+def buy_now(request, product_id):
+    """Add one unit to cart and redirect to checkout."""
+    product = get_object_or_404(Product, pk=product_id, is_active=True)
+    if request.method == "POST":
+        try:
+            services.add_to_cart(request, product, quantity=1)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect("product_detail", slug=product.slug)
+        return redirect("checkout")
+    return redirect("product_detail", slug=product.slug)
+
+
+def customization_create(request, slug):
+    product = get_object_or_404(Product, slug=slug, is_active=True)
+    if request.method == "POST":
+        form = CustomizationForm(request.POST)
+        if form.is_valid():
+            cr = CustomizationRequest.objects.create(
+                product=product,
+                customer_name=form.cleaned_data["customer_name"],
+                customer_phone=form.cleaned_data["customer_phone"],
+                length=form.cleaned_data["length"],
+                chest=form.cleaned_data["chest"],
+                waist=form.cleaned_data["waist"],
+                armhole=form.cleaned_data["armhole"],
+                opening=form.cleaned_data["opening"],
+                bicep=form.cleaned_data["bicep"],
+            )
+            return render(request, "store/customization_created.html", {
+                "customization": cr,
+                "product": product,
+                **_base_context(request),
+            })
+    else:
+        form = CustomizationForm(initial={
+            "length": product.default_length,
+            "chest": product.default_chest,
+            "waist": product.default_waist,
+            "armhole": product.default_armhole,
+            "opening": product.default_opening,
+            "bicep": product.default_bicep,
+        })
+    ctx = _base_context(request)
+    ctx.update({"product": product, "customization_form": form})
+    return render(request, "store/product_detail.html", ctx)
+
+
+def customization_detail(request, token):
+    cr = get_object_or_404(CustomizationRequest, token=token)
+    ctx = _base_context(request)
+    ctx.update({"customization": cr, "product": cr.product})
+    return render(request, "store/customization_detail.html", ctx)

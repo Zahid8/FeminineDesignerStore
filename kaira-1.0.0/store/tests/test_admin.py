@@ -19,6 +19,7 @@ from store.admin import (
 )
 from store.models import (
     Category,
+    CustomizationRequest,
     Discount,
     NewsletterSubscriber,
     Order,
@@ -41,7 +42,9 @@ class AdminRegistrationTests(TestCase):
         NewsletterSubscriber,
         Order,
         OrderItem,
+        CustomizationRequest,
     ]
+
 
     def test_all_eight_models_registered(self):
         for model in self.ALL_MODELS:

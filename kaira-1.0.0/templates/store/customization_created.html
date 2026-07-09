@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %} — Customization Request Created{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <div class="text-center mb-4">
+      <h1>Customization Request Submitted</h1>
+      <p class="lead">Your blouse customization details have been saved.</p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card mb-4">
+          <div class="card-header"><h5 class="mb-0">{{ product.name }}</h5></div>
+          <div class="card-body">
+            <p><strong>Customer:</strong> {{ customization.customer_name }}</p>
+            <p><strong>Phone:</strong> {{ customization.customer_phone }}</p>
+            <table class="table table-sm">
+              <tr><td><strong>Length</strong></td><td>{{ customization.length }} in</td></tr>
+              <tr><td><strong>Chest</strong></td><td>{{ customization.chest }} in</td></tr>
+              <tr><td><strong>Waist</strong></td><td>{{ customization.waist }} in</td></tr>
+              <tr><td><strong>Armhole</strong></td><td>{{ customization.armhole }} in</td></tr>
+              <tr><td><strong>Opening</strong></td><td>{{ customization.opening }} in</td></tr>
+              <tr><td><strong>Bicep</strong></td><td>{{ customization.bicep }} in</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card mb-4 border-warning">
+          <div class="card-body">
+            <h5 class="text-warning">Share Your Customization</h5>
+            <p>Copy this link to share your customization details:</p>
+            <div class="input-group mb-3">
+              <input type="text" class="form-control" id="customization-link"
+                value="{{ request.scheme }}://{{ request.get_host }}{% url 'customization_detail' customization.token %}" readonly>
+              <button class="btn btn-outline-dark" onclick="navigator.clipboard.writeText(document.getElementById('customization-link').value)">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <strong>Disclaimer:</strong> Customization requires a 500 advance payment to UPI +919898989898. Please send the UPI payment screenshot through WhatsApp along with your customization link.
+        </div>
+
+        <div class="text-center mt-3">
+          <a href="{% url 'product_list' %}" class="btn btn-outline-dark">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

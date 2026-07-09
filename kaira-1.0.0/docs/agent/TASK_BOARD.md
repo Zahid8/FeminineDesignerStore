@@ -20,7 +20,8 @@
 | T5 | Done | Add forms, selectors, services, URLs, and views | `store/forms.py`, `store/selectors.py`, `store/services.py`, `store/views.py`, `store/urls.py`, URL config, cart/storefront tests | `python manage.py test store.tests.test_cart store.tests.test_storefront` |
 | T6 | Done | Convert static HTML into Django templates | `templates/` tree | storefront tests, `collectstatic`, manual browser check |
 | T7 | Done | Fix seed command image storage idempotency | `store/management/commands/seed_demo_store.py`, `store/tests/test_seed.py` | run seed twice, seed tests, full tests |
-| T8 | Ready | Full verification and docs update | `docs/agent/TEST_STATUS.md`, `docs/agent/HANDOFF.md`, `.agent/CONTINUITY.md` | full Django check/test/static/manual pass |
+| T8 | Done | Full verification and docs update | `docs/agent/TEST_STATUS.md`, `docs/agent/HANDOFF.md`, `.agent/CONTINUITY.md` | full Django check/test/static/manual pass |
+| T9 | Done | Add blouse catalog and customization | `store/models.py`, `store/admin.py`, `store/views.py`, seed, templates, tests | 172 tests, collectstatic, seed idempotent |
 
 ## Dependency Order
 

@@ -1,6 +1,7 @@
 """Tests for the seed_demo_store management command."""
 
 import tempfile
+from decimal import Decimal
 from pathlib import Path
 
 from django.core.management import CommandError, call_command
@@ -46,9 +47,24 @@ class SeedCommandTests(TestCase):
     def test_seed_command_creates_core_records(self):
         self._call_seed()
         self.assertEqual(SiteSettings.objects.count(), 1)
-        self.assertEqual(Category.objects.filter(is_active=True).count(), 5)
-        self.assertGreaterEqual(Product.objects.filter(is_active=True).count(), 7)
+        self.assertEqual(Category.objects.filter(is_active=True).count(), 1)
+        self.assertEqual(Category.objects.filter(slug="blouses", is_active=True).count(), 1)
+        self.assertGreaterEqual(Product.objects.filter(is_active=True).count(), 15)
         self.assertGreaterEqual(Discount.objects.filter(is_active=True).count(), 1)
+
+    def test_each_seeded_blouse_has_four_images(self):
+        self._call_seed()
+        for product in Product.objects.filter(sku__startswith="FD-BLOUSE-"):
+            self.assertEqual(
+                ProductImage.objects.filter(product=product).count(), 4,
+                f"{product.name} should have exactly 4 images",
+            )
+
+    def test_seeded_measurement_defaults_are_ten(self):
+        self._call_seed()
+        for product in Product.objects.filter(sku__startswith="FD-BLOUSE-"):
+            self.assertEqual(product.default_length, Decimal("10.00"))
+            self.assertEqual(product.default_chest, Decimal("10.00"))
 
     def test_seed_command_is_idempotent(self):
         self._call_seed()

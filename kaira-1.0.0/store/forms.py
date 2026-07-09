@@ -21,3 +21,14 @@ class CheckoutForm(forms.Form):
 
 class NewsletterSignupForm(forms.Form):
     email = forms.EmailField()
+
+
+class CustomizationForm(forms.Form):
+    customer_name = forms.CharField(max_length=160)
+    customer_phone = forms.CharField(max_length=40)
+    length = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
+    chest = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
+    waist = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
+    armhole = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
+    opening = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
+    bicep = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)

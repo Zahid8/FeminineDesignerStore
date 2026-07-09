@@ -21,4 +21,15 @@ urlpatterns = [
         views.newsletter_subscribe,
         name="newsletter_subscribe",
     ),
+    path(
+        "customize/<slug:slug>/",
+        views.customization_create,
+        name="customization_create",
+    ),
+    path("buy-now/<int:product_id>/", views.buy_now, name="buy_now"),
+    path(
+        "customizations/<uuid:token>/",
+        views.customization_detail,
+        name="customization_detail",
+    ),
 ]

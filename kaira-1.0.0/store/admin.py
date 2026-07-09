@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from store.models import (
     Category,
+    CustomizationRequest,
     Discount,
     NewsletterSubscriber,
     Order,
@@ -44,6 +45,34 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
     inlines = [ProductImageInline]
+    fieldsets = (
+        (None, {
+            "fields": (
+                "category", "name", "slug", "sku",
+                "short_description", "description",
+                "price", "compare_at_price", "stock_quantity",
+            ),
+        }),
+        ("Flags", {
+            "fields": (
+                "is_active", "is_featured", "is_new_arrival",
+                "is_best_seller", "is_recommended", "allow_discounts",
+            ),
+        }),
+        ("Measurements", {
+            "fields": (
+                "default_length", "default_chest", "default_waist",
+                "default_armhole", "default_opening", "default_bicep",
+                "measurement_guide_image",
+            ),
+        }),
+        ("Options", {
+            "fields": ("color_options", "size_options"),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+        }),
+    )
 
 
 @admin.register(ProductImage)
@@ -196,3 +225,16 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         if SiteSettings.objects.exists():
             return False
         return super().has_add_permission(request)
+
+
+@admin.register(CustomizationRequest)
+class CustomizationRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "customer_name", "customer_phone", "product",
+        "length", "chest", "waist", "token", "created_at",
+    )
+    search_fields = (
+        "customer_name", "customer_phone", "product__name", "token",
+    )
+    list_filter = ("created_at",)
+    readonly_fields = ("token", "created_at")

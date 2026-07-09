@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %} — Customization Details{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card mb-4">
+          <div class="card-header"><h5 class="mb-0">{{ product.name }}</h5></div>
+          <div class="card-body">
+            <p><strong>Customer:</strong> {{ customization.customer_name }}</p>
+            <p><strong>Phone:</strong> {{ customization.customer_phone }}</p>
+            <table class="table table-sm">
+              <tr><td><strong>Length</strong></td><td>{{ customization.length }} in</td></tr>
+              <tr><td><strong>Chest</strong></td><td>{{ customization.chest }} in</td></tr>
+              <tr><td><strong>Waist</strong></td><td>{{ customization.waist }} in</td></tr>
+              <tr><td><strong>Armhole</strong></td><td>{{ customization.armhole }} in</td></tr>
+              <tr><td><strong>Opening</strong></td><td>{{ customization.opening }} in</td></tr>
+              <tr><td><strong>Bicep</strong></td><td>{{ customization.bicep }} in</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <strong>Disclaimer:</strong> Customization requires a 500 advance payment to UPI +919898989898. Please send the UPI payment screenshot through WhatsApp along with your customization link.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
