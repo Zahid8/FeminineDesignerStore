@@ -61,6 +61,16 @@
           </div>
         </div>
 
+        <div class="card border-warning mt-4">
+          <div class="card-body">
+            <h5 class="text-warning">Payment Instructions</h5>
+            <p>Please complete your payment to confirm this order.</p>
+            <p><strong>UPI:</strong> +919898989898</p>
+            <p><strong>Order #:</strong> {{ order.order_number }}</p>
+            <p class="mb-0">Send the payment screenshot via WhatsApp with your order number for verification.</p>
+          </div>
+        </div>
+
         <div class="text-center mt-4">
           <a href="{% url 'product_list' %}" class="btn btn-outline-dark btn-lg">Continue Shopping</a>
         </div>

@@ -26,6 +26,7 @@
 | T11 | Done | Add customer accounts (+ redirect fix + navbar logout + docs) | auth views/forms/templates, nullable order user link, account tests, docs | 211 tests, check, migration dry-run |
 | T12 | Done | Use placeholder images, carousel, ready-made specs (+ tests + docs) | seed command, product detail template, tests, docs | 218 tests, seed idempotent |
 | T13 | Done | Add admin-managed categories and storefront product tags | models, migration, admin, selectors/views, templates, tests, docs | 224 tests, check, migration dry-run |
+| T14 | Done | Add manual UPI payment tracking for orders/customizations | order/customization payment fields, admin, templates, tests, docs | 241 tests, check, migration dry-run |
 
 ## Dependency Order
 
@@ -40,6 +41,7 @@
 9. T8 depends on all previous tasks.
 10. T12 depends on T9 and T11.
 11. T13 depends on T12.
+12. T14 depends on T13.
 
 ## Required Changes
 
@@ -47,12 +49,14 @@
 - T12 is an owner-requested storefront polish task after the account work.
 - T13 is an owner-requested category/tag management task and includes the
   remaining T12 documentation sync as preflight cleanup.
+- T14 is an owner-requested next task carrying the remaining T13 test/docs
+  cleanup into a manual UPI payment-tracking implementation.
 
 ## Optional Improvements
 
 Do not start these until T8 is done:
 
-- Payment integration.
+- Live payment gateway integration.
 - Customer accounts.
 - Wishlist persistence.
 - Shipping and tax integrations.

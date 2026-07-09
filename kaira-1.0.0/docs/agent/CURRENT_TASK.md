@@ -1,7 +1,7 @@
 # Current Task
 
 ## Task ID
-TASK-013-FIX2 — COMPLETE (2026-07-09)
+TASK-014 — COMPLETE (2026-07-09)
 
 ## Completed
-T13-FIX2: get_product_by_slug now enforces active-category/null-category rule (404 for inactive category). Tag filter test proves inclusion/exclusion. Admin tag_list display test. 238 tests pass.
+T14: Payment tracking fields on Order (status/method/reference/notes/paid_at) and CustomizationRequest (status/reference/notes/paid_at). Admin filters/search/display. Paid timestamp auto-set. Payment instructions on checkout/order_success/customization. 241 tests pass.

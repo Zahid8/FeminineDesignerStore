@@ -531,6 +531,27 @@ class ProductTagTests(TestCase):
         self.assertEqual(str(tag), "Cotton")
 
 
+class PaymentTrackingTests(TestCase):
+    def test_order_defaults_to_pending(self):
+        order = Order.objects.create(
+            customer_name="Test", customer_email="t@t.com",
+            shipping_address="Addr",
+        )
+        self.assertEqual(order.payment_status, "pending")
+        self.assertEqual(order.payment_method, "manual_upi")
+
+    def test_paid_at_set_when_marked_paid(self):
+        order = Order.objects.create(
+            customer_name="Test", customer_email="t@t.com",
+            shipping_address="Addr",
+        )
+        self.assertIsNone(order.paid_at)
+        order.payment_status = "paid"
+        order.save()
+        order.refresh_from_db()
+        self.assertIsNotNone(order.paid_at)
+
+
 class NullCategoryProductTests(TestCase):
     """Products survive category deletion and render without errors."""
 

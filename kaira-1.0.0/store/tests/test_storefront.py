@@ -226,10 +226,36 @@ class ProductListViewTests(TestCase):
         from store.models import ProductTag
         tag = ProductTag.objects.create(name="Silk", slug="silk", is_active=True)
         self.product.tags.add(tag)
+        # Product matching category only (no tag) — should be hidden
+        other_cat_only = Product.objects.create(
+            category=self.category, name="Cat Only", slug="cat-only",
+            sku="SKU-CATONLY", price=50, is_active=True,
+        )
+        # Product matching tag only (different category) — should be hidden
+        other_cat = Category.objects.create(name="Other", slug="other", is_active=True)
+        tag_only = Product.objects.create(
+            category=other_cat, name="Tag Only", slug="tag-only",
+            sku="SKU-TAGONLY", price=50, is_active=True,
+        )
+        tag_only.tags.add(tag)
         response = self.client.get(
             reverse("product_list") + "?category=dresses&tag=silk"
         )
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.product.name)  # matches both
+        self.assertNotContains(response, "Cat Only")       # wrong tag
+        self.assertNotContains(response, "Tag Only")       # wrong category
+
+    def test_inactive_category_products_hidden_from_list(self):
+        inactive_cat = Category.objects.create(
+            name="Hidden", slug="hidden", is_active=False
+        )
+        Product.objects.create(
+            category=inactive_cat, name="Invisible", slug="invisible",
+            sku="SKU-INVIS", price=50, is_active=True,
+        )
+        response = self.client.get(reverse("product_list"))
+        self.assertNotContains(response, "Invisible")
 
     def test_product_card_displays_active_tags(self):
         from store.models import ProductTag
@@ -482,6 +508,7 @@ class OrderSuccessViewTests(TestCase):
         )
         self.assertContains(response, self.order.order_number)
         self.assertContains(response, "Thank You")
+        self.assertContains(response, "Payment Instructions")
 
     def test_order_success_404(self):
         response = self.client.get(

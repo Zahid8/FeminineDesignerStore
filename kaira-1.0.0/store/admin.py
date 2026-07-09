@@ -175,15 +175,17 @@ class OrderAdmin(admin.ModelAdmin):
         "customer_name",
         "customer_email",
         "status",
+        "payment_status",
         "total",
         "created_at",
     )
-    list_filter = ("status", "created_at")
+    list_filter = ("status", "payment_status", "payment_method", "created_at")
     search_fields = (
         "order_number",
         "customer_email",
         "customer_phone",
         "customer_name",
+        "payment_reference",
     )
     readonly_fields = (
         "order_number",
@@ -192,6 +194,7 @@ class OrderAdmin(admin.ModelAdmin):
         "total",
         "created_at",
         "updated_at",
+        "paid_at",
     )
     inlines = [OrderItemInline]
 
@@ -249,10 +252,12 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 class CustomizationRequestAdmin(admin.ModelAdmin):
     list_display = (
         "customer_name", "customer_phone", "product",
-        "length", "chest", "waist", "token", "created_at",
+        "payment_status", "length", "chest", "waist",
+        "token", "created_at",
     )
     search_fields = (
         "customer_name", "customer_phone", "product__name", "token",
+        "payment_reference",
     )
-    list_filter = ("created_at",)
-    readonly_fields = ("token", "created_at")
+    list_filter = ("payment_status", "created_at")
+    readonly_fields = ("token", "created_at", "paid_at")

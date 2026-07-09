@@ -382,6 +382,28 @@ class Order(models.Model):
     customer_phone = models.CharField(max_length=40, blank=True)
     shipping_address = models.TextField()
     notes = models.TextField(blank=True)
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Pending"),
+            ("awaiting_review", "Awaiting Review"),
+            ("paid", "Paid"),
+            ("failed", "Failed"),
+            ("refunded", "Refunded"),
+        ],
+        default="pending",
+    )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=[
+            ("manual_upi", "Manual UPI"),
+            ("cash_on_delivery", "Cash on Delivery"),
+        ],
+        default="manual_upi",
+    )
+    payment_reference = models.CharField(max_length=160, blank=True)
+    payment_notes = models.TextField(blank=True)
+    paid_at = models.DateTimeField(blank=True, null=True)
     customer_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -405,6 +427,12 @@ class Order(models.Model):
         return self.order_number or f"Order #{self.pk}"
 
     def save(self, *args, **kwargs):
+        # Auto-set paid_at when payment_status changes to paid.
+        if self.pk:
+            old = Order.objects.filter(pk=self.pk).first()
+            if old and old.payment_status != "paid" and self.payment_status == "paid":
+                if self.paid_at is None:
+                    self.paid_at = tz.now()
         if not self.order_number:
             self.order_number = self._generate_order_number()
             for _ in range(10):
@@ -488,6 +516,20 @@ class CustomizationRequest(models.Model):
         max_digits=6, decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],
     )
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Pending"),
+            ("awaiting_review", "Awaiting Review"),
+            ("paid", "Paid"),
+            ("failed", "Failed"),
+            ("refunded", "Refunded"),
+        ],
+        default="pending",
+    )
+    payment_reference = models.CharField(max_length=160, blank=True)
+    payment_notes = models.TextField(blank=True)
+    paid_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
