@@ -28,8 +28,8 @@
                   <td>{{ item.product_name }}{% if item.color %}<br><small class="text-muted">{{ item.color }}{% if item.size %} / {{ item.size }}{% endif %}</small>{% endif %}</td>
                   <td>{{ item.sku }}</td>
                   <td>{{ item.quantity }}</td>
-                  <td>${{ item.unit_price }}</td>
-                  <td>${{ item.line_total }}</td>
+                  <td>{{ site_settings.currency_symbol|default:"$" }}{{item.unit_price }}</td>
+                  <td>{{ site_settings.currency_symbol|default:"$" }}{{item.line_total }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -37,17 +37,17 @@
             <hr>
             <div class="row">
               <div class="col-6"><strong>Subtotal:</strong></div>
-              <div class="col-6 text-end">${{ order.subtotal }}</div>
+              <div class="col-6 text-end">{{ site_settings.currency_symbol|default:"$" }}{{order.subtotal }}</div>
             </div>
             {% if order.discount_total > 0 %}
             <div class="row text-success">
               <div class="col-6"><strong>Discount:</strong></div>
-              <div class="col-6 text-end">-${{ order.discount_total }}</div>
+              <div class="col-6 text-end">-{{ site_settings.currency_symbol|default:"$" }}{{order.discount_total }}</div>
             </div>
             {% endif %}
             <div class="row fs-5">
               <div class="col-6"><strong>Total:</strong></div>
-              <div class="col-6 text-end"><strong>${{ order.total }}</strong></div>
+              <div class="col-6 text-end"><strong>{{ site_settings.currency_symbol|default:"$" }}{{order.total }}</strong></div>
             </div>
           </div>
         </div>

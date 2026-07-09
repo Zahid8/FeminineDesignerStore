@@ -59,9 +59,9 @@
         {% endif %}
         {% endfor %}
         <div class="my-3">
-          <span class="fs-3 text-primary fw-bold">${{ product.get_effective_price }}</span>
+          <span class="fs-3 text-primary fw-bold">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</span>
           {% if product.compare_at_price and product.compare_at_price > product.price %}
-          <span class="text-muted text-decoration-line-through ms-2 fs-5">${{ product.compare_at_price }}</span>
+          <span class="text-muted text-decoration-line-through ms-2 fs-5">{{ site_settings.currency_symbol|default:"$" }}{{ product.compare_at_price }}</span>
           {% endif %}
         </div>
         {% if product.short_description %}<p>{{ product.short_description }}</p>{% endif %}
@@ -114,12 +114,12 @@
       {% if product.measurement_guide_image %}
       <div class="mt-5" id="measurement-guide">
         <h5>Measurement Guide</h5>
-        <img src="{{ product.measurement_guide_image.url }}" alt="Measurement Guide" class="img-fluid rounded">
+        <img src="{{ product.measurement_guide_image.url }}" alt="Measurement Guide" class="img-fluid rounded" style="aspect-ratio: 1/1; object-fit: cover; width: 100%; max-width: 400px;">
       </div>
       {% else %}
       <div class="mt-5" id="measurement-guide">
         <h5>Measurement Guide</h5>
-        <img src="{% static 'store/images/product-item-1.jpg' %}" alt="Measurement Guide (sample)" class="img-fluid rounded">
+        <img src="{% static 'store/images/product-item-1.jpg' %}" alt="Measurement Guide (sample)" class="img-fluid rounded" style="aspect-ratio: 1/1; object-fit: cover; width: 100%; max-width: 400px;">
       </div>
       {% endif %}
 

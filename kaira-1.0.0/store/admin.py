@@ -241,6 +241,23 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     list_display = ("store_name", "currency_code", "contact_email", "updated_at")
     search_fields = ("store_name", "contact_email", "contact_phone")
     readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        (None, {
+            "fields": ("store_name", "logo", "tagline"),
+        }),
+        ("Contact", {
+            "fields": ("contact_email", "contact_phone", "address"),
+        }),
+        ("Currency", {
+            "fields": ("currency_code", "currency_symbol"),
+        }),
+        ("Social", {
+            "fields": ("instagram_url", "facebook_url", "whatsapp_url"),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+        }),
+    )
 
     def has_add_permission(self, request):
         if SiteSettings.objects.exists():

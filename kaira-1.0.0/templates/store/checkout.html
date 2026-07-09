@@ -17,11 +17,11 @@
             {% for line in cart.lines %}
             <div class="d-flex justify-content-between py-1">
               <span>{{ line.product_name }} x {{ line.quantity }}</span>
-              <span>${{ line.line_total }}</span>
+              <span>{{ site_settings.currency_symbol|default:"$" }}{{line.line_total }}</span>
             </div>
             {% endfor %}
             <hr>
-            <p class="d-flex justify-content-between fw-bold"><span>Total:</span> <span>${{ cart.total }}</span></p>
+            <p class="d-flex justify-content-between fw-bold"><span>Total:</span> <span>{{ site_settings.currency_symbol|default:"$" }}{{cart.total }}</span></p>
           </div>
         </div>
       </div>

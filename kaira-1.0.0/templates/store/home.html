@@ -13,7 +13,7 @@
             <div class="col-md-6">
               <h1 class="display-4 fw-bold">{{ product.name }}</h1>
               <p class="lead">{{ product.short_description }}</p>
-              <p class="fs-3 text-primary fw-bold">${{ product.get_effective_price }}</p>
+              <p class="fs-3 text-primary fw-bold">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</p>
               <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-lg">Shop Now</a>
             </div>
             <div class="col-md-6">

@@ -26,7 +26,7 @@
               <strong>{{ line.product_name }}</strong>
               {% if line.color %}<br><small class="text-muted">{{ line.color }}{% if line.size %} / {{ line.size }}{% endif %}</small>{% endif %}
             </td>
-            <td>${{ line.unit_price }}</td>
+            <td>{{ site_settings.currency_symbol|default:"$" }}{{line.unit_price }}</td>
             <td>
               <form method="post" action="{% url 'update_cart' line.key %}" class="d-flex align-items-center" style="max-width:140px">
                 {% csrf_token %}
@@ -34,7 +34,7 @@
                 <button type="submit" class="btn btn-outline-dark btn-sm">Update</button>
               </form>
             </td>
-            <td>${{ line.line_total }}</td>
+            <td>{{ site_settings.currency_symbol|default:"$" }}{{line.line_total }}</td>
             <td>
               <form method="post" action="{% url 'remove_from_cart' line.key %}">
                 {% csrf_token %}
@@ -52,12 +52,12 @@
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Cart Totals</h5>
-            <p class="d-flex justify-content-between"><span>Subtotal:</span> <strong>${{ cart.subtotal }}</strong></p>
+            <p class="d-flex justify-content-between"><span>Subtotal:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{cart.subtotal }}</strong></p>
             {% if cart.discount_total > 0 %}
-            <p class="d-flex justify-content-between text-success"><span>Discount:</span> <strong>-${{ cart.discount_total }}</strong></p>
+            <p class="d-flex justify-content-between text-success"><span>Discount:</span> <strong>-{{ site_settings.currency_symbol|default:"$" }}{{cart.discount_total }}</strong></p>
             {% endif %}
             <hr>
-            <p class="d-flex justify-content-between fs-5"><span>Total:</span> <strong>${{ cart.total }}</strong></p>
+            <p class="d-flex justify-content-between fs-5"><span>Total:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{cart.total }}</strong></p>
             <a href="{% url 'checkout' %}" class="btn btn-dark w-100">Proceed to Checkout</a>
           </div>
         </div>

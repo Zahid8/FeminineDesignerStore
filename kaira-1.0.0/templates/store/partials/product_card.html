@@ -35,9 +35,9 @@
     {% endif %}
     {% endfor %}
     <div class="product-price">
-      <span class="text-primary fw-bold">${{ product.get_effective_price }}</span>
+      <span class="text-primary fw-bold">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</span>
       {% if product.compare_at_price and product.compare_at_price > product.price %}
-      <span class="text-muted text-decoration-line-through ms-2">${{ product.compare_at_price }}</span>
+      <span class="text-muted text-decoration-line-through ms-2">{{ site_settings.currency_symbol|default:"$" }}{{ product.compare_at_price }}</span>
       {% endif %}
     </div>
   </div>

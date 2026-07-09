@@ -13,6 +13,7 @@ class SiteSettings(models.Model):
     """One-row store identity, contact, social, and currency settings."""
 
     store_name = models.CharField(max_length=120, default="FemDes")
+    logo = models.ImageField(upload_to="site/", blank=True, null=True)
     tagline = models.CharField(max_length=255, blank=True)
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=40, blank=True)
