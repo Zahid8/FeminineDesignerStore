@@ -12,7 +12,7 @@
         {% with images=product.images.all|dictsort:"sort_order" %}
         {% if images %}
         <div id="productCarousel{{ product.pk }}" class="carousel slide product-gallery" style="min-height: 400px;">
-          <div class="carousel-inner rounded overflow-hidden bg-light" style="aspect-ratio: 3/4;">
+          <div class="carousel-inner rounded overflow-hidden bg-light" style="aspect-ratio: 1/1;">
             {% for img in images %}
             <div class="carousel-item{% if forloop.first %} active{% endif %}">
               <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="d-block w-100 h-100" style="object-fit: cover;">
