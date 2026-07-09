@@ -1,10 +1,10 @@
 # Current Task
 
 ## Task ID
-TASK-010 — COMPLETE (2026-07-09)
+TASK-010-FIX — COMPLETE (2026-07-09)
 
 ## Completed
-T10: Added optional S3-compatible media storage via django-storages. Local filesystem remains default. Set DJANGO_MEDIA_STORAGE=s3 with AWS_* env vars to enable. Supports custom endpoint (R2, Spaces, B2) and custom domain (CDN). 183 tests pass.
+T10-FIX: 10 storage settings tests (local + S3 config, endpoint, domain, missing-bucket error). HANDOFF.md no longer lists S3 as future work. TASK_BOARD consistent. 193 tests pass.
 
 ## Optional Future Work
 
