@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %} — My Orders{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <h2 class="mb-4">My Orders</h2>
+    {% if orders %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr><th>Order #</th><th>Date</th><th>Status</th><th>Total</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.order_number }}</td>
+            <td>{{ order.created_at|date:"M j, Y" }}</td>
+            <td><span class="badge bg-secondary">{{ order.get_status_display }}</span></td>
+            <td>${{ order.total }}</td>
+            <td><a href="{% url 'order_success' order.order_number %}" class="btn btn-sm btn-outline-dark">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No orders yet. <a href="{% url 'product_list' %}">Start shopping</a>.</p>
+    {% endif %}
+    <a href="{% url 'account_profile' %}" class="btn btn-link mt-3">&larr; Back to Account</a>
+  </div>
+</section>
+{% endblock %}

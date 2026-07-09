@@ -211,6 +211,10 @@ def create_order_from_cart(request, checkout_data):
             customer_phone=checkout_data.get("customer_phone", ""),
             shipping_address=checkout_data["shipping_address"],
             notes=checkout_data.get("notes", ""),
+            customer_user=(
+                request.user if getattr(request, "user", None) and request.user.is_authenticated
+                else None
+            ),
             subtotal=subtotal,
             discount_total=discount_total,
             total=total,

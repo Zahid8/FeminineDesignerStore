@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import IntegrityError, models, transaction
@@ -356,6 +357,13 @@ class Order(models.Model):
     customer_phone = models.CharField(max_length=40, blank=True)
     shipping_address = models.TextField()
     notes = models.TextField(blank=True)
+    customer_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="orders",
+    )
     subtotal = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0.00")
     )

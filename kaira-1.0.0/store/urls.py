@@ -37,4 +37,10 @@ urlpatterns = [
         views.customization_created,
         name="customization_created",
     ),
+    # Accounts
+    path("accounts/register/", views.account_register, name="account_register"),
+    path("accounts/login/", views.account_login, name="account_login"),
+    path("accounts/logout/", views.account_logout, name="account_logout"),
+    path("accounts/profile/", views.account_profile, name="account_profile"),
+    path("accounts/orders/", views.account_orders, name="account_orders"),
 ]

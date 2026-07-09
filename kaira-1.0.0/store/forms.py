@@ -23,6 +23,28 @@ class NewsletterSignupForm(forms.Form):
     email = forms.EmailField()
 
 
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import User
+
+
+class RegistrationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(label="Username or Email")
+
+
 class CustomizationForm(forms.Form):
     customer_name = forms.CharField(max_length=160)
     customer_phone = forms.CharField(max_length=40)

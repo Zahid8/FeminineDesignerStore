@@ -3,12 +3,18 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 
 from store import selectors, services
+from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+
 from store.forms import (
     AddToCartForm,
     CartUpdateForm,
     CheckoutForm,
     CustomizationForm,
+    LoginForm,
     NewsletterSignupForm,
+    RegistrationForm,
 )
 from store.models import CustomizationRequest, Order, Product, SiteSettings
 
@@ -216,3 +222,56 @@ def customization_detail(request, token):
     ctx = _base_context(request)
     ctx.update({"customization": cr, "product": cr.product})
     return render(request, "store/customization_detail.html", ctx)
+
+
+# ── Account views ──────────────────────────────────────────────
+
+def account_register(request):
+    if request.user.is_authenticated:
+        return redirect("account_profile")
+    if request.method == "POST":
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)
+            return redirect("account_profile")
+    else:
+        form = RegistrationForm()
+    return render(request, "store/account_register.html", {"form": form})
+
+
+def account_login(request):
+    if request.user.is_authenticated:
+        return redirect("account_profile")
+    if request.method == "POST":
+        form = LoginForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            auth_login(request, user)
+            next_url = request.GET.get("next", "")
+            if next_url:
+                return redirect(next_url)
+            return redirect("account_profile")
+    else:
+        form = LoginForm()
+    return render(request, "store/account_login.html", {"form": form})
+
+
+def account_logout(request):
+    if request.method == "POST":
+        auth_logout(request)
+    return redirect("home")
+
+
+@login_required
+def account_profile(request):
+    ctx = _base_context(request)
+    return render(request, "store/account_profile.html", ctx)
+
+
+@login_required
+def account_orders(request):
+    orders = Order.objects.filter(customer_user=request.user).order_by("-created_at")
+    ctx = _base_context(request)
+    ctx["orders"] = orders
+    return render(request, "store/account_orders.html", ctx)
