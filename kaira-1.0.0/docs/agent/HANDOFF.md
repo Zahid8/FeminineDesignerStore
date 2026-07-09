@@ -52,4 +52,3 @@ Do not start these unless the owner explicitly requests them:
 - Blog CMS
 - Instagram API integration
 - Custom admin dashboard
-- Production media storage (S3/object storage)
