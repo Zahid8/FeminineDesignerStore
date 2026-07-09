@@ -212,8 +212,15 @@ class ProductListViewTests(TestCase):
         from store.models import ProductTag
         tag = ProductTag.objects.create(name="Cotton", slug="cotton", is_active=True)
         self.product.tags.add(tag)
+        # Create an untagged product that should be excluded
+        Product.objects.create(
+            category=self.category, name="Untagged", slug="untagged",
+            sku="SKU-UNTAG", price=50, is_active=True,
+        )
         response = self.client.get(reverse("product_list") + "?tag=cotton")
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.product.name)
+        self.assertNotContains(response, "Untagged")
 
     def test_product_list_combined_category_and_tag(self):
         from store.models import ProductTag
@@ -320,6 +327,14 @@ class ProductDetailViewTests(TestCase):
     def test_product_detail_inactive_404(self):
         self.product.is_active = False
         self.product.save()
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_product_in_inactive_category_returns_404(self):
+        self.product.category.is_active = False
+        self.product.category.save()
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )

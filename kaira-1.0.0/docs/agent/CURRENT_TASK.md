@@ -1,7 +1,7 @@
 # Current Task
 
 ## Task ID
-TASK-013-FIX — COMPLETE (2026-07-09)
+TASK-013-FIX2 — COMPLETE (2026-07-09)
 
 ## Completed
-T13-FIX: ProductAdmin tags in fieldsets + list_filter + tag_list display. ProductTagAdmin config tests. Storefront tag tests (active/inactive/invalid). Null-category card safety. 236 tests pass.
+T13-FIX2: get_product_by_slug now enforces active-category/null-category rule (404 for inactive category). Tag filter test proves inclusion/exclusion. Admin tag_list display test. 238 tests pass.

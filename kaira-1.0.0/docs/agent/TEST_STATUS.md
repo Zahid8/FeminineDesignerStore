@@ -8,7 +8,7 @@ Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (236 tests)
+conda run -n femdes python manage.py test       # PASS (238 tests)
 ```
 
 ## T10/T10-FIX Verification (2026-07-09)

@@ -259,6 +259,9 @@ class ProductAdminTagWorkflowTests(TestCase):
     def test_tags_in_list_filter(self):
         self.assertIn("tags", ProductAdmin.list_filter)
 
+    def test_tag_list_in_list_display(self):
+        self.assertIn("tag_list", ProductAdmin.list_display)
+
     def test_tag_list_returns_names(self):
         from store.models import Category, Product, ProductTag
         cat = Category.objects.create(name="Blouses", slug="blouses")

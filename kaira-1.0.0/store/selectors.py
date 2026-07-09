@@ -21,9 +21,13 @@ def get_active_products():
 
 def get_product_by_slug(slug):
     return get_object_or_404(
-        Product.objects.select_related("category").prefetch_related("images"),
+        Product.objects.filter(is_active=True)
+        .filter(
+            models.Q(category__isnull=True) | models.Q(category__is_active=True)
+        )
+        .select_related("category")
+        .prefetch_related("images"),
         slug=slug,
-        is_active=True,
     )
 
 
