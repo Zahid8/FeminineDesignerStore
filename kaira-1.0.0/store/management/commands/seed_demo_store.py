@@ -22,13 +22,8 @@ CATEGORIES = [
     ("Blouses", "blouses", 1),
 ]
 
-# 10 available source images under static/store/images/
-_SRC_IMAGES = [
-    "product-item-1.jpg", "product-item-2.jpg", "product-item-3.jpg",
-    "product-item-4.jpg", "product-item-5.jpg", "product-item-6.jpg",
-    "product-item-7.jpg", "product-item-8.jpg", "product-item-9.jpg",
-    "product-item-10.jpg",
-]
+# Single temporary placeholder image for all seeded blouse products.
+_PLACEHOLDER = "product-item-1.jpg"
 
 # 15 blouse names → deterministic SKUs, slugs
 _BLOUSE_NAMES = [
@@ -53,15 +48,13 @@ PRODUCTS = []
 for i, name in enumerate(_BLOUSE_NAMES, 1):
     slug = name.lower().replace(" ", "-")
     sku = f"FD-BLOUSE-{i:02d}"
-    img_start = ((i - 1) * 4) % 10
-    images = [_SRC_IMAGES[(img_start + j) % 10] for j in range(4)]
     PRODUCTS.append({
         "name": name,
         "slug": slug,
         "sku": sku,
         "category_slug": "blouses",
         "price": str(Decimal(50 + (i * 5) % 50)),
-        "images": images,
+        "image_count": 4,
         "is_new_arrival": i <= 4,
         "is_best_seller": 5 <= i <= 8,
         "is_recommended": i >= 9,
@@ -163,14 +156,14 @@ class Command(BaseCommand):
                 # Remove existing demo images for idempotency
                 ProductImage.objects.filter(product=product).delete()
 
-                # Create 4 images per blouse
-                for j, img_name in enumerate(prod_data["images"]):
-                    src_path = static_images / img_name
-                    if not src_path.exists():
-                        raise CommandError(
-                            f"Required source image not found: {src_path}"
-                        )
+                src_path = static_images / _PLACEHOLDER
+                if not src_path.exists():
+                    raise CommandError(
+                        f"Required placeholder image not found: {src_path}"
+                    )
 
+                # Create 4 images per blouse (all from same placeholder)
+                for j in range(prod_data["image_count"]):
                     dest_name = f"fd-blouse-{product.sku.split('-')[-1]}-{j + 1}.jpg"
                     dest_path = media_dir / dest_name
                     shutil.copy2(str(src_path), str(dest_path))

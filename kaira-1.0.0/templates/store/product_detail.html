@@ -7,26 +7,38 @@
 <section class="py-5">
   <div class="container-lg">
     <div class="row g-5">
-      <!-- Product images -->
+      <!-- Product images — one-at-a-time carousel -->
       <div class="col-md-6">
-        {% with primary=product.images.all|dictsort:"sort_order"|first %}
-        {% if primary %}
-        <img src="{{ primary.image.url }}" alt="{{ product.name }}" class="img-fluid rounded mb-3" id="main-product-image">
-        {% else %}
-        <img src="{% static 'store/images/product-item-1.jpg' %}" alt="{{ product.name }}" class="img-fluid rounded mb-3">
-        {% endif %}
-        {% endwith %}
-        {% if product.images.count > 1 %}
-        <div class="product-gallery-scroll overflow-auto" style="max-height: 500px;">
-          <div class="row g-2">
-            {% for img in product.images.all|dictsort:"sort_order" %}
-            <div class="col-3">
-              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="img-fluid rounded product-thumb" style="cursor:pointer">
+        {% with images=product.images.all|dictsort:"sort_order" %}
+        {% if images %}
+        <div id="productCarousel{{ product.pk }}" class="carousel slide product-gallery" style="min-height: 400px;">
+          <div class="carousel-inner rounded overflow-hidden bg-light" style="aspect-ratio: 3/4;">
+            {% for img in images %}
+            <div class="carousel-item{% if forloop.first %} active{% endif %}">
+              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="d-block w-100 h-100" style="object-fit: cover;">
             </div>
             {% endfor %}
           </div>
+          {% if images|length > 1 %}
+          <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide="prev" aria-label="Previous image">
+            <span class="carousel-control-prev-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide="next" aria-label="Next image">
+            <span class="carousel-control-next-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+          </button>
+          <div class="mt-2 text-center small text-muted">
+            {% for img in images %}
+            <button type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide-to="{{ forloop.counter0 }}" class="border-0 bg-transparent mx-1{% if forloop.first %} active fw-bold{% endif %}" aria-label="Image {{ forloop.counter }}">
+              <span class="d-inline-block rounded-circle bg-secondary" style="width:8px;height:8px;"></span>
+            </button>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
+        {% else %}
+        <img src="{% static 'store/images/product-item-1.jpg' %}" alt="{{ product.name }}" class="img-fluid rounded">
         {% endif %}
+        {% endwith %}
       </div>
       <!-- Product info -->
       <div class="col-md-6">
@@ -89,6 +101,20 @@
         <img src="{% static 'store/images/product-item-1.jpg' %}" alt="Measurement Guide (sample)" class="img-fluid rounded">
       </div>
       {% endif %}
+
+      <!-- Ready-Made Measurements -->
+      <div class="mt-5 pt-4 border-top" id="ready-made-specs">
+        <h4>Ready-Made Specifications</h4>
+        <p class="text-muted">These are the standard measurements included with your normal purchase.</p>
+        <table class="table table-sm w-auto">
+          <tr><td><strong>Length</strong></td><td>{{ product.default_length }} in</td></tr>
+          <tr><td><strong>Chest</strong></td><td>{{ product.default_chest }} in</td></tr>
+          <tr><td><strong>Waist</strong></td><td>{{ product.default_waist }} in</td></tr>
+          <tr><td><strong>Armhole</strong></td><td>{{ product.default_armhole }} in</td></tr>
+          <tr><td><strong>Opening</strong></td><td>{{ product.default_opening }} in</td></tr>
+          <tr><td><strong>Bicep</strong></td><td>{{ product.default_bicep }} in</td></tr>
+        </table>
+      </div>
 
       <!-- Customization Section -->
       <div class="mt-5 pt-4 border-top" id="customize-section">

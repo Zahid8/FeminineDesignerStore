@@ -113,7 +113,7 @@ class CustomizationViewTests(TestCase):
             self.assertIn(label, content, f"Missing measurement label: {label}")
 
     def test_product_detail_has_gallery_container(self):
-        # Seed to get a product with 4 images, then check gallery.
+        """Gallery uses Bootstrap carousel with prev/next controls."""
         from django.core.management import call_command
         with self.settings(MEDIA_ROOT="/tmp/test-media-gallery"):
             call_command("seed_demo_store")
@@ -121,7 +121,20 @@ class CustomizationViewTests(TestCase):
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": p.slug})
         )
-        self.assertContains(response, "product-gallery-scroll")
+        self.assertContains(response, "product-gallery")
+        self.assertContains(response, 'aria-label="Previous image"')
+        self.assertContains(response, 'aria-label="Next image"')
+
+    def test_product_detail_ready_made_specs(self):
+        """Product detail shows all 6 ready-made measurement labels and values."""
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        content = response.content.decode()
+        self.assertIn("Ready-Made Specifications", content)
+        for label in ("Length", "Chest", "Waist", "Armhole", "Opening", "Bicep"):
+            self.assertIn(f"{label}</strong>", content)
+        self.assertIn("10.00 in", content)
 
     def test_product_detail_has_buy_now_and_customize(self):
         response = self.client.get(

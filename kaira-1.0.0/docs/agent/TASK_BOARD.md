@@ -24,6 +24,7 @@
 | T9 | Done | Add blouse catalog + customization (+ fixes) | `store/models.py`, `store/admin.py`, `store/views.py`, seed, templates, tests | 183 tests, collectstatic, seed idempotent |
 | T10 | Done | Add production media storage (+ tests + docs) | `requirements.txt`, `femdes_site/settings.py`, `.env.example`, `store/tests/test_settings.py`, docs | 193 tests, check, collectstatic |
 | T11 | Done | Add customer accounts (+ redirect fix + navbar logout + docs) | auth views/forms/templates, nullable order user link, account tests, docs | 211 tests, check, migration dry-run |
+| T12 | Done | Use placeholder blouse images, add carousel controls, and show ready-made specs | seed command, product detail template, tests, docs | 212 tests, seed idempotent, check |
 
 ## Dependency Order
 
@@ -36,10 +37,12 @@
 7. T6 depends on T2 and T5.
 8. T7 depends on T2, T3, and T6.
 9. T8 depends on all previous tasks.
+10. T12 depends on T9 and T11.
 
 ## Required Changes
 
 - T0 through T8 are required for MVP.
+- T12 is an owner-requested storefront polish task after the account work.
 
 ## Optional Improvements
 
