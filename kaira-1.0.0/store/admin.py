@@ -33,10 +33,12 @@ class ProductAdmin(admin.ModelAdmin):
         "is_best_seller",
         "is_recommended",
         "allow_discounts",
+        "tag_list",
     )
     list_filter = (
         "is_active",
         "category",
+        "tags",
         "is_new_arrival",
         "is_best_seller",
         "is_recommended",
@@ -47,6 +49,10 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
     inlines = [ProductImageInline]
+
+    @admin.display(description="Tags")
+    def tag_list(self, obj):
+        return ", ".join(t.name for t in obj.tags.all())
     fieldsets = (
         (None, {
             "fields": (
@@ -59,6 +65,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": (
                 "is_active", "is_featured", "is_new_arrival",
                 "is_best_seller", "is_recommended", "allow_discounts",
+                "tags",
             ),
         }),
         ("Measurements", {

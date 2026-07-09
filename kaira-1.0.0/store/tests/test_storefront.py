@@ -224,6 +224,40 @@ class ProductListViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_product_card_displays_active_tags(self):
+        from store.models import ProductTag
+        tag = ProductTag.objects.create(name="Cotton", slug="cotton", is_active=True)
+        self.product.tags.add(tag)
+        response = self.client.get(reverse("product_list"))
+        self.assertContains(response, "Cotton")
+
+    def test_inactive_tag_hidden_publicly(self):
+        from store.models import ProductTag
+        tag = ProductTag.objects.create(name="Hidden", slug="hidden", is_active=False)
+        self.product.tags.add(tag)
+        response = self.client.get(reverse("product_list"))
+        self.assertNotContains(response, "Hidden")
+
+    def test_inactive_tag_filter_returns_empty(self):
+        from store.models import ProductTag
+        tag = ProductTag.objects.create(name="Inactive", slug="inactive", is_active=False)
+        self.product.tags.add(tag)
+        response = self.client.get(reverse("product_list") + "?tag=inactive")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No products found")
+
+    def test_unknown_tag_filter_returns_empty(self):
+        response = self.client.get(reverse("product_list") + "?tag=nonexistent")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No products found")
+
+    def test_card_safe_without_category(self):
+        self.product.category = None
+        self.product.save()
+        response = self.client.get(reverse("product_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.product.name)
+
     def test_product_list_renders_product_names(self):
         response = self.client.get(reverse("product_list"))
         self.assertContains(response, self.product.name)

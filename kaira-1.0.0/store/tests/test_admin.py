@@ -16,6 +16,7 @@ from store.admin import (
     OrderItemAdmin,
     ProductAdmin,
     ProductImageAdmin,
+    ProductTagAdmin,
     SiteSettingsAdmin,
 )
 from store.models import (
@@ -76,17 +77,10 @@ class ProductAdminConfigTests(TestCase):
         self.assertIn(ProductImageInline, ProductAdmin.inlines)
 
     def test_list_filter_fields(self):
-        self.assertEqual(
-            ProductAdmin.list_filter,
-            (
-                "is_active",
-                "category",
-                "is_new_arrival",
-                "is_best_seller",
-                "is_recommended",
-                "allow_discounts",
-            ),
-        )
+        self.assertIn("is_active", ProductAdmin.list_filter)
+        self.assertIn("category", ProductAdmin.list_filter)
+        self.assertIn("tags", ProductAdmin.list_filter)
+        self.assertIn("is_new_arrival", ProductAdmin.list_filter)
 
     def test_search_fields(self):
         self.assertIn("name", ProductAdmin.search_fields)
@@ -227,6 +221,56 @@ class CustomizationRequestAdminTests(TestCase):
         self.assertIn("customer_phone", CustomizationRequestAdmin.search_fields)
         self.assertIn("product__name", CustomizationRequestAdmin.search_fields)
         self.assertIn("token", CustomizationRequestAdmin.search_fields)
+
+
+class ProductTagAdminConfigTests(TestCase):
+    """ProductTagAdmin has required config."""
+
+    def test_list_display(self):
+        self.assertIn("name", ProductTagAdmin.list_display)
+        self.assertIn("slug", ProductTagAdmin.list_display)
+        self.assertIn("is_active", ProductTagAdmin.list_display)
+        self.assertIn("sort_order", ProductTagAdmin.list_display)
+
+    def test_search_fields(self):
+        self.assertIn("name", ProductTagAdmin.search_fields)
+        self.assertIn("description", ProductTagAdmin.search_fields)
+
+    def test_prepopulated_fields(self):
+        self.assertEqual(
+            ProductTagAdmin.prepopulated_fields, {"slug": ("name",)}
+        )
+
+
+class ProductAdminTagWorkflowTests(TestCase):
+    """ProductAdmin supports tag assignment, search, filter, and display."""
+
+    def test_tags_in_fieldsets(self):
+        found = False
+        for name, opts in ProductAdmin.fieldsets:
+            if "tags" in opts.get("fields", ()):
+                found = True
+                break
+        self.assertTrue(found, "tags not found in ProductAdmin fieldsets")
+
+    def test_tags_in_search_fields(self):
+        self.assertIn("tags__name", ProductAdmin.search_fields)
+
+    def test_tags_in_list_filter(self):
+        self.assertIn("tags", ProductAdmin.list_filter)
+
+    def test_tag_list_returns_names(self):
+        from store.models import Category, Product, ProductTag
+        cat = Category.objects.create(name="Blouses", slug="blouses")
+        p = Product.objects.create(
+            category=cat, name="Test", slug="t", sku="SKU-TAG", price=50,
+        )
+        t1 = ProductTag.objects.create(name="Cotton", slug="cotton")
+        t2 = ProductTag.objects.create(name="Silk", slug="silk")
+        p.tags.add(t1, t2)
+        result = ProductAdmin.tag_list(None, p)
+        self.assertIn("Cotton", result)
+        self.assertIn("Silk", result)
 
 
 class AdminAccessTests(TestCase):

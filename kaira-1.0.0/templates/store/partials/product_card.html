@@ -1,5 +1,5 @@
 {% load static %}
-<div class="product-item" data-category="{{ product.category.slug }}">
+<div class="product-item"{% if product.category %} data-category="{{ product.category.slug }}"{% endif %}>
   <div class="position-relative">
     <a href="{% url 'product_detail' product.slug %}">
       {% with first_img=product.images.all|dictsort:"sort_order"|first %}

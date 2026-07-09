@@ -1,7 +1,7 @@
 # Current Task
 
 ## Task ID
-TASK-013 — COMPLETE (2026-07-09)
+TASK-013-FIX — COMPLETE (2026-07-09)
 
 ## Completed
-T13: Product.category FK → SET_NULL (null/blank). ProductTag model with admin. Product.tags M2M. Tag display on cards/detail. Tag filtering in product list. Null-category safety in views/templates. Category deletion preserves products. 224 tests pass.
+T13-FIX: ProductAdmin tags in fieldsets + list_filter + tag_list display. ProductTagAdmin config tests. Storefront tag tests (active/inactive/invalid). Null-category card safety. 236 tests pass.
