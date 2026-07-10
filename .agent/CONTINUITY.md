@@ -101,6 +101,7 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-10T15:25:25Z [CODE] Review outcome for commit `2f3ac3e` is NEEDS FIXES: primary-image storefront tests are now meaningful and focused/full tests pass, but `docs/agent/TEST_STATUS.md` still reports 264 tests while the full suite runs 266. `docs/agent/CURRENT_TASK.md` now defines docs-only TASK-017-FIX3.
 - 2026-07-10T15:18:01Z [CODE] Review outcome for commit `b3187d8` is NEEDS FIXES: implementation behavior and 264-test suite pass, but the primary-image storefront test only checks the model property plus response status and current docs still contain stale T16/260-test prose. `docs/agent/CURRENT_TASK.md` now defines TASK-017-FIX2.
 - 2026-07-10T15:10:58Z [CODE] Review outcome for commit `1491d09` is NEEDS FIXES; `docs/agent/CURRENT_TASK.md` now defines TASK-017-FIX for primary-image storefront selection and tests for measurement notes/admin exposure.
 - 2026-07-10T14:10:22Z [CODE] Review outcome for commit `d7a6133` is NEEDS FIXES due only to stale current-state test-count docs; `docs/agent/CURRENT_TASK.md` now defines docs-only TASK-016-FIX3.
