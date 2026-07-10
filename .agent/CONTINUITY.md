@@ -1,6 +1,7 @@
 # CONTINUITY
 
 ## [PLANS]
+- 2026-07-10T19:39:20Z [USER] Requested a new current task using `reference.png` only as design inspiration; the store sells only blouses, so public design/copy must be blouse-focused.
 - 2026-07-10T18:24:44Z [USER] Requested a separate task to make the entire customer-facing website aesthetically pleasing and good-looking to customers.
 - 2026-07-10T17:57:15Z [USER] Requested a current implementation plan to fix a checkout/order 500 after submitting contact details and add a payment gateway.
 - 2026-07-06T14:22:44Z [USER] Current prompt is `femdes`; concrete requested change is UNCONFIRMED.
@@ -21,6 +22,7 @@
 - 2026-07-06T15:36:42Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-001, the Django project scaffold task, without creating project files.
 
 ## [DISCOVERIES]
+- 2026-07-10T19:39:20Z [TOOL] `reference.png` is a tall boutique ecommerce reference with pale pastel wave bands, airy white space, rounded product cards, warm CTA styling, simple carousel arrows, a large hero image, and a handmade/story section. It appears baby-themed, so task wording must prohibit copying baby branding, baby imagery, baby text, or childish motifs.
 - 2026-07-10T17:57:15Z [TOOL] Checkout 500 likely comes from `store/services.py` writing nullable `Product.sku` into non-null `OrderItem.sku`; payment gateway plan chooses Razorpay because existing checkout/customization copy is UPI-oriented. Context7 Razorpay docs confirm `client.order.create`, `client.utility.verify_payment_signature`, and `client.utility.verify_webhook_signature`.
 - 2026-07-10T15:10:58Z [TOOL] Review of commit `1491d09` found `measurement_note` model/admin/template behavior works in direct probing and full 260-test suite/check/migration dry-run pass, but home/shop images still ignore `is_primary=True` and select the lowest `sort_order` image; note/admin/image behavior lacks dedicated tests.
 - 2026-07-10T14:10:22Z [TOOL] Review of commit `d7a6133` found optional-SKU behavior passes focused tests, full 260-test suite, check, migration dry-run, diff whitespace check, and direct legacy-empty-SKU probe; remaining blocker is stale current-state test counts in HANDOFF.md (`236 tests`) and TEST_STATUS.md (`253 tests`).
@@ -105,6 +107,8 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-10T19:39:20Z [CODE] Current task now identifies TASK-020: reference-inspired blouse-only storefront redesign using `reference.png` for visual direction only, carrying T19-FIX3 CSS/test cleanup and keeping TASK-018-FIX2 Razorpay reliability visible unless completed.
+- 2026-07-10T19:18:44Z [CODE] Review outcome for commit `7a7ef6d` is NEEDS FIXES: focused/full tests, check, migration dry-run, collectstatic, pip check, stale-doc search, and diff whitespace pass, but `static/store/style.css` remains a whole-file formatting churn, T19 tests still cover only shallow strings, unused polish hooks remain, and docs claim no required tasks remain while TASK-018-FIX2 is open. `docs/agent/CURRENT_TASK.md` now defines TASK-019-FIX3.
 - 2026-07-10T19:02:31Z [CODE] Review outcome for commits `f186a59`/`52f0a49` is NEEDS FIXES: docs stale-search is resolved and check/migration/collectstatic/pip checks pass, but focused and full test suites fail on the new `test_home_hero_has_polish_content`, `git diff --check 19762f0..HEAD` still fails at `static/store/style.css:1227`, the CSS file was broadly reformatted, and T19 tests remain superficial. `docs/agent/CURRENT_TASK.md` now defines TASK-019-FIX2.
 - 2026-07-10T18:37:42Z [CODE] Review outcome for commit `19762f0` is NEEDS FIXES: focused/full tests, check, migration dry-run, collectstatic, and pip check pass, but T19 is only a small CSS/home-gradient pass with no new structural tests or browser evidence, `git diff --check HEAD~1..HEAD` fails on the added CSS block, docs remain stale/inconsistent, and TASK-018-FIX2 payment reliability carryover was hidden by a completion stub. `docs/agent/CURRENT_TASK.md` now defines TASK-019-FIX.
 - 2026-07-10T18:24:44Z [CODE] Current task now identifies TASK-019 as a separate full-site customer-facing aesthetic polish pass across home, shop, product detail, cart, checkout, payment, account, search, navbar, footer, and empty states; TASK-018-FIX2 payment reliability remains a separate prerequisite/carryover and must not be buried inside visual polish.
