@@ -265,13 +265,16 @@ class ProductListViewTests(TestCase):
         self.assertContains(response, 'class="product-price"')
 
     def test_home_hero_has_polish_content(self):
-        """Home hero renders product price and CTA when products exist."""
+        """Home hero renders product price, CTA, and IndiChic-inspired hooks."""
         self.product.is_featured = True
         self.product.stock_quantity = 5
         self.product.save()
         response = self.client.get(reverse("home"))
         self.assertContains(response, "btn-dark")
         self.assertContains(response, self.product.name)
+        self.assertContains(response, "hero-capsule-img")
+        self.assertContains(response, "rounded-pill")
+        self.assertContains(response, "promo-card")
 
     def test_product_card_displays_active_tags(self):
         from store.models import ProductTag

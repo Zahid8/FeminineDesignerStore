@@ -31,6 +31,7 @@
 | T18 | Review | Fix checkout 500 + add Razorpay payment gateway | services.py, models, settings, views, URLs, templates, tests | 275 tests, check, migration dry-run |
 | T19 | Ready | Customer-facing aesthetic polish for the full website | public templates, `static/store/style.css`, storefront/cart/payment tests | focused storefront/cart/payment tests, full suite, check, collectstatic, browser pass |
 | T20 | Ready | Reference-inspired blouse-only storefront redesign | public templates, `static/store/style.css`, storefront/cart/payment tests, docs | focused storefront/cart/payment tests, full suite, check, collectstatic, browser/screenshot pass |
+| T21 | Ready | Light IndiChic-inspired blouse UI pass | public templates, `static/store/style.css`, storefront/cart/payment tests, docs | focused storefront/cart/payment tests, full suite, check, collectstatic, browser/screenshot pass |
 
 ## Dependency Order
 
@@ -49,6 +50,7 @@
 13. T15 depends on T14.
 14. T19 depends on preserving or completing any open T18 payment reliability corrective work.
 15. T20 carries forward the remaining T19-FIX3 reviewability/test-coverage cleanup and preserves or completes open T18-FIX2 payment reliability work.
+16. T21 depends on the current storefront visual baseline and adapts `web_temp/indichic` as light-version inspiration only.
 
 ## Required Changes
 
@@ -66,6 +68,8 @@
   website.
 - T20 is an owner-requested reference-inspired redesign task for a blouse-only
   public storefront, using `reference.png` for inspiration only.
+- T21 is an owner-requested light IndiChic-inspired UI pass for the blouse-only
+  storefront, using `web_temp/indichic` for layout inspiration only.
 
 ## Optional Improvements
 
