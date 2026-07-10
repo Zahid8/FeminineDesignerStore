@@ -2,7 +2,7 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T19 (with all FIX subtasks) complete. 277 tests pass. All MVP features verified.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T20 (with all FIX subtasks) complete. 277 tests pass. T18-FIX2 Razorpay carryover open.
 
 Django commands now available:
 

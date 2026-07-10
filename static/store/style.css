@@ -1569,20 +1569,6 @@ a.btn-link.text-light:after {
   --soft-charcoal: #3d3d3d;
 }
 
-/* --- Section transitions --- */
-.section-wave {
-  position: relative;
-  padding-bottom: 5rem;
-}
-.section-wave::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 60px;
-  background: var(--pastel-blue);
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-}
-
 /* --- Product Cards --- */
 .product-item {
   border-radius: 1rem;
@@ -1726,3 +1712,42 @@ footer a.text-white-50:hover {
 }
 
 /* --- Badges --- */
+.badge {
+  font-weight: 500;
+  letter-spacing: .02em;
+  padding: .35em .65em;
+  border-radius: .25rem;
+}
+a.badge:hover {
+  opacity: .85;
+}
+
+/* --- Empty States --- */
+.empty-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6c757d;
+}
+.empty-state h4 {
+  font-weight: 500;
+}
+
+/* --- Navbar logo --- */
+.navbar-brand img.logo {
+  max-height: 40px;
+}
+
+/* --- Mobile --- */
+@media (max-width: 767px) {
+  .product-item .product-detail {
+    padding: .5rem .75rem;
+  }
+  .btn-lg {
+    padding: .6rem 1.25rem;
+    font-size: 1rem;
+  }
+  section.py-5 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+}
