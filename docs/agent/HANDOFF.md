@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T20 (including all FIX subtasks) complete. T18-FIX2 Razorpay reliability remains open carryover. CSS churn from intermediate history noted in CURRENT_TASK.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T20 (including all FIX subtasks) complete. T18-FIX2 open. CSS numstat gate fixed: 32/0 from 19762f0.
 
 ## Completed Tasks
 
