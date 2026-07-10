@@ -3,7 +3,8 @@
 from decimal import Decimal
 
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase
+from django.urls import reverse
 
 from store.models import Category, Product
 from store.models import Order, OrderItem
@@ -348,6 +349,35 @@ class BlankSkuCheckoutTests(TestCase):
         # Cart cleared after successful checkout
         cart = get_cart(request)
         self.assertEqual(len(cart), 0)
+
+
+class BlankSkuCheckoutViewTests(TestCase):
+    """Browser-facing checkout POST must not 500 with blank-SKU products."""
+
+    def setUp(self):
+        self.client = Client()
+        self.category = Category.objects.create(name="Blouses", slug="blouses")
+        self.product = Product.objects.create(
+            category=self.category, name="NoSKU-View", slug="nosku-view",
+            sku=None, price=Decimal("70"), stock_quantity=10, is_active=True,
+        )
+
+    def test_checkout_post_blank_sku_no_500(self):
+        self.client.post(
+            reverse("add_to_cart", kwargs={"product_id": self.product.pk}),
+            {"quantity": 1},
+        )
+        response = self.client.post(reverse("checkout"), {
+            "customer_name": "Alice",
+            "customer_email": "alice@example.com",
+            "shipping_address": "123 Main St",
+        })
+        self.assertNotEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 302)
+        order = Order.objects.first()
+        self.assertIsNotNone(order)
+        item = order.items.first()
+        self.assertEqual(item.sku, "")
 
 
 class NewsletterTests(TestCase):

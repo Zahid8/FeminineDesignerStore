@@ -7,6 +7,7 @@
 - 2026-07-06T14:50:40Z [USER] Requested architecture/planning-agent documentation across `AGENTS.md`, `CLAUDE.md`, `docs/architecture.md`, `docs/decisions.md`, and `docs/agent/*`, explicitly without implementing the feature.
 
 ## [DECISIONS]
+- 2026-07-10T18:12:06Z [USER] Review policy: if the only remaining failure is documentation sync/drift, do not create a standalone fix task; carry the doc cleanup into the next substantive task.
 - 2026-07-06T14:22:44Z [TOOL] This workspace has no Git repository metadata, so change tracking cannot rely on `git status`.
 - 2026-07-06T14:29:58Z [CODE] `implementation_plan.md` chooses Django 5.2 LTS, server-rendered templates, Django admin, SQLite for local development, and optional PostgreSQL via `DATABASE_URL` for production.
 - 2026-07-06T14:50:40Z [CODE] Canonical agent execution plan is now `docs/agent/IMPLEMENTATION_PLAN.md`; root `implementation_plan.md` remains as an earlier planning artifact.
@@ -103,6 +104,7 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-10T18:06:55Z [CODE] Review outcome for commit `3c057d4` is NEEDS FIXES: blank-SKU service fix and 267-test suite pass, but Razorpay paths lack required tests, payment page GET overwrites `gateway_order_id`, verification error paths can create fresh gateway orders, and docs remain stale at T17/266 with payment gateway listed as future work. `docs/agent/CURRENT_TASK.md` now defines TASK-018-FIX.
 - 2026-07-10T17:57:15Z [CODE] Current task now identifies TASK-018: fix checkout 500, add Razorpay gateway with server-side order creation and signature verification, keep manual UPI fallback, add tests, and sync stale test-count docs.
 - 2026-07-10T15:25:25Z [CODE] Review outcome for commit `2f3ac3e` is NEEDS FIXES: primary-image storefront tests are now meaningful and focused/full tests pass, but `docs/agent/TEST_STATUS.md` still reports 264 tests while the full suite runs 266. `docs/agent/CURRENT_TASK.md` now defines docs-only TASK-017-FIX3.
 - 2026-07-10T15:18:01Z [CODE] Review outcome for commit `b3187d8` is NEEDS FIXES: implementation behavior and 264-test suite pass, but the primary-image storefront test only checks the model property plus response status and current docs still contain stale T16/260-test prose. `docs/agent/CURRENT_TASK.md` now defines TASK-017-FIX2.

@@ -148,7 +148,7 @@ def checkout(request):
                     request, form.cleaned_data
                 )
                 from django.conf import settings
-                if settings.RAZORPAY_ENABLED:
+                if (settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET):
                     return redirect("razorpay_payment", order_number=order.order_number)
                 return redirect("order_success", order_number=order.order_number)
             except ValueError as e:
@@ -247,25 +247,34 @@ def _get_razorpay_client():
 def razorpay_payment(request, order_number):
     """Show Razorpay checkout page for a pending order."""
     from django.conf import settings
+    import razorpay as rz
     order = get_object_or_404(Order, order_number=order_number)
-    if not settings.RAZORPAY_ENABLED:
+    if not (settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET):
         return redirect("order_success", order_number=order.order_number)
-    client = _get_razorpay_client()
-    amount_paise = int(order.total * 100)
-    razorpay_order = client.order.create({
-        "amount": amount_paise,
-        "currency": "INR",
-        "receipt": order.order_number,
-        "notes": {"order_pk": str(order.pk)},
-    })
-    order.gateway_order_id = razorpay_order["id"]
-    order.save(update_fields=["gateway_order_id"])
+    # Reuse existing gateway order if already created.
+    razorpay_order_id = order.gateway_order_id
+    if not razorpay_order_id:
+        try:
+            client = _get_razorpay_client()
+            amount_paise = int(order.total * 100)
+            razorpay_order = client.order.create({
+                "amount": amount_paise,
+                "currency": "INR",
+                "receipt": order.order_number,
+                "notes": {"order_pk": str(order.pk)},
+            })
+            razorpay_order_id = razorpay_order["id"]
+            order.gateway_order_id = razorpay_order_id
+            order.save(update_fields=["gateway_order_id"])
+        except Exception as e:
+            messages.error(request, f"Could not initiate payment: {e}")
+            return redirect("cart_detail")
     ctx = _base_context(request)
     ctx.update({
         "order": order,
-        "razorpay_order_id": razorpay_order["id"],
+        "razorpay_order_id": razorpay_order_id,
         "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-        "razorpay_amount": amount_paise,
+        "razorpay_amount": int(order.total * 100),
     })
     return render(request, "store/razorpay_payment.html", ctx)
 
@@ -273,14 +282,17 @@ def razorpay_payment(request, order_number):
 def razorpay_verify(request, order_number):
     """Verify Razorpay payment signature server-side."""
     from django.conf import settings
-    import razorpay
+    import razorpay as rz
     order = get_object_or_404(Order, order_number=order_number)
     if request.method != "POST":
-        return redirect("order_success", order_number=order.order_number)
+        messages.error(request, "Invalid request method.")
+        return redirect("razorpay_payment", order_number=order.order_number)
     razorpay_payment_id = request.POST.get("razorpay_payment_id", "")
     razorpay_order_id = request.POST.get("razorpay_order_id", "")
     razorpay_signature = request.POST.get("razorpay_signature", "")
-    # Verify matching order id
+    if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
+        messages.error(request, "Missing payment details.")
+        return redirect("razorpay_payment", order_number=order.order_number)
     if razorpay_order_id != order.gateway_order_id:
         messages.error(request, "Payment verification failed: order ID mismatch.")
         return redirect("razorpay_payment", order_number=order.order_number)
@@ -299,7 +311,7 @@ def razorpay_verify(request, order_number):
         order.paid_at = timezone.now()
         order.save()
         return redirect("order_success", order_number=order.order_number)
-    except razorpay.errors.SignatureVerificationError:
+    except (rz.errors.SignatureVerificationError, Exception):
         messages.error(request, "Payment verification failed.")
         return redirect("razorpay_payment", order_number=order.order_number)
 
