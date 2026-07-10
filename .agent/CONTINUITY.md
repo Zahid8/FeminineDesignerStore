@@ -18,6 +18,7 @@
 - 2026-07-06T15:36:42Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-001, the Django project scaffold task, without creating project files.
 
 ## [DISCOVERIES]
+- 2026-07-10T13:55:35Z [TOOL] Review of commit `5c988a0` found focused customization tests, full 253-test suite, `check`, and migration dry-run pass, but two blank-SKU products still violate `store_product.sku` uniqueness and `deploy.md` has an unrelated broken `git clone ... femdes.` edit with trailing whitespace.
 - 2026-07-06T14:22:44Z [TOOL] Text search found no existing `femdes` or `fem des` content in the template files.
 - 2026-07-06T14:29:58Z [TOOL] No `graphify-out/GRAPH_REPORT.md` exists in this workspace; architecture mapping used direct source inspection.
 - 2026-07-06T14:29:58Z [TOOL] No package manifest or backend framework files exist; all cart, product, newsletter, and category data in `index.html` is hard-coded.
@@ -97,6 +98,7 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-10T13:55:35Z [CODE] Review outcome for commit `5c988a0` is NEEDS FIXES; `docs/agent/CURRENT_TASK.md` now defines TASK-016-FIX for blank-SKU uniqueness, direct SKU/measurement display tests, and removal of the unrelated broken `deploy.md` edit.
 - 2026-07-06T14:22:44Z [ASSUMPTION] Awaiting concrete task scope before editing site files.
 - 2026-07-06T14:29:58Z [CODE] Planning deliverable completed; no application source code was converted yet.
 - 2026-07-06T14:50:40Z [CODE] Architecture/planning documentation completed; feature implementation remains unstarted by request.

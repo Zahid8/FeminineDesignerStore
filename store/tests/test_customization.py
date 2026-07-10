@@ -203,6 +203,94 @@ class CustomizationViewTests(TestCase):
         self.assertNotIn('aria-label="Previous image"', content)
         self.assertNotIn('aria-label="Next image"', content)
 
+class OptionalSkuTests(TestCase):
+    """Multiple products can have blank SKU; non-blank SKUs remain unique."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name="Blouses", slug="blouses")
+
+    def test_two_blank_sku_products_allowed(self):
+        p1 = Product.objects.create(
+            category=self.category, name="A", slug="sku-a",
+            sku="", price=Decimal("50"),
+        )
+        p2 = Product.objects.create(
+            category=self.category, name="B", slug="sku-b",
+            sku="", price=Decimal("50"),
+        )
+        self.assertIsNone(p1.sku)
+        self.assertIsNone(p2.sku)
+
+    def test_duplicate_non_blank_sku_rejected(self):
+        Product.objects.create(
+            category=self.category, name="A", slug="sku-c",
+            sku="DUP-001", price=Decimal("50"),
+        )
+        with self.assertRaises(Exception):
+            Product.objects.create(
+                category=self.category, name="B", slug="sku-d",
+                sku="DUP-001", price=Decimal("50"),
+            )
+
+    def test_blank_sku_label_hidden(self):
+        p = Product.objects.create(
+            category=self.category, name="NoSKU", slug="nosku",
+            sku="", price=Decimal("50"),
+        )
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": "nosku"})
+        )
+        self.assertNotContains(response, "SKU:")
+
+    def test_non_blank_sku_label_shown(self):
+        p = Product.objects.create(
+            category=self.category, name="WithSKU", slug="withsku",
+            sku="SHOW-001", price=Decimal("50"),
+        )
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": "withsku"})
+        )
+        self.assertContains(response, "SKU: SHOW-001")
+
+
+class OptionalMeasurementDisplayTests(TestCase):
+    """Blank measurements hidden; non-blank measurements shown."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name="Blouses", slug="blouses")
+
+    def test_blank_measurement_absent_and_present_measurement_shown(self):
+        p = Product.objects.create(
+            category=self.category, name="M", slug="mtest",
+            sku="SKU-MTEST", price=Decimal("50"),
+            default_length=Decimal("20"),  # set
+            default_chest=None,            # blank
+        )
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": "mtest"})
+        )
+        content = response.content.decode()
+        self.assertIn("Length", content)
+        self.assertNotIn("Chest</strong>", content)
+
+
+# Continue CustomizationViewTests below — methods that were in this class originally.
+
+class CustomizationViewMoreTests(TestCase):
+    """Additional customization view tests (continuation of CustomizationViewTests)."""
+    def setUp(self):
+        self.client = Client()
+        self.category = Category.objects.create(name="Blouses", slug="blouses")
+        self.product = Product.objects.create(
+            category=self.category, name="Silk Blouse 2", slug="silk-blouse2",
+            sku="SKU-CV-002", price=Decimal("70"), stock_quantity=5,
+        )
+        self.valid_data = {
+            "customer_name": "Alice", "customer_phone": "1234567890",
+            "length": "24", "chest": "36", "waist": "30",
+            "armhole": "12", "opening": "10", "bicep": "14",
+        }
+
     def test_no_images_renders_placeholder(self):
         """Product with 0 images renders static fallback without error or controls."""
         response = self.client.get(

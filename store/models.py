@@ -90,7 +90,7 @@ class Product(models.Model):
     )
     name = models.CharField(max_length=160)
     slug = models.SlugField(max_length=180, unique=True)
-    sku = models.CharField(max_length=80, unique=True, blank=True)
+    sku = models.CharField(max_length=80, unique=True, blank=True, null=True)
     short_description = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -143,6 +143,12 @@ class Product(models.Model):
 
     def active_tags(self):
         return self.tags.filter(is_active=True)
+
+    def save(self, *args, **kwargs):
+        # Normalize blank SKU to NULL so unique constraint allows multiple blanks.
+        if self.sku == "":
+            self.sku = None
+        super().save(*args, **kwargs)
 
     def clean(self):
         super().clean()
