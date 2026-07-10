@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T16 (including all FIX subtasks) complete. No required tasks remain.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T17 (including all FIX subtasks) complete. No required tasks remain.
 
 ## Completed Tasks
 
@@ -37,7 +37,7 @@ This repo has been converted from a static Kaira Bootstrap fashion-store templat
 ## Verification Status
 
 - `conda run -n femdes python manage.py check` — **PASS** (0 issues)
-- `conda run -n femdes python manage.py test` — **PASS** (264 tests)
+- `conda run -n femdes python manage.py test` — **PASS** (266 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
 - `conda run -n femdes python manage.py makemigrations --check --dry-run` — **PASS** (no changes)
 - `conda run -n femdes python manage.py seed_demo_store` — **PASS** (idempotent, 18 records updated on repeat)

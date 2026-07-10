@@ -292,31 +292,62 @@ class ProductListViewTests(TestCase):
         self.assertContains(response, self.product.name)
 
     def test_card_uses_primary_image(self):
-        """Product card uses is_primary=True image even with higher sort_order."""
+        """Shop page renders primary image URL, not lower-sort non-primary."""
         from store.models import ProductImage
-        from pathlib import Path
-        import shutil
-        # Create a non-primary with low sort_order
-        dest = Path("/tmp/test-primary-img/products/demo")
-        dest.mkdir(parents=True, exist_ok=True)
-        src = Path(__file__).resolve().parent.parent.parent / "static/store/images/product-item-1.jpg"
-        shutil.copy2(src, dest / "non-primary.jpg")
         img1 = ProductImage.objects.create(
             product=self.product, sort_order=0, is_primary=False,
         )
         img1.image.name = "products/demo/non-primary.jpg"
         img1.save()
-        # Create a primary with higher sort_order
-        shutil.copy2(src, dest / "primary.jpg")
         img2 = ProductImage.objects.create(
             product=self.product, sort_order=5, is_primary=True,
         )
         img2.image.name = "products/demo/primary.jpg"
         img2.save()
         self.product.refresh_from_db()
-        self.assertEqual(self.product.primary_image, img2)
-        response = self.client.get(reverse("home"))
-        self.assertEqual(response.status_code, 200)
+        # Shop page
+        shop = self.client.get(reverse("product_list"))
+        self.assertContains(shop, "primary.jpg")
+        self.assertNotContains(shop, "non-primary.jpg")
+
+    def test_homepage_hero_uses_primary_image(self):
+        """Home page hero renders primary image for a featured product."""
+        from store.models import ProductImage
+        self.product.is_featured = True
+        self.product.stock_quantity = 5
+        self.product.save()
+        img1 = ProductImage.objects.create(
+            product=self.product, sort_order=3, is_primary=True,
+        )
+        img1.image.name = "products/demo/hero-primary.jpg"
+        img1.save()
+        img2 = ProductImage.objects.create(
+            product=self.product, sort_order=0, is_primary=False,
+        )
+        img2.image.name = "products/demo/hero-other.jpg"
+        img2.save()
+        self.product.refresh_from_db()
+        home = self.client.get(reverse("home"))
+        self.assertContains(home, "hero-primary.jpg")
+        self.assertNotContains(home, "hero-other.jpg")
+
+    def test_card_fallback_when_no_primary(self):
+        """Without is_primary, lowest sort_order image renders, higher does not."""
+        from store.models import ProductImage
+        img1 = ProductImage.objects.create(
+            product=self.product, sort_order=0, is_primary=False,
+        )
+        img1.image.name = "products/demo/low-sort.jpg"
+        img1.save()
+        img2 = ProductImage.objects.create(
+            product=self.product, sort_order=9, is_primary=False,
+        )
+        img2.image.name = "products/demo/high-sort.jpg"
+        img2.save()
+        self.product.refresh_from_db()
+        shop = self.client.get(reverse("product_list"))
+        self.assertContains(shop, "low-sort.jpg")
+        self.assertNotContains(shop, "high-sort.jpg")
 
     def test_product_list_renders_product_names(self):
         response = self.client.get(reverse("product_list"))

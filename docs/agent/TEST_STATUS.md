@@ -2,7 +2,7 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T16 (with all FIX subtasks) complete. 260 tests pass. All MVP + blouse customization + S3 media storage + customer accounts + payment tracking + categories/tags verified.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T17 (with all FIX subtasks) complete. 264 tests pass. All MVP features verified.
 
 Django commands now available:
 
