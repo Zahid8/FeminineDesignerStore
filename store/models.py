@@ -139,6 +139,15 @@ class Product(models.Model):
         return self.name
 
     @property
+    def primary_image(self):
+        """Return the primary image (is_primary=True), or first by sort_order, or None."""
+        imgs = list(self.images.all())
+        if not imgs:
+            return None
+        primary = [i for i in imgs if i.is_primary]
+        return primary[0] if primary else imgs[0]
+
+    @property
     def is_in_stock(self):
         return self.stock_quantity > 0
 

@@ -17,8 +17,8 @@
               <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-lg">Shop Now</a>
             </div>
             <div class="col-md-6">
-              {% with first_img=product.images.all|dictsort:"sort_order"|first %}
-              <img src="{% if first_img %}{{ first_img.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="img-fluid" alt="{{ product.name }}">
+              {% with primary=product.primary_image %}
+              <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="img-fluid" alt="{{ product.name }}">
               {% endwith %}
             </div>
           </div>

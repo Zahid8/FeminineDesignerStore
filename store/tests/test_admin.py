@@ -253,6 +253,14 @@ class ProductAdminTagWorkflowTests(TestCase):
                 break
         self.assertTrue(found, "tags not found in ProductAdmin fieldsets")
 
+    def test_measurement_note_in_fieldsets(self):
+        found = False
+        for name, opts in ProductAdmin.fieldsets:
+            if "measurement_note" in opts.get("fields", ()):
+                found = True
+                break
+        self.assertTrue(found, "measurement_note not in fieldsets")
+
     def test_tags_in_search_fields(self):
         self.assertIn("tags__name", ProductAdmin.search_fields)
 

@@ -2,8 +2,8 @@
 <div class="product-item"{% if product.category %} data-category="{{ product.category.slug }}"{% endif %}>
   <div class="position-relative">
     <a href="{% url 'product_detail' product.slug %}">
-      {% with first_img=product.images.all|dictsort:"sort_order"|first %}
-      <img src="{% if first_img %}{{ first_img.image.url }}{% else %}{% static 'store/images/product-item-1.jpg' %}{% endif %}"
+      {% with primary=product.primary_image %}
+      <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/product-item-1.jpg' %}{% endif %}"
            alt="{{ product.name }}" class="product-image img-fluid">
       {% endwith %}
     </a>

@@ -291,6 +291,33 @@ class ProductListViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.product.name)
 
+    def test_card_uses_primary_image(self):
+        """Product card uses is_primary=True image even with higher sort_order."""
+        from store.models import ProductImage
+        from pathlib import Path
+        import shutil
+        # Create a non-primary with low sort_order
+        dest = Path("/tmp/test-primary-img/products/demo")
+        dest.mkdir(parents=True, exist_ok=True)
+        src = Path(__file__).resolve().parent.parent.parent / "static/store/images/product-item-1.jpg"
+        shutil.copy2(src, dest / "non-primary.jpg")
+        img1 = ProductImage.objects.create(
+            product=self.product, sort_order=0, is_primary=False,
+        )
+        img1.image.name = "products/demo/non-primary.jpg"
+        img1.save()
+        # Create a primary with higher sort_order
+        shutil.copy2(src, dest / "primary.jpg")
+        img2 = ProductImage.objects.create(
+            product=self.product, sort_order=5, is_primary=True,
+        )
+        img2.image.name = "products/demo/primary.jpg"
+        img2.save()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.primary_image, img2)
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+
     def test_product_list_renders_product_names(self):
         response = self.client.get(reverse("product_list"))
         self.assertContains(response, self.product.name)

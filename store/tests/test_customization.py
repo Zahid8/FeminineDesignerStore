@@ -125,6 +125,22 @@ class CustomizationViewTests(TestCase):
         self.assertContains(response, 'aria-label="Previous image"')
         self.assertContains(response, 'aria-label="Next image"')
 
+    def test_blank_measurement_note_renders_nothing(self):
+        self.product.measurement_note = ""
+        self.product.save()
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertNotContains(response, "<p class=\"small fst-italic\">")
+
+    def test_non_blank_measurement_note_renders(self):
+        self.product.measurement_note = "Hand wash only."
+        self.product.save()
+        response = self.client.get(
+            reverse("product_detail", kwargs={"slug": self.product.slug})
+        )
+        self.assertContains(response, "Hand wash only.")
+
     def test_product_detail_ready_made_specs(self):
         """Product detail shows only non-blank measurement labels and values."""
         # Set some measurements to prove they render, leave others blank.
