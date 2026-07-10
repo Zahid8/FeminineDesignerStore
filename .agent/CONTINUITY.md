@@ -1,6 +1,7 @@
 # CONTINUITY
 
 ## [PLANS]
+- 2026-07-10T17:57:15Z [USER] Requested a current implementation plan to fix a checkout/order 500 after submitting contact details and add a payment gateway.
 - 2026-07-06T14:22:44Z [USER] Current prompt is `femdes`; concrete requested change is UNCONFIRMED.
 - 2026-07-06T14:29:58Z [USER] Requested a highly detailed implementation plan to convert the static Kaira template into a database-backed FemDes webstore with an admin panel for product, price, and discount management.
 - 2026-07-06T14:50:40Z [USER] Requested architecture/planning-agent documentation across `AGENTS.md`, `CLAUDE.md`, `docs/architecture.md`, `docs/decisions.md`, and `docs/agent/*`, explicitly without implementing the feature.
@@ -18,6 +19,7 @@
 - 2026-07-06T15:36:42Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-001, the Django project scaffold task, without creating project files.
 
 ## [DISCOVERIES]
+- 2026-07-10T17:57:15Z [TOOL] Checkout 500 likely comes from `store/services.py` writing nullable `Product.sku` into non-null `OrderItem.sku`; payment gateway plan chooses Razorpay because existing checkout/customization copy is UPI-oriented. Context7 Razorpay docs confirm `client.order.create`, `client.utility.verify_payment_signature`, and `client.utility.verify_webhook_signature`.
 - 2026-07-10T15:10:58Z [TOOL] Review of commit `1491d09` found `measurement_note` model/admin/template behavior works in direct probing and full 260-test suite/check/migration dry-run pass, but home/shop images still ignore `is_primary=True` and select the lowest `sort_order` image; note/admin/image behavior lacks dedicated tests.
 - 2026-07-10T14:10:22Z [TOOL] Review of commit `d7a6133` found optional-SKU behavior passes focused tests, full 260-test suite, check, migration dry-run, diff whitespace check, and direct legacy-empty-SKU probe; remaining blocker is stale current-state test counts in HANDOFF.md (`236 tests`) and TEST_STATUS.md (`253 tests`).
 - 2026-07-10T14:05:16Z [TOOL] Review of commit `2e23652` found focused/full tests, check, migration dry-run, and diff whitespace checks pass, but `Product.full_clean()` still rejects `sku=""` when a legacy `sku=""` row exists because normalization only happens in `save()` and migration `0010_sku_nullable` does not convert existing empty strings to NULL.
@@ -101,6 +103,7 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-10T17:57:15Z [CODE] Current task now identifies TASK-018: fix checkout 500, add Razorpay gateway with server-side order creation and signature verification, keep manual UPI fallback, add tests, and sync stale test-count docs.
 - 2026-07-10T15:25:25Z [CODE] Review outcome for commit `2f3ac3e` is NEEDS FIXES: primary-image storefront tests are now meaningful and focused/full tests pass, but `docs/agent/TEST_STATUS.md` still reports 264 tests while the full suite runs 266. `docs/agent/CURRENT_TASK.md` now defines docs-only TASK-017-FIX3.
 - 2026-07-10T15:18:01Z [CODE] Review outcome for commit `b3187d8` is NEEDS FIXES: implementation behavior and 264-test suite pass, but the primary-image storefront test only checks the model property plus response status and current docs still contain stale T16/260-test prose. `docs/agent/CURRENT_TASK.md` now defines TASK-017-FIX2.
 - 2026-07-10T15:10:58Z [CODE] Review outcome for commit `1491d09` is NEEDS FIXES; `docs/agent/CURRENT_TASK.md` now defines TASK-017-FIX for primary-image storefront selection and tests for measurement notes/admin exposure.

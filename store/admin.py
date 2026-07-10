@@ -186,6 +186,8 @@ class OrderAdmin(admin.ModelAdmin):
         "customer_phone",
         "customer_name",
         "payment_reference",
+        "gateway_order_id",
+        "gateway_payment_id",
     )
     readonly_fields = (
         "order_number",
@@ -195,6 +197,9 @@ class OrderAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "paid_at",
+        "gateway_order_id",
+        "gateway_payment_id",
+        "gateway_signature",
     )
     inlines = [OrderItemInline]
 

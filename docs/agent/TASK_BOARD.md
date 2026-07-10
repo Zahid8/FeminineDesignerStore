@@ -27,7 +27,8 @@
 | T12 | Done | Use placeholder images, carousel, ready-made specs (+ tests + docs) | seed command, product detail template, tests, docs | 218 tests, seed idempotent |
 | T13 | Done | Add admin-managed categories and storefront product tags | models, migration, admin, selectors/views, templates, tests, docs | 224 tests, check, migration dry-run |
 | T14 | Done | Add manual UPI payment tracking for orders/customizations (+ T14-FIX) | order/customization payment fields, admin, templates, tests, docs | 253 tests, check, migration dry-run |
-| T15 | Ready | Add customer wishlist persistence plus T14 docs/test carryover | wishlist model/session services, views, templates, admin, tests, docs | focused wishlist tests, full suite, check, migration dry-run |
+| T15 | Ready | Add customer wishlist persistence | wishlist model/services, views, templates, admin, tests | focused wishlist tests, full suite, check, migration dry-run |
+| T18 | Done | Fix checkout 500 + add Razorpay payment gateway | services.py, models, settings, views, URLs, templates, tests | 267 tests, check, migration dry-run |
 
 ## Dependency Order
 

@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from store import selectors, services
@@ -146,6 +147,9 @@ def checkout(request):
                 order = services.create_order_from_cart(
                     request, form.cleaned_data
                 )
+                from django.conf import settings
+                if settings.RAZORPAY_ENABLED:
+                    return redirect("razorpay_payment", order_number=order.order_number)
                 return redirect("order_success", order_number=order.order_number)
             except ValueError as e:
                 messages.error(request, str(e))
@@ -230,6 +234,74 @@ def customization_detail(request, token):
     ctx = _base_context(request)
     ctx.update({"customization": cr, "product": cr.product})
     return render(request, "store/customization_detail.html", ctx)
+
+
+# ── Razorpay payment views ──────────────────────────────────────
+
+def _get_razorpay_client():
+    from django.conf import settings
+    import razorpay
+    return razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+
+def razorpay_payment(request, order_number):
+    """Show Razorpay checkout page for a pending order."""
+    from django.conf import settings
+    order = get_object_or_404(Order, order_number=order_number)
+    if not settings.RAZORPAY_ENABLED:
+        return redirect("order_success", order_number=order.order_number)
+    client = _get_razorpay_client()
+    amount_paise = int(order.total * 100)
+    razorpay_order = client.order.create({
+        "amount": amount_paise,
+        "currency": "INR",
+        "receipt": order.order_number,
+        "notes": {"order_pk": str(order.pk)},
+    })
+    order.gateway_order_id = razorpay_order["id"]
+    order.save(update_fields=["gateway_order_id"])
+    ctx = _base_context(request)
+    ctx.update({
+        "order": order,
+        "razorpay_order_id": razorpay_order["id"],
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+        "razorpay_amount": amount_paise,
+    })
+    return render(request, "store/razorpay_payment.html", ctx)
+
+
+def razorpay_verify(request, order_number):
+    """Verify Razorpay payment signature server-side."""
+    from django.conf import settings
+    import razorpay
+    order = get_object_or_404(Order, order_number=order_number)
+    if request.method != "POST":
+        return redirect("order_success", order_number=order.order_number)
+    razorpay_payment_id = request.POST.get("razorpay_payment_id", "")
+    razorpay_order_id = request.POST.get("razorpay_order_id", "")
+    razorpay_signature = request.POST.get("razorpay_signature", "")
+    # Verify matching order id
+    if razorpay_order_id != order.gateway_order_id:
+        messages.error(request, "Payment verification failed: order ID mismatch.")
+        return redirect("razorpay_payment", order_number=order.order_number)
+    try:
+        client = _get_razorpay_client()
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": razorpay_order_id,
+            "razorpay_payment_id": razorpay_payment_id,
+            "razorpay_signature": razorpay_signature,
+        })
+        order.payment_status = "paid"
+        order.payment_method = "razorpay"
+        order.payment_reference = razorpay_payment_id
+        order.gateway_payment_id = razorpay_payment_id
+        order.gateway_signature = razorpay_signature
+        order.paid_at = timezone.now()
+        order.save()
+        return redirect("order_success", order_number=order.order_number)
+    except razorpay.errors.SignatureVerificationError:
+        messages.error(request, "Payment verification failed.")
+        return redirect("razorpay_payment", order_number=order.order_number)
 
 
 # ── Account views ──────────────────────────────────────────────

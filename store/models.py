@@ -417,12 +417,16 @@ class Order(models.Model):
         max_length=20,
         choices=[
             ("manual_upi", "Manual UPI"),
+            ("razorpay", "Razorpay"),
             ("cash_on_delivery", "Cash on Delivery"),
         ],
         default="manual_upi",
     )
     payment_reference = models.CharField(max_length=160, blank=True)
     payment_notes = models.TextField(blank=True)
+    gateway_order_id = models.CharField(max_length=100, blank=True)
+    gateway_payment_id = models.CharField(max_length=100, blank=True)
+    gateway_signature = models.CharField(max_length=500, blank=True)
     paid_at = models.DateTimeField(blank=True, null=True)
     customer_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

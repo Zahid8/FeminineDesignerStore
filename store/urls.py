@@ -37,6 +37,17 @@ urlpatterns = [
         views.customization_created,
         name="customization_created",
     ),
+    # Razorpay
+    path(
+        "razorpay/<str:order_number>/",
+        views.razorpay_payment,
+        name="razorpay_payment",
+    ),
+    path(
+        "razorpay/<str:order_number>/verify/",
+        views.razorpay_verify,
+        name="razorpay_verify",
+    ),
     # Accounts
     path("accounts/register/", views.account_register, name="account_register"),
     path("accounts/login/", views.account_login, name="account_login"),

@@ -322,6 +322,34 @@ class MultiVariantCheckoutTests(TestCase):
         self.assertEqual(self.product.stock_quantity, 2)
 
 
+class BlankSkuCheckoutTests(TestCase):
+    """Checkout must not crash when product has blank/NULL SKU."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name="Blouses", slug="blouses")
+        self.product = Product.objects.create(
+            category=self.category, name="NoSKU", slug="nosku-co",
+            sku=None, price=Decimal("70"), stock_quantity=10, is_active=True,
+        )
+
+    def test_checkout_with_blank_sku_succeeds(self):
+        request = _make_request()
+        add_to_cart(request, self.product, quantity=1)
+        checkout_data = {
+            "customer_name": "Alice",
+            "customer_email": "alice@example.com",
+            "shipping_address": "123 Main St",
+        }
+        order = create_order_from_cart(request, checkout_data)
+        self.assertIsNotNone(order.order_number)
+        item = order.items.first()
+        self.assertEqual(item.sku, "")
+        self.assertEqual(item.product_name, "NoSKU")
+        # Cart cleared after successful checkout
+        cart = get_cart(request)
+        self.assertEqual(len(cart), 0)
+
+
 class NewsletterTests(TestCase):
     def test_subscribe_new(self):
         sub = subscribe_newsletter("test@example.com")

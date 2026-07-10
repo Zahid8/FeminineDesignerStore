@@ -190,7 +190,7 @@ def create_order_from_cart(request, checkout_data):
                 {
                     "product": product,
                     "product_name": product.name,
-                    "sku": product.sku,
+                    "sku": product.sku or "",
                     "unit_price": unit_price,
                     "discount_amount": line_discount,
                     "line_total": line_total,
