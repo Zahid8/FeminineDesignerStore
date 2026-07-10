@@ -1774,3 +1774,5 @@ FemDes Blouse Boutique
   .hero-text-col { padding-right: 0; text-align: center; }
   .hero-img-col { padding-left: 0; margin-top: 1.5rem; }
 }
+.promo-float-card { min-width: 120px; z-index: 2; }
+.rounded-4 { border-radius: .75rem !important; }

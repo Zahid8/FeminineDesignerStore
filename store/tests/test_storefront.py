@@ -275,6 +275,9 @@ class ProductListViewTests(TestCase):
         self.assertContains(response, "hero-capsule-img")
         self.assertContains(response, "rounded-pill")
         self.assertContains(response, "promo-card")
+        self.assertContains(response, "indichic-nav")
+        self.assertContains(response, "promo-collage-img")
+        self.assertContains(response, "hero-capsule-img")
 
     def test_product_card_displays_active_tags(self):
         from store.models import ProductTag

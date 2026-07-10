@@ -37,23 +37,45 @@
 <!-- Promo Editorial Collage -->
 <section class="py-5 section-soft">
   <div class="container-lg">
-    <div class="row g-4 align-items-center">
-      <div class="col-md-4">
-        <div class="promo-card p-4 text-center">
-          <div class="promo-stat display-5 fw-bold" style="color: var(--warm-brown);">15+</div>
-          <p class="text-muted">Exclusive Blouse Designs</p>
+    <div class="row g-3 align-items-center">
+      <div class="col-md-5">
+        <div class="position-relative">
+          {% with promo_img=featured|default:new_arrivals|first %}
+          {% with primary=promo_img.primary_image %}
+          <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="promo-collage-img shadow-sm" alt="Blouse Collection">
+          {% endwith %}
+          {% endwith %}
+          <div class="promo-float-card position-absolute bottom-0 end-0 m-3 bg-white rounded-4 p-3 shadow-sm">
+            <div class="promo-stat fs-4 fw-bold" style="color: var(--warm-brown);">15+</div>
+            <small class="text-muted">Exclusive Designs</small>
+          </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="promo-card p-4 text-center">
-          <div class="promo-stat display-5 fw-bold" style="color: var(--warm-brown);">100%</div>
-          <p class="text-muted">Handcrafted With Care</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="promo-card p-4 text-center">
-          <div class="promo-stat display-5 fw-bold" style="color: var(--warm-brown);">Custom</div>
-          <p class="text-muted">Tailored To Your Measurements</p>
+      <div class="col-md-7">
+        <div class="row g-3">
+          <div class="col-6">
+            {% with second=featured|default:new_arrivals|slice:"1:2"|first %}
+            {% if second %}
+            <img src="{% if second.primary_image %}{{ second.primary_image.image.url }}{% else %}{% static 'store/images/product-item-1.jpg' %}{% endif %}" class="promo-collage-img shadow-sm w-100" alt="Blouse">
+            {% else %}
+            <img src="{% static 'store/images/product-item-1.jpg' %}" class="promo-collage-img shadow-sm w-100" alt="Blouse">
+            {% endif %}
+            {% endwith %}
+          </div>
+          <div class="col-6 d-flex flex-column gap-3">
+            <div class="promo-card p-3 flex-grow-1 d-flex align-items-center justify-content-center">
+              <div class="text-center">
+                <div class="promo-stat fs-4 fw-bold" style="color: var(--warm-brown);">100%</div>
+                <small class="text-muted">Handcrafted</small>
+              </div>
+            </div>
+            <div class="promo-card p-3 flex-grow-1 d-flex align-items-center justify-content-center">
+              <div class="text-center">
+                <div class="promo-stat fs-4 fw-bold" style="color: var(--warm-brown);">Custom</div>
+                <small class="text-muted">Tailored Fit</small>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
