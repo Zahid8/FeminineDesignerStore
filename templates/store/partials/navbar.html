@@ -1,55 +1,51 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg bg-white border-bottom py-2">
+<nav class="navbar navbar-expand-lg indichic-nav py-3">
   <div class="container-lg">
-    <a class="navbar-brand" href="{% url 'home' %}">
-      {% if site_settings and site_settings.logo %}
-      <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.store_name|default:'FemDes' }}" class="logo" height="40">
-      {% else %}
-      <img src="{% static 'store/images/main-logo.png' %}" alt="{{ site_settings.store_name|default:'FemDes' }}" class="logo" height="40">
-      {% endif %}
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
+    <div class="d-flex d-lg-none align-items-center gap-3">
+      <a href="#search" class="search-button"><svg width="18" height="18"><use xlink:href="#search"></use></svg></a>
+      <a href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="position-relative">
+        <svg width="20" height="20"><use xlink:href="#shopping-bag"></use></svg>
+        <span class="cart-count-badge">{{ cart.item_count }}</span>
+      </a>
+    </div>
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Menu</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-      </div>
-      <div class="offcanvas-body">
-        <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+      <div class="offcanvas-header"><h5 class="offcanvas-title">Menu</h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div>
+      <div class="offcanvas-body indichic-nav-body">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}">Shop</a></li>
           {% for cat in categories %}
           <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
           {% endfor %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'cart_detail' %}">Cart ({{ cart.item_count }})</a></li>
+        </ul>
+        <a class="navbar-brand indichic-brand mx-auto d-none d-lg-block" href="{% url 'home' %}">
+          {% if site_settings and site_settings.logo %}
+          <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.store_name|default:'FemDes' }}" height="36">
+          {% else %}
+          <img src="{% static 'store/images/main-logo.png' %}" alt="{{ site_settings.store_name|default:'FemDes' }}" height="36">
+          {% endif %}
+        </a>
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
           {% if user.is_authenticated %}
           <li class="nav-item"><a class="nav-link" href="{% url 'account_profile' %}">Account</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'account_orders' %}">Orders</a></li>
           <li class="nav-item">
             <form method="post" action="{% url 'account_logout' %}" class="d-inline">
-              {% csrf_token %}
-              <button type="submit" class="nav-link btn btn-link">Logout</button>
+              {% csrf_token %}<button type="submit" class="nav-link btn btn-link">Logout</button>
             </form>
           </li>
           {% else %}
           <li class="nav-item"><a class="nav-link" href="{% url 'account_login' %}">Login</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'account_register' %}">Register</a></li>
           {% endif %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'cart_detail' %}">Cart ({{ cart.item_count }})</a></li>
         </ul>
-        <ul class="navbar-nav d-flex flex-row align-items-center">
-          <li class="nav-item me-3">
-            <a href="#search" class="search-button">
-              <svg class="search" width="20" height="20"><use xlink:href="#search"></use></svg>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="position-relative">
-              <svg width="24" height="24"><use xlink:href="#shopping-bag"></use></svg>
-              <span class="cart-count-badge">{{ cart.item_count }}</span>
-            </a>
-          </li>
+        <ul class="navbar-nav flex-row align-items-center ms-lg-3 d-none d-lg-flex">
+          <li class="nav-item me-2"><a href="#search" class="search-button nav-icon"><svg width="18" height="18"><use xlink:href="#search"></use></svg></a></li>
+          <li class="nav-item"><a href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="nav-icon position-relative"><svg width="20" height="20"><use xlink:href="#shopping-bag"></use></svg><span class="cart-count-badge">{{ cart.item_count }}</span></a></li>
         </ul>
       </div>
     </div>

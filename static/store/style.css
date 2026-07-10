@@ -1752,3 +1752,25 @@ FemDes Blouse Boutique
   .hero-text-col { padding-right: 0; text-align: center; }
   .hero-img-col { padding-left: 0; margin-top: 1.5rem; }
 }
+/* T21-FIX: IndiChic Light Adaptation */
+.indichic-nav { background: rgba(255,255,255,.97); backdrop-filter: blur(10px); box-shadow: 0 1px 0 rgba(0,0,0,.04); }
+.indichic-nav .nav-link { font-size: .85rem; font-weight: 500; letter-spacing: .02em; padding: .4rem 1rem; color: var(--soft-charcoal); border-radius: 2rem; transition: background .2s; }
+.indichic-nav .nav-link:hover { background: var(--cream); }
+.nav-icon { display: inline-flex; align-items: center; padding: .35rem; border-radius: 50%; transition: background .2s; }
+.nav-icon:hover { background: var(--cream); }
+.indichic-brand { position: absolute; left: 50%; transform: translateX(-50%); }
+.hero-capsule-img { border-radius: 40% 60% 50% 50% / 45% 50% 50% 55%; aspect-ratio: 1/1; object-fit: cover; width: 100%; }
+.hero-text-col { padding-right: 2rem; }
+.hero-img-col { padding-left: 1rem; position: relative; }
+.hero-float-widget { position: absolute; background: #fff; border-radius: 1rem; padding: .6rem 1rem; box-shadow: 0 4px 20px rgba(0,0,0,.06); font-size: .82rem; font-weight: 500; }
+.promo-card { background: #fff; border-radius: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+.promo-stat { letter-spacing: -.02em; }
+.btn.rounded-pill { border-radius: 3rem !important; }
+.promo-collage-img { border-radius: 1rem; aspect-ratio: 3/4; object-fit: cover; width: 100%; }
+@media (max-width: 991px) {
+  .indichic-brand { position: static; transform: none; text-align: center; display: block; }
+}
+@media (max-width: 767px) {
+  .hero-text-col { padding-right: 0; text-align: center; }
+  .hero-img-col { padding-left: 0; margin-top: 1.5rem; }
+}

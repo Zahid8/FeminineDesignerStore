@@ -1,6 +1,9 @@
 # CONTINUITY
 
 ## [PLANS]
+- 2026-07-10T20:43:50Z [USER] Clarified T21-FIX must take heavy inspiration from `web_temp/indichic` and make the FemDes UI very similar to its design style and structural idea while remaining a light blouse-only version.
+- 2026-07-10T20:23:56Z [USER] Requested adding `web_temp/indichic` as UI inspiration in the current task, specifically a similar but light version, not dark.
+- 2026-07-10T20:05:52Z [USER] Clarified that TASK-020-FIX3 must add the pastel designs from the screenshot, meaning soft pastel wave bands/dividers, accent shapes, rounded image/card surfaces, warm CTA treatment, and boutique visual rhythm adapted to blouses only.
 - 2026-07-10T19:39:20Z [USER] Requested a new current task using `reference.png` only as design inspiration; the store sells only blouses, so public design/copy must be blouse-focused.
 - 2026-07-10T18:24:44Z [USER] Requested a separate task to make the entire customer-facing website aesthetically pleasing and good-looking to customers.
 - 2026-07-10T17:57:15Z [USER] Requested a current implementation plan to fix a checkout/order 500 after submitting contact details and add a payment gateway.
@@ -9,6 +12,7 @@
 - 2026-07-06T14:50:40Z [USER] Requested architecture/planning-agent documentation across `AGENTS.md`, `CLAUDE.md`, `docs/architecture.md`, `docs/decisions.md`, and `docs/agent/*`, explicitly without implementing the feature.
 
 ## [DECISIONS]
+- 2026-07-10T20:44:30Z [USER] Kaira behavior may be changed for the IndiChic redesign because the owner prefers the IndiChic direction; preserve Django routes/forms/business behavior and test any replacement interactions.
 - 2026-07-10T18:12:06Z [USER] Review policy: if the only remaining failure is documentation sync/drift, do not create a standalone fix task; carry the doc cleanup into the next substantive task.
 - 2026-07-06T14:22:44Z [TOOL] This workspace has no Git repository metadata, so change tracking cannot rely on `git status`.
 - 2026-07-06T14:29:58Z [CODE] `implementation_plan.md` chooses Django 5.2 LTS, server-rendered templates, Django admin, SQLite for local development, and optional PostgreSQL via `DATABASE_URL` for production.
@@ -22,6 +26,7 @@
 - 2026-07-06T15:36:42Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-001, the Django project scaffold task, without creating project files.
 
 ## [DISCOVERIES]
+- 2026-07-10T20:23:56Z [TOOL] `web_temp/indichic` is a React/Tailwind fashion UI with centered wordmark/nav, pill sign-in/action controls, large editorial hero text, stat counters, oversized rounded/capsule hero image, floating product/discount cards, dark promo collage, category pill filters, search/cart/notification controls, and rounded product cards with circular cart/bookmark affordances. Current task must adapt these as a light blouse UI, not copy dark backgrounds/assets/code.
 - 2026-07-10T19:39:20Z [TOOL] `reference.png` is a tall boutique ecommerce reference with pale pastel wave bands, airy white space, rounded product cards, warm CTA styling, simple carousel arrows, a large hero image, and a handmade/story section. It appears baby-themed, so task wording must prohibit copying baby branding, baby imagery, baby text, or childish motifs.
 - 2026-07-10T17:57:15Z [TOOL] Checkout 500 likely comes from `store/services.py` writing nullable `Product.sku` into non-null `OrderItem.sku`; payment gateway plan chooses Razorpay because existing checkout/customization copy is UPI-oriented. Context7 Razorpay docs confirm `client.order.create`, `client.utility.verify_payment_signature`, and `client.utility.verify_webhook_signature`.
 - 2026-07-10T15:10:58Z [TOOL] Review of commit `1491d09` found `measurement_note` model/admin/template behavior works in direct probing and full 260-test suite/check/migration dry-run pass, but home/shop images still ignore `is_primary=True` and select the lowest `sort_order` image; note/admin/image behavior lacks dedicated tests.
@@ -107,6 +112,11 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-10T20:44:30Z [CODE] Updated TASK-021-FIX to allow replacing Kaira-specific popup/offcanvas/carousel visual/interaction conventions when the replacement is complete, responsive, tested, and closer to the light IndiChic direction.
+- 2026-07-10T20:43:50Z [CODE] Review outcome for T21 commits `c7b10ce`/`cbbcc46` is NEEDS FIXES: implementation only changed `home.html`, 10 CSS lines, one shallow storefront test, and task-board docs; it did not adapt the full customer flow, add required meaningful structural tests, update TEST_STATUS/HANDOFF for T21, or provide browser/screenshot evidence. `docs/agent/CURRENT_TASK.md` now defines TASK-021-FIX for a heavy light-version IndiChic structural adaptation across public templates.
+- 2026-07-10T20:23:56Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` as TASK-021 for a light IndiChic-inspired blouse UI pass and updated `docs/agent/TASK_BOARD.md`; implementation must inspect the local IndiChic React files but adapt only layout language into Django/Kaira templates without dark styling or copied assets/code.
+- 2026-07-10T20:05:52Z [CODE] Updated `docs/agent/CURRENT_TASK.md` so TASK-020-FIX3 explicitly requires screenshot-inspired pastel wave bands, soft section transitions, rounded product/lifestyle surfaces, restrained pastel accents, warm CTA styling, and tests/screenshot evidence for those classes, while still prohibiting copied baby/kids content.
+- 2026-07-10T20:03:06Z [CODE] Review outcome for commits `446fb3f`/`e691040` is NEEDS FIXES: focused/full tests and mechanical checks pass, but T20-FIX2 still changes only home/CSS, adds no tests, has no browser evidence, and `git diff --numstat 19762f0..HEAD -- static/store/style.css` still reports `1765 1712`; current task now defines TASK-020-FIX3.
 - 2026-07-10T19:54:04Z [CODE] Review outcome for commit `e48b5b3` is NEEDS FIXES: focused/full tests and mechanical checks pass, but T20-FIX still changes only home/CSS, adds no tests, leaves home inline styles, lacks browser evidence, and `git diff --numstat 19762f0..HEAD -- static/store/style.css` still reports `1753 1712`. `docs/agent/CURRENT_TASK.md` now defines TASK-020-FIX2.
 - 2026-07-10T19:48:45Z [CODE] Review outcome for commit `adb4e50` is NEEDS FIXES: T20 only touched home/CSS, added no tests, committed `reference.png`, left `style.css` whole-file churn from `19762f0`, removed prior empty-state/mobile/badge/logo CSS rules, and still leaves TASK-018-FIX2 Razorpay reliability open while docs claim no required tasks remain. `docs/agent/CURRENT_TASK.md` now defines TASK-020-FIX.
 - 2026-07-10T19:39:20Z [CODE] Current task now identifies TASK-020: reference-inspired blouse-only storefront redesign using `reference.png` for visual direction only, carrying T19-FIX3 CSS/test cleanup and keeping TASK-018-FIX2 Razorpay reliability visible unless completed.
