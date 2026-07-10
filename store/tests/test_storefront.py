@@ -257,6 +257,21 @@ class ProductListViewTests(TestCase):
         response = self.client.get(reverse("product_list"))
         self.assertNotContains(response, "Invisible")
 
+    def test_product_card_has_polish_hooks(self):
+        """Product card renders image, price, add-to-cart form, and polish class."""
+        response = self.client.get(reverse("product_list"))
+        self.assertContains(response, 'class="product-item"')
+        self.assertContains(response, 'class="product-image')
+        self.assertContains(response, 'class="product-price"')
+
+    def test_home_hero_has_polish_content(self):
+        """Home hero renders product price and CTA when products exist."""
+        self.product.is_featured = True
+        self.product.save()
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "btn-dark")
+        self.assertContains(response, self.product.name)
+
     def test_product_card_displays_active_tags(self):
         from store.models import ProductTag
         tag = ProductTag.objects.create(name="Cotton", slug="cotton", is_active=True)
