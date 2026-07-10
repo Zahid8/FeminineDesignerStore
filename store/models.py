@@ -128,6 +128,7 @@ class Product(models.Model):
     measurement_guide_image = models.ImageField(
         upload_to="measurement-guides/", blank=True, null=True
     )
+    measurement_note = models.TextField(blank=True)
     tags = models.ManyToManyField(
         "ProductTag", blank=True, related_name="products"
     )

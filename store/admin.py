@@ -72,7 +72,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": (
                 "default_length", "default_chest", "default_waist",
                 "default_armhole", "default_opening", "default_bicep",
-                "measurement_guide_image",
+                "measurement_guide_image", "measurement_note",
             ),
         }),
         ("Options", {

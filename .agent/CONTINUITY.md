@@ -18,6 +18,7 @@
 - 2026-07-06T15:36:42Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-001, the Django project scaffold task, without creating project files.
 
 ## [DISCOVERIES]
+- 2026-07-10T14:10:22Z [TOOL] Review of commit `d7a6133` found optional-SKU behavior passes focused tests, full 260-test suite, check, migration dry-run, diff whitespace check, and direct legacy-empty-SKU probe; remaining blocker is stale current-state test counts in HANDOFF.md (`236 tests`) and TEST_STATUS.md (`253 tests`).
 - 2026-07-10T14:05:16Z [TOOL] Review of commit `2e23652` found focused/full tests, check, migration dry-run, and diff whitespace checks pass, but `Product.full_clean()` still rejects `sku=""` when a legacy `sku=""` row exists because normalization only happens in `save()` and migration `0010_sku_nullable` does not convert existing empty strings to NULL.
 - 2026-07-10T13:55:35Z [TOOL] Review of commit `5c988a0` found focused customization tests, full 253-test suite, `check`, and migration dry-run pass, but two blank-SKU products still violate `store_product.sku` uniqueness and `deploy.md` has an unrelated broken `git clone ... femdes.` edit with trailing whitespace.
 - 2026-07-06T14:22:44Z [TOOL] Text search found no existing `femdes` or `fem des` content in the template files.
@@ -99,6 +100,7 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-10T14:10:22Z [CODE] Review outcome for commit `d7a6133` is NEEDS FIXES due only to stale current-state test-count docs; `docs/agent/CURRENT_TASK.md` now defines docs-only TASK-016-FIX3.
 - 2026-07-10T14:05:16Z [CODE] Review outcome for commit `2e23652` is NEEDS FIXES; `docs/agent/CURRENT_TASK.md` now defines TASK-016-FIX2 for validation-time SKU normalization, legacy empty-string SKU migration cleanup, stronger duplicate-SKU tests, and current docs test-count sync.
 - 2026-07-10T13:55:35Z [CODE] Review outcome for commit `5c988a0` is NEEDS FIXES; `docs/agent/CURRENT_TASK.md` now defines TASK-016-FIX for blank-SKU uniqueness, direct SKU/measurement display tests, and removal of the unrelated broken `deploy.md` edit.
 - 2026-07-06T14:22:44Z [ASSUMPTION] Awaiting concrete task scope before editing site files.
