@@ -267,6 +267,7 @@ class ProductListViewTests(TestCase):
     def test_home_hero_has_polish_content(self):
         """Home hero renders product price and CTA when products exist."""
         self.product.is_featured = True
+        self.product.stock_quantity = 5
         self.product.save()
         response = self.client.get(reverse("home"))
         self.assertContains(response, "btn-dark")
