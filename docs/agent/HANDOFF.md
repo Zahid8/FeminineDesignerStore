@@ -46,7 +46,6 @@ This repo has been converted from a static Kaira Bootstrap fashion-store templat
 
 Do not start these unless the owner explicitly requests them:
 
-- Payment gateway integration (Stripe/PayPal)
 - Wishlist persistence
 - Shipping carrier APIs and tax calculation
 - Blog CMS
