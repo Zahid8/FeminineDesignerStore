@@ -15,4 +15,9 @@ class Migration(migrations.Migration):
             name='sku',
             field=models.CharField(blank=True, max_length=80, null=True, unique=True),
         ),
+        migrations.RunPython(
+            code=lambda apps, schema_editor: apps.get_model("store", "Product")
+            .objects.filter(sku="").update(sku=None),
+            reverse_code=migrations.RunPython.noop,
+        ),
     ]

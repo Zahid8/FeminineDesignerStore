@@ -226,11 +226,41 @@ class OptionalSkuTests(TestCase):
             category=self.category, name="A", slug="sku-c",
             sku="DUP-001", price=Decimal("50"),
         )
-        with self.assertRaises(Exception):
-            Product.objects.create(
+        from django.core.exceptions import ValidationError
+        from django.db import IntegrityError
+        with self.assertRaises((ValidationError, IntegrityError)):
+            p = Product(
                 category=self.category, name="B", slug="sku-d",
                 sku="DUP-001", price=Decimal("50"),
             )
+            p.full_clean()
+            p.save()
+
+    def test_legacy_empty_string_sku_simulated(self):
+        """full_clean() normalizes '' to None even with legacy data present."""
+        # Simulate legacy empty-string row
+        p_old = Product.objects.create(
+            category=self.category, name="Legacy", slug="legacy",
+            sku="LEGACY", price=Decimal("50"),
+        )
+        Product.objects.filter(pk=p_old.pk).update(sku="")
+        # Now create a new product with blank SKU — should succeed
+        p_new = Product(
+            category=self.category, name="NewBlank", slug="newblank",
+            sku="", price=Decimal("50"),
+        )
+        p_new.full_clean()  # must not raise ValidationError for duplicate
+        p_new.save()
+        self.assertIsNone(p_new.sku)
+
+    def test_save_blank_sku_persists_null(self):
+        """Saving sku='' stores NULL in the database."""
+        p = Product.objects.create(
+            category=self.category, name="NullTest", slug="nulltest",
+            sku="", price=Decimal("50"),
+        )
+        p.refresh_from_db()
+        self.assertIsNone(p.sku)
 
     def test_blank_sku_label_hidden(self):
         p = Product.objects.create(

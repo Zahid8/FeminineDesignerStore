@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T16 (including all FIX subtasks) are complete. No required tasks remain.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T16 (including all FIX subtasks) complete. No required tasks remain.
 
 ## Completed Tasks
 

@@ -151,6 +151,9 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
+        # Normalize blank SKU to NULL before uniqueness validation.
+        if self.sku == "":
+            self.sku = None
         super().clean()
         if (
             self.compare_at_price is not None
