@@ -1557,3 +1557,156 @@ a.btn-link.text-light:after {
   object-fit: cover;
   width: 100%;
 }
+
+/* ═══════════════════════════════════════════════════════
+   FemDes Storefront Polish
+   ═══════════════════════════════════════════════════════ */
+
+/* --- Product Cards --- */
+.product-item {
+  transition: transform .2s, box-shadow .2s;
+  border-radius: .5rem;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+}
+.product-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,.1);
+}
+.product-item .product-image {
+  transition: transform .3s;
+}
+.product-item:hover .product-image {
+  transform: scale(1.03);
+}
+.product-item .product-detail {
+  padding: .75rem 1rem 1rem;
+}
+.product-item .product-title a {
+  color: #212529;
+  font-weight: 500;
+  font-size: .95rem;
+}
+.product-item .product-price {
+  font-size: 1.05rem;
+  margin-top: .35rem;
+}
+
+/* --- Buttons --- */
+.btn-dark {
+  font-weight: 500;
+  letter-spacing: .02em;
+  padding: .6rem 1.5rem;
+  border-radius: .35rem;
+}
+.btn-outline-dark {
+  font-weight: 500;
+  letter-spacing: .02em;
+  border-radius: .35rem;
+}
+.btn-lg {
+  padding: .75rem 2rem;
+  font-size: 1.05rem;
+}
+
+/* --- Forms --- */
+.form-control, .form-select {
+  border-radius: .35rem;
+  padding: .6rem .9rem;
+  border-color: #dee2e6;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #212529;
+  box-shadow: 0 0 0 .15rem rgba(33,37,41,.15);
+}
+
+/* --- Section Spacing --- */
+section.py-5 {
+  padding-top: 3.5rem !important;
+  padding-bottom: 3.5rem !important;
+}
+
+/* --- Navbar --- */
+.navbar {
+  box-shadow: 0 1px 8px rgba(0,0,0,.04);
+}
+.navbar .nav-link {
+  font-weight: 500;
+  font-size: .9rem;
+  letter-spacing: .01em;
+}
+.navbar-brand img.logo {
+  max-height: 40px;
+}
+
+/* --- Footer --- */
+footer h5 {
+  font-size: 1rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+footer a.text-white-50:hover {
+  color: #fff !important;
+}
+
+/* --- Product Detail --- */
+#ready-made-specs h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.product-detail-section {
+  margin-bottom: 1.5rem;
+}
+
+/* --- Alerts / Messages --- */
+.alert {
+  border-radius: .35rem;
+  font-size: .9rem;
+}
+
+/* --- Cards (checkout, order success etc.) --- */
+.card {
+  border-radius: .5rem;
+  border: 1px solid rgba(0,0,0,.07);
+}
+.card-header {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+/* --- Badges --- */
+.badge {
+  font-weight: 500;
+  letter-spacing: .02em;
+  padding: .35em .65em;
+  border-radius: .25rem;
+}
+a.badge:hover {
+  opacity: .85;
+}
+
+/* --- Empty States --- */
+.empty-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6c757d;
+}
+.empty-state h4 {
+  font-weight: 500;
+}
+
+/* --- Mobile --- */
+@media (max-width: 767px) {
+  .product-item .product-detail {
+    padding: .5rem .75rem;
+  }
+  .btn-lg {
+    padding: .6rem 1.25rem;
+    font-size: 1rem;
+  }
+  section.py-5 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+}

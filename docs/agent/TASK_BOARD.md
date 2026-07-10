@@ -28,7 +28,8 @@
 | T13 | Done | Add admin-managed categories and storefront product tags | models, migration, admin, selectors/views, templates, tests, docs | 224 tests, check, migration dry-run |
 | T14 | Done | Add manual UPI payment tracking for orders/customizations (+ T14-FIX) | order/customization payment fields, admin, templates, tests, docs | 253 tests, check, migration dry-run |
 | T15 | Ready | Add customer wishlist persistence | wishlist model/services, views, templates, admin, tests | focused wishlist tests, full suite, check, migration dry-run |
-| T18 | Done | Fix checkout 500 + add Razorpay payment gateway | services.py, models, settings, views, URLs, templates, tests | 267 tests, check, migration dry-run |
+| T18 | Review | Fix checkout 500 + add Razorpay payment gateway | services.py, models, settings, views, URLs, templates, tests | 275 tests, check, migration dry-run |
+| T19 | Ready | Customer-facing aesthetic polish for the full website | public templates, `static/store/style.css`, storefront/cart/payment tests | focused storefront/cart/payment tests, full suite, check, collectstatic, browser pass |
 
 ## Dependency Order
 
@@ -45,6 +46,7 @@
 11. T13 depends on T12.
 12. T14 depends on T13.
 13. T15 depends on T14.
+14. T19 depends on preserving or completing any open T18 payment reliability corrective work.
 
 ## Required Changes
 
@@ -56,12 +58,15 @@
   cleanup into a manual UPI payment-tracking implementation.
 - T15 is an owner-requested optional store feature carrying the remaining T14
   docs/test cleanup into wishlist persistence.
+- T18-FIX2 remains a reviewed payment reliability corrective task if not yet
+  implemented.
+- T19 is an owner-requested customer-facing aesthetic polish task for the full
+  website.
 
 ## Optional Improvements
 
 Do not start these until T8 is done:
 
-- Live payment gateway integration.
 - Wishlist persistence.
 - Shipping and tax integrations.
 - Blog CMS.
