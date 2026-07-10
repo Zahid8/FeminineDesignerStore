@@ -52,7 +52,7 @@
           </ol>
         </nav>
         <h1 class="mb-2">{{ product.name }}</h1>
-        <span class="text-muted">SKU: {{ product.sku }}</span>
+        {% if product.sku %}<span class="text-muted">SKU: {{ product.sku }}</span>{% endif %}
         {% for tag in product.tags.all %}
         {% if tag.is_active %}
         <a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="badge bg-light text-dark text-decoration-none me-1">{{ tag.name }}</a>
@@ -78,12 +78,12 @@
         <h5>Ready-Made Specifications</h5>
         <p class="text-muted small">Standard measurements included with your purchase.</p>
         <div class="row g-2">
-          <div class="col-6"><strong>Length</strong> {{ product.default_length }} in</div>
-          <div class="col-6"><strong>Chest</strong> {{ product.default_chest }} in</div>
-          <div class="col-6"><strong>Waist</strong> {{ product.default_waist }} in</div>
-          <div class="col-6"><strong>Armhole</strong> {{ product.default_armhole }} in</div>
-          <div class="col-6"><strong>Opening</strong> {{ product.default_opening }} in</div>
-          <div class="col-6"><strong>Bicep</strong> {{ product.default_bicep }} in</div>
+          {% if product.default_length is not None %}<div class="col-6"><strong>Length</strong> {{ product.default_length }} in</div>{% endif %}
+          {% if product.default_chest is not None %}<div class="col-6"><strong>Chest</strong> {{ product.default_chest }} in</div>{% endif %}
+          {% if product.default_waist is not None %}<div class="col-6"><strong>Waist</strong> {{ product.default_waist }} in</div>{% endif %}
+          {% if product.default_armhole is not None %}<div class="col-6"><strong>Armhole</strong> {{ product.default_armhole }} in</div>{% endif %}
+          {% if product.default_opening is not None %}<div class="col-6"><strong>Opening</strong> {{ product.default_opening }} in</div>{% endif %}
+          {% if product.default_bicep is not None %}<div class="col-6"><strong>Bicep</strong> {{ product.default_bicep }} in</div>{% endif %}
         </div>
       </div>
 

@@ -17,14 +17,14 @@ class ProductMeasurementTests(TestCase):
     def setUp(self):
         self.category = Category.objects.create(name="Blouses", slug="blouses")
 
-    def test_measurement_defaults_are_10(self):
+    def test_measurement_defaults_are_none(self):
         p = Product.objects.create(
             category=self.category, name="Test", slug="test-m",
             sku="SKU-M-001", price=Decimal("50"),
         )
-        self.assertEqual(p.default_length, Decimal("10.00"))
-        self.assertEqual(p.default_chest, Decimal("10.00"))
-        self.assertEqual(p.default_waist, Decimal("10.00"))
+        self.assertIsNone(p.default_length)
+        self.assertIsNone(p.default_chest)
+        self.assertIsNone(p.default_waist)
 
     def test_negative_measurement_fails_validation(self):
         p = Product(
@@ -126,18 +126,22 @@ class CustomizationViewTests(TestCase):
         self.assertContains(response, 'aria-label="Next image"')
 
     def test_product_detail_ready_made_specs(self):
-        """Product detail shows all 6 ready-made measurement labels and values from product."""
-        # Change one value to prove it's not hardcoded.
+        """Product detail shows only non-blank measurement labels and values."""
+        # Set some measurements to prove they render, leave others blank.
         self.product.default_length = Decimal("12.50")
+        self.product.default_chest = Decimal("14.00")
         self.product.save()
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
         content = response.content.decode()
         self.assertIn("Ready-Made Specifications", content)
-        for label in ("Length", "Chest", "Waist", "Armhole", "Opening", "Bicep"):
-            self.assertIn(f"{label}</strong>", content)
+        self.assertIn("Length", content)
         self.assertIn("12.50 in", content)
+        # Chest is set, should appear
+        self.assertIn("Chest", content)
+        # Waist is blank (None), should not appear
+        self.assertNotIn("Waist</strong>", content)
 
     def test_multi_image_carousel_has_one_active_item(self):
         """Carousel with 4 images has exactly one .carousel-item.active."""

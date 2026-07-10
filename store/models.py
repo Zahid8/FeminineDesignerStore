@@ -90,7 +90,7 @@ class Product(models.Model):
     )
     name = models.CharField(max_length=160)
     slug = models.SlugField(max_length=180, unique=True)
-    sku = models.CharField(max_length=80, unique=True)
+    sku = models.CharField(max_length=80, unique=True, blank=True)
     short_description = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -106,24 +106,24 @@ class Product(models.Model):
     allow_discounts = models.BooleanField(default=True)
     color_options = models.TextField(blank=True)
     size_options = models.TextField(blank=True)
-    # Blouse measurement defaults (admin-editable, positive only)
+    # Blouse measurement defaults (admin-editable, optional)
     default_length = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("10.00")
+        max_digits=6, decimal_places=2, blank=True, null=True, default=None
     )
     default_chest = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("10.00")
+        max_digits=6, decimal_places=2, blank=True, null=True, default=None
     )
     default_waist = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("10.00")
+        max_digits=6, decimal_places=2, blank=True, null=True, default=None
     )
     default_armhole = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("10.00")
+        max_digits=6, decimal_places=2, blank=True, null=True, default=None
     )
     default_opening = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("10.00")
+        max_digits=6, decimal_places=2, blank=True, null=True, default=None
     )
     default_bicep = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("10.00")
+        max_digits=6, decimal_places=2, blank=True, null=True, default=None
     )
     measurement_guide_image = models.ImageField(
         upload_to="measurement-guides/", blank=True, null=True
@@ -153,15 +153,15 @@ class Product(models.Model):
             raise ValidationError(
                 {"compare_at_price": "Compare-at price must be >= price."}
             )
-        # Measurement defaults must be positive
+        # Measurement defaults must be positive if provided (blank = skip)
         for field in [
             "default_length", "default_chest", "default_waist",
             "default_armhole", "default_opening", "default_bicep",
         ]:
             val = getattr(self, field, None)
-            if val is not None and val <= 0:
+            if val is not None and val <= Decimal("0"):
                 raise ValidationError(
-                    {field: "Measurement default must be positive."}
+                    {field: "Measurement must be positive if provided."}
                 )
 
     def get_effective_price(self, now=None):

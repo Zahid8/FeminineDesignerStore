@@ -67,7 +67,7 @@ In the PythonAnywhere Bash console:
 
 ```bash
 cd ~
-git clone https://github.com/<your-github-username>/<repo-name>.git femdes
+git clone https://github.com/Zahid8/FeminineDesignerStore.git femdes. 
 cd ~/femdes
 ```
 
