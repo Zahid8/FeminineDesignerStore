@@ -10,15 +10,19 @@
         {% for product in featured|default:new_arrivals %}
         <div class="swiper-slide">
           <div class="row align-items-center">
-            <div class="col-md-6">
+            <div class="col-md-6 hero-text-col">
+              <span class="badge bg-light text-dark mb-3 px-3 py-2 rounded-pill">New Collection</span>
               <h1 class="display-5 fw-bold hero-title">{{ product.name }}</h1>
-              <p class="lead text-muted">{{ product.short_description|default:"Handcrafted blouses, tailored for you." }}</p>
-              <p class="fs-3 fw-bold hero-price">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</p>
-              <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-lg">Shop Now</a>
+              <p class="lead text-muted my-3">{{ product.short_description|default:"Handcrafted blouses, tailored for you." }}</p>
+              <p class="fs-3 fw-bold hero-price mb-4">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</p>
+              <div class="d-flex gap-3 flex-wrap">
+                <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-lg rounded-pill">Shop Now</a>
+                <a href="{% url 'product_list' %}" class="btn btn-outline-dark btn-lg rounded-pill">Browse Collection</a>
+              </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 hero-img-col">
               {% with primary=product.primary_image %}
-              <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="img-fluid" alt="{{ product.name }}">
+              <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="img-fluid hero-capsule-img" alt="{{ product.name }}">
               {% endwith %}
             </div>
           </div>
@@ -26,6 +30,32 @@
         {% endfor %}
       </div>
       <div class="swiper-pagination"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Promo Editorial Collage -->
+<section class="py-5 section-soft">
+  <div class="container-lg">
+    <div class="row g-4 align-items-center">
+      <div class="col-md-4">
+        <div class="promo-card p-4 text-center">
+          <div class="promo-stat display-5 fw-bold" style="color: var(--warm-brown);">15+</div>
+          <p class="text-muted">Exclusive Blouse Designs</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="promo-card p-4 text-center">
+          <div class="promo-stat display-5 fw-bold" style="color: var(--warm-brown);">100%</div>
+          <p class="text-muted">Handcrafted With Care</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="promo-card p-4 text-center">
+          <div class="promo-stat display-5 fw-bold" style="color: var(--warm-brown);">Custom</div>
+          <p class="text-muted">Tailored To Your Measurements</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>

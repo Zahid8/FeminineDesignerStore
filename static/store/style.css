@@ -1742,3 +1742,13 @@ FemDes Blouse Boutique
 .card { border-radius: .75rem; }
 .card-header { background: var(--cream); }
 .navbar { background: rgba(255,255,255,.95) !important; backdrop-filter: blur(8px); }
+.hero-capsule-img { border-radius: 40% 60% 50% 50% / 45% 50% 50% 55%; aspect-ratio: 1/1; object-fit: cover; width: 100%; }
+.hero-text-col { padding-right: 2rem; }
+.hero-img-col { padding-left: 1rem; }
+.promo-card { background: #fff; border-radius: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+.promo-stat { letter-spacing: -.02em; }
+.btn.rounded-pill { border-radius: 3rem !important; }
+@media (max-width: 767px) {
+  .hero-text-col { padding-right: 0; text-align: center; }
+  .hero-img-col { padding-left: 0; margin-top: 1.5rem; }
+}
