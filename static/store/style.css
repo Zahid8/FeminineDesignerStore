@@ -1224,7 +1224,7 @@ a {
     height: 790px;
   }
 }
-/*
+/* 
 .product-thumbnail-slider .swiper-slide {
   height: 200px;
 } */
@@ -1710,10 +1710,9 @@ a.badge:hover {
     padding-bottom: 2rem !important;
   }
 }
-
-/* ----------------------------------------------------------
-   FemDes Blouse Boutique
-   ---------------------------------------------------------- */
+/*--------------------------------------------------------------
+FemDes Blouse Boutique
+--------------------------------------------------------------*/
 :root {
   --blush: #fdf2f4;
   --cream: #faf9f7;
@@ -1721,44 +1720,24 @@ a.badge:hover {
   --warm-brown: #c4a882;
   --soft-charcoal: #3d3d3d;
 }
-.hero-section {
-  background: linear-gradient(180deg, var(--blush) 0%, var(--cream) 60%, #fff 100%);
-}
+.hero-section { background: linear-gradient(180deg, var(--blush) 0%, var(--cream) 60%, #fff 100%); }
 .hero-title { color: var(--soft-charcoal); }
 .hero-price { color: var(--warm-brown); }
+.section-soft { background: var(--cream); }
+.section-pastel { background: var(--pastel-blue); }
 .product-item {
-  border-radius: 1rem;
-  overflow: hidden;
-  border: none;
-  box-shadow: 0 2px 12px rgba(0,0,0,.04);
-  transition: transform .25s, box-shadow .25s;
+  border-radius: 1rem; overflow: hidden; border: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,.04); transition: transform .25s, box-shadow .25s;
 }
-.product-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(0,0,0,.08);
-}
-.product-item .product-image {
-  border-radius: 1rem 1rem 0 0;
-  transition: transform .4s;
-}
+.product-item:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,.08); }
+.product-item .product-image { border-radius: 1rem 1rem 0 0; transition: transform .4s; }
 .product-item:hover .product-image { transform: scale(1.04); }
 .product-item .product-price { color: var(--warm-brown); font-weight: 600; }
-.btn-dark {
-  border-radius: 2rem;
-  padding: .65rem 1.6rem;
-  transition: all .2s;
-}
+.btn-dark { border-radius: 2rem; padding: .65rem 1.6rem; transition: all .2s; }
 .btn-outline-dark { border-radius: 2rem; }
 .btn-lg { padding: .8rem 2.2rem; }
-.form-control:focus, .form-select:focus {
-  border-color: var(--warm-brown);
-  box-shadow: 0 0 0 .15rem rgba(196,168,130,.2);
-}
-#ready-made-specs {
-  background: var(--cream);
-  border-radius: .75rem;
-  padding: 1.25rem;
-}
+.form-control:focus, .form-select:focus { border-color: var(--warm-brown); box-shadow: 0 0 0 .15rem rgba(196,168,130,.2); }
+#ready-made-specs { background: var(--cream); border-radius: .75rem; padding: 1.25rem; }
 .product-gallery { border-radius: 1rem; overflow: hidden; }
 .card { border-radius: .75rem; }
 .card-header { background: var(--cream); }
