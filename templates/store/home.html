@@ -11,9 +11,9 @@
         <div class="swiper-slide">
           <div class="row align-items-center">
             <div class="col-md-6">
-              <h1 class="display-5 fw-bold" style="color: #3d3d3d;">{{ product.name }}</h1>
+              <h1 class="display-5 fw-bold hero-title">{{ product.name }}</h1>
               <p class="lead text-muted">{{ product.short_description|default:"Handcrafted blouses, tailored for you." }}</p>
-              <p class="fs-3 fw-bold" style="color: #c4a882;">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</p>
+              <p class="fs-3 fw-bold hero-price">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</p>
               <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-lg">Shop Now</a>
             </div>
             <div class="col-md-6">

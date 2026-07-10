@@ -1,51 +1,68 @@
 # Current Task
 
 ## Task ID
-TASK-020-FIX — Complete reference-inspired blouse storefront redesign
+TASK-020-FIX2 — Finish the actual T20 redesign implementation and tests
 
-## Why This Fix Is Needed
+## Review Result To Fix
 
-The T20 commit is too narrow for the accepted task. It only changes a few home hero strings and one CSS block, adds no tests, leaves the prior whole-file `style.css` churn unresolved, commits the local `reference.png` file as a tracked binary, and still documents open Razorpay reliability work while claiming no required work remains.
+Commit `e48b5b3` does not satisfy TASK-020-FIX. It removes `reference.png` from tracking and restores a few CSS rules, but it still only changes `templates/store/home.html` plus `static/store/style.css`, adds no tests, leaves inline styles in the home hero, and still fails the required CSS churn gate:
 
-## Scope
+```bash
+git diff --numstat 19762f0..HEAD -- static/store/style.css
+# current result: 1753 1712 static/store/style.css
+```
 
-Fix only the gaps below. Do not rewrite unrelated business logic or redesign admin pages.
+This is not a docs-only issue.
 
-1. Complete the blouse-only visual pass across the public customer flow:
-   - Home page.
-   - Product list/search/empty results.
-   - Product cards/carousels.
-   - Product detail, including ready-made specs and measurement note areas.
-   - Cart and empty cart.
-   - Checkout.
-   - Razorpay payment page.
-   - Order success.
-   - Account login/register/profile/orders.
-   - Navbar, search popup, cart offcanvas, footer, alerts/messages.
-2. Use `reference.png` for inspiration only:
-   - Pastel/off-white section bands, airy spacing, rounded product/lifestyle imagery, warm CTA treatment, subtle blouse/sewing boutique accents are acceptable.
-   - Do not copy baby branding, baby imagery, baby text, childish motifs, or the exact layout.
-   - Remove `reference.png` from Git tracking; it is a local reference artifact, not product source.
-3. Keep existing behavior intact:
-   - Do not change URLs, view names, forms, CSRF behavior, cart/session behavior, checkout/order creation, Razorpay routes, account auth behavior, admin behavior, model schema, migrations, or seed data unless a test proves a required regression fix.
-   - Preserve Kaira/Bootstrap/Swiper structure, TemplatesJungle attribution, product image rendering, price display, active tags, stock/new/out-of-stock cues, add-to-cart buttons, and payment/manual-fallback behavior.
-4. Fix the CSS reviewability and regression issues:
-   - Resolve the carried T19-FIX3 issue: `git diff --numstat 19762f0..HEAD -- static/store/style.css` must no longer show a whole-file rewrite-scale churn.
-   - Keep new CSS scoped and readable. Avoid broad global overrides that accidentally restyle admin or hidden flows.
-   - Remove unused CSS such as `.section-wave` if no template uses it, or wire it deliberately.
-   - Restore or replace the deleted `.empty-state`, badge, mobile responsive, and logo sizing rules so empty states and mobile layouts do not regress.
-   - Move new inline home hero styles into CSS classes.
-5. Add meaningful tests, not shallow string checks:
-   - Use structural assertions for rendered DOM where practical.
-   - Cover home hero/boutique sections, product cards, product list empty/search state, product detail specs/note, cart/empty cart, checkout, Razorpay payment page, order success, account pages, search popup, footer/attribution, and mobile-safe/class hooks where server-rendered tests can prove them.
-   - Tests must prove existing behavior is preserved while new visual hooks are present.
-6. Keep TASK-018-FIX2 visible unless actually fixed:
-   - If Razorpay order-create failure is still unresolved, do not claim "No required tasks remain".
-   - If you fix it, add focused tests proving gateway order creation failure does not strand the user with a cleared cart and unreachable unpaid local order.
+## Required Fixes
+
+1. Resolve the CSS churn gate.
+   - Make `static/store/style.css` reviewable relative to `19762f0`.
+   - Prefer restoring the file close to the `19762f0` content and then applying only a small, scoped boutique CSS block.
+   - The required command must no longer show whole-file-scale churn:
+
+   ```bash
+   git diff --numstat 19762f0..HEAD -- static/store/style.css
+   ```
+
+2. Remove remaining inline presentation styles introduced by T20.
+   - Move the home hero heading and price colors out of `templates/store/home.html` and into named CSS classes.
+   - Do not add new inline styles while fixing this.
+
+3. Apply the blouse boutique visual system to the actual customer flow, not just home.
+   - Touch the relevant templates/classes for:
+     - `templates/store/product_list.html`
+     - `templates/store/product_detail.html`
+     - `templates/store/cart.html`
+     - `templates/store/checkout.html`
+     - `templates/store/razorpay_payment.html`
+     - `templates/store/order_success.html`
+     - `templates/store/account_login.html`
+     - `templates/store/account_register.html`
+     - `templates/store/account_profile.html`
+     - `templates/store/account_orders.html`
+     - shared partials as needed: navbar, search popup, cart offcanvas, footer, product card.
+   - Keep existing URLs, form fields, CSRF, cart behavior, checkout/order behavior, Razorpay behavior, auth behavior, admin behavior, models, migrations, and seed data unchanged.
+   - Preserve Kaira/Bootstrap/Swiper contracts and TemplatesJungle attribution.
+
+4. Add meaningful structural tests.
+   - Modify tests under `store/tests/`; do not rely only on existing 277 tests.
+   - Add assertions that would fail if the required visual hooks/sections are removed.
+   - Cover at minimum: home hero, product list/search empty state, product card, product detail specs/note area, cart and empty cart, checkout, Razorpay payment page, order success, account login/register/profile/orders, search popup, footer/attribution.
+   - Keep tests behavior-aware: prove core forms/links/buttons still render while the new visual hooks are present.
+
+5. Keep `reference.png` untracked.
+   - It may remain ignored locally.
+   - Do not use it as a runtime image or static asset.
+   - Do not copy baby/kids text, imagery, motifs, or exact layout from it.
+
+6. Keep TASK-018-FIX2 status honest.
+   - If Razorpay order-create failure is still open, docs must say it is open and must not say all required tasks are done.
+   - If you fix it, add focused tests proving a gateway-order-create failure does not clear the cart or strand the user with an unreachable unpaid local order.
 
 ## Required Verification
 
-Run and record all commands in `docs/agent/TEST_STATUS.md`:
+Run and record the results in `docs/agent/TEST_STATUS.md`:
 
 ```bash
 conda run -n femdes python manage.py test store.tests.test_storefront store.tests.test_cart store.tests.test_razorpay -v 2
@@ -56,10 +73,12 @@ conda run -n femdes python manage.py collectstatic --noinput
 conda run -n femdes python -m pip check
 git diff --check
 git diff --numstat 19762f0..HEAD -- static/store/style.css
+git diff --name-only e48b5b3..HEAD -- store/tests templates/store static/store/style.css
+rg -n "style=\"" templates/store/home.html templates/store/product_list.html templates/store/product_detail.html templates/store/cart.html templates/store/checkout.html templates/store/razorpay_payment.html templates/store/order_success.html templates/store/account_login.html templates/store/account_register.html templates/store/account_profile.html templates/store/account_orders.html
 rg -n "No required tasks remain|T0 through T19|T18-FIX2 Razorpay reliability carryover documented" docs/agent/HANDOFF.md docs/agent/TEST_STATUS.md docs/agent/CURRENT_TASK.md
 ```
 
-Also run a browser/screenshot pass for at least:
+Also document a browser/screenshot pass for:
 
 - `/`
 - `/products/`
@@ -70,14 +89,11 @@ Also run a browser/screenshot pass for at least:
 - order success page
 - account login/register/profile/orders
 
-Document the browser/screenshot result in `docs/agent/TEST_STATUS.md`.
-
 ## Acceptance Criteria
 
-- The public site has a cohesive, reference-inspired blouse boutique visual system across the whole customer flow, not only the home hero.
-- No public page contains baby/kids reference copy or imagery copied from `reference.png`.
-- `reference.png` is not tracked as product source.
-- Existing storefront, cart, checkout, Razorpay, account, and admin behavior still pass tests.
-- New tests are structural and would fail if the visual hooks or critical page sections were removed.
-- CSS diff is scoped and reviewable, with no whole-file churn from the T19 baseline.
-- Docs accurately state whether TASK-018-FIX2 remains open or has been fixed.
+- CSS churn gate is fixed; `style.css` no longer appears as a whole-file rewrite from `19762f0`.
+- T20 visual changes are present across the specified customer-facing templates, not only home.
+- New structural tests cover the visual hooks and core behavior for the specified pages.
+- No runtime use of `reference.png`; no copied baby/kids reference content.
+- Existing behavior and all verification commands pass.
+- Docs accurately report whether TASK-018-FIX2 is still open.
