@@ -462,7 +462,6 @@ class CartViewTests(TestCase):
         self.assertContains(response, "Your cart is empty")
 
     def test_cart_detail_shows_checkout_link_when_items(self):
-        # Add product to cart first
         cat = Category.objects.create(name="Dresses", slug="dresses", is_active=True)
         prod = Product.objects.create(
             category=cat, name="Test", slug="test-cc", sku="SKU-CC",
@@ -474,6 +473,7 @@ class CartViewTests(TestCase):
         )
         response = self.client.get(reverse("cart_detail"))
         self.assertContains(response, reverse("checkout"))
+        self.assertContains(response, 'name="quantity"')
 
 
 class AddToCartTests(TestCase):
@@ -652,18 +652,6 @@ class TemplateStructureTests(TestCase):
         response = self.client.get(reverse("home"))
         self.assertContains(response, 'class="search-button"')
         self.assertContains(response, 'href="#search"')
-
-    def test_cart_page_has_form_and_checkout_link(self):
-        """Cart renders update/remove forms and checkout link."""
-        self._create_homepage_products()
-        p = Product.objects.filter(is_new_arrival=True).first()
-        self.client.post(
-            reverse("add_to_cart", kwargs={"product_id": p.pk}),
-            {"quantity": 1},
-        )
-        response = self.client.get(reverse("cart_detail"))
-        self.assertContains(response, 'name="quantity"')
-        self.assertContains(response, reverse("checkout"))
 
     def test_account_pages_have_indichic_shell(self):
         """Login/register pages render with consistent shells."""
