@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from store.models import (
     Category,
+    CustomerProfile,
     CustomizationRequest,
     Discount,
     NewsletterSubscriber,
@@ -283,3 +284,11 @@ class CustomizationRequestAdmin(admin.ModelAdmin):
     )
     list_filter = ("payment_status", "created_at")
     readonly_fields = ("token", "created_at", "paid_at")
+
+
+@admin.register(CustomerProfile)
+class CustomerProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "phone", "created_at", "updated_at")
+    search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "phone")
+    list_filter = ("created_at",)
+    readonly_fields = ("created_at", "updated_at")

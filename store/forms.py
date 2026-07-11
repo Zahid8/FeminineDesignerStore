@@ -54,3 +54,12 @@ class CustomizationForm(forms.Form):
     armhole = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
     opening = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
     bicep = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
+
+
+class ProfileEditForm(forms.Form):
+    first_name = forms.CharField(max_length=150, required=False)
+    last_name = forms.CharField(max_length=150, required=False)
+    email = forms.EmailField(required=True)
+    phone = forms.CharField(max_length=40, required=False)
+    shipping_address = forms.CharField(widget=forms.Textarea, required=False)
+    profile_image = forms.ImageField(required=False)

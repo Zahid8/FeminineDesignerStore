@@ -189,3 +189,72 @@ class AuthenticatedCheckoutTests(TestCase):
         response = self.client.get(reverse("account_orders"))
         self.assertContains(response, order_a.order_number)
         self.assertNotContains(response, "Other")
+
+
+class CustomerProfileTests(TestCase):
+    """CustomerProfile model, views, and admin."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="profileuser", email="profile@test.com", password="Pass123!"
+        )
+
+    def test_profile_created_on_edit_page_access(self):
+        from store.models import CustomerProfile
+        self.client.login(username="profileuser", password="Pass123!")
+        self.client.get(reverse("account_profile_edit"))
+        self.assertTrue(CustomerProfile.objects.filter(user=self.user).exists())
+
+    def test_profile_edit_page_renders(self):
+        self.client.login(username="profileuser", password="Pass123!")
+        response = self.client.get(reverse("account_profile_edit"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_profile_edit_post_updates_fields(self):
+        from store.models import CustomerProfile
+        self.client.login(username="profileuser", password="Pass123!")
+        response = self.client.post(reverse("account_profile_edit"), {
+            "first_name": "Jane", "last_name": "Doe",
+            "email": "jane@test.com", "phone": "1234567890",
+            "shipping_address": "456 Oak St",
+        })
+        self.assertRedirects(response, reverse("account_profile"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Jane")
+        self.assertEqual(self.user.email, "jane@test.com")
+        profile = CustomerProfile.objects.get(user=self.user)
+        self.assertEqual(profile.phone, "1234567890")
+
+    def test_checkout_prefill_for_authenticated_user(self):
+        from store.models import Category, CustomerProfile, Product
+        self.client.login(username="profileuser", password="Pass123!")
+        CustomerProfile.objects.create(
+            user=self.user, phone="999", shipping_address="Home"
+        )
+        self.user.first_name = "Alice"
+        self.user.save()
+        cat = Category.objects.create(name="Blouses", slug="blouses", is_active=True)
+        p = Product.objects.create(
+            category=cat, name="Blouse", slug="blouse", sku="SKU-PRE",
+            price=Decimal("50"), stock_quantity=5, is_active=True,
+        )
+        self.client.post(
+            reverse("add_to_cart", kwargs={"product_id": p.pk}), {"quantity": 1}
+        )
+        response = self.client.get(reverse("checkout"))
+        self.assertContains(response, 'value="999"')
+        self.assertContains(response, "Home")
+
+    def test_guest_checkout_unchanged(self):
+        from store.models import Category, Product
+        cat = Category.objects.create(name="Blouses", slug="blouses", is_active=True)
+        p = Product.objects.create(
+            category=cat, name="Blouse", slug="blouse-g", sku="SKU-GP",
+            price=Decimal("50"), stock_quantity=5, is_active=True,
+        )
+        self.client.post(
+            reverse("add_to_cart", kwargs={"product_id": p.pk}), {"quantity": 1}
+        )
+        response = self.client.get(reverse("checkout"))
+        self.assertEqual(response.status_code, 200)

@@ -4,6 +4,15 @@
 
 This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T21 (including all FIX subtasks) complete. T18-FIX2 open. 280 tests.
 
+The owner requested a new post-T21 roadmap based on
+`web_temp/indichic/ECommerceSite-Django`. Current FemDes already has
+registration/login, session cart, search, checkout, Razorpay/manual payment,
+account order list, and Django-admin product/order management. The missing
+reference-inspired features are now tracked as T22-T27 in
+`docs/agent/IMPLEMENTATION_PLAN.md` and `docs/agent/TASK_BOARD.md`.
+T22 is the next implementation-ready task: persistent customer profile details
+and editable account profile.
+
 ## Completed Tasks
 
 - **T0**: Baseline preservation — `legacy_static/` copies, `.gitignore`, `.env.example`
@@ -50,4 +59,4 @@ Do not start these unless the owner explicitly requests them:
 - Shipping carrier APIs and tax calculation
 - Blog CMS
 - Instagram API integration
-- Custom admin dashboard
+- Advanced analytics dashboard beyond the T24 staff operations dashboard

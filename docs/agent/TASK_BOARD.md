@@ -32,6 +32,12 @@
 | T19 | Ready | Customer-facing aesthetic polish for the full website | public templates, `static/store/style.css`, storefront/cart/payment tests | focused storefront/cart/payment tests, full suite, check, collectstatic, browser pass |
 | T20 | Ready | Reference-inspired blouse-only storefront redesign | public templates, `static/store/style.css`, storefront/cart/payment tests, docs | focused storefront/cart/payment tests, full suite, check, collectstatic, browser/screenshot pass |
 | T21 | Ready | Light IndiChic-inspired blouse UI pass | public templates, `static/store/style.css`, storefront/cart/payment tests, docs | focused storefront/cart/payment tests, full suite, check, collectstatic, browser/screenshot pass |
+| T22 | Ready | Customer profile details and editable account profile | CustomerProfile model, account forms/views/templates, admin, tests | focused account/admin/model/storefront tests, full suite, check, migration dry-run |
+| T23 | Ready | Customer order tracking and invoice download | order detail/tracking views, invoice template/PDF service, tests | focused account/invoice tests, full suite, check, pip check |
+| T24 | Ready | Staff operations dashboard | staff dashboard/orders/customers views/templates, tests | staff view/admin tests, full suite, check |
+| T25 | Ready | Customer order status search/filter | account order filters, tracking timeline, optional status metadata, tests | focused account order tests, full suite, check, migration dry-run if models change |
+| T26 | Ready | Contact and feedback capture | feedback model/form/views/templates/admin/tests | focused contact/admin tests, full suite, check, migration dry-run |
+| T27 | Ready | Client-side interaction polish | small progressive JS, affected templates, storefront tests, browser notes | storefront tests, full suite, check, collectstatic, browser pass |
 
 ## Dependency Order
 
@@ -51,6 +57,12 @@
 14. T19 depends on preserving or completing any open T18 payment reliability corrective work.
 15. T20 carries forward the remaining T19-FIX3 reviewability/test-coverage cleanup and preserves or completes open T18-FIX2 payment reliability work.
 16. T21 depends on the current storefront visual baseline and adapts `web_temp/indichic` as light-version inspiration only.
+17. T22 depends on T11 account support and should be completed before invoice/order tracking work.
+18. T23 depends on T22 customer profile details and existing order history.
+19. T24 can start after T22, but should not replace Django admin product/order CRUD.
+20. T25 depends on T23 tracking views.
+21. T26 can start after T22 and is independent of order tracking.
+22. T27 should follow the relevant UI and account/order tasks it enhances.
 
 ## Required Changes
 
@@ -70,6 +82,12 @@
   public storefront, using `reference.png` for inspiration only.
 - T21 is an owner-requested light IndiChic-inspired UI pass for the blouse-only
   storefront, using `web_temp/indichic` for layout inspiration only.
+- T22-T27 are owner-requested feature tasks inspired by
+  `web_temp/indichic/ECommerceSite-Django`. Implement only missing FemDes
+  capabilities from that reference: customer profile details/editing, order
+  tracking, invoice download, staff dashboard/customer operations, contact
+  feedback, and progressive client-side polish. Do not duplicate already
+  available registration/login/cart/search/payment/product-admin behavior.
 
 ## Optional Improvements
 

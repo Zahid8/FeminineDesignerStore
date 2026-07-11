@@ -33,20 +33,20 @@
             <div class="col-12"><h5>Contact Information</h5></div>
             <div class="col-md-6">
               <label for="id_customer_name" class="form-label">Full Name *</label>
-              <input type="text" name="customer_name" id="id_customer_name" class="form-control" required maxlength="160">
+              <input type="text" name="customer_name" id="id_customer_name" class="form-control" required maxlength="160" value="{{ form.customer_name.value|default:'' }}">
             </div>
             <div class="col-md-6">
               <label for="id_customer_email" class="form-label">Email *</label>
-              <input type="email" name="customer_email" id="id_customer_email" class="form-control" required>
+              <input type="email" name="customer_email" id="id_customer_email" class="form-control" required value="{{ form.customer_email.value|default:'' }}">
             </div>
             <div class="col-md-6">
               <label for="id_customer_phone" class="form-label">Phone</label>
-              <input type="text" name="customer_phone" id="id_customer_phone" class="form-control" maxlength="40">
+              <input type="text" name="customer_phone" id="id_customer_phone" class="form-control" maxlength="40" value="{{ form.customer_phone.value|default:'' }}">
             </div>
             <div class="col-12 mt-3"><h5>Shipping Address</h5></div>
             <div class="col-12">
               <label for="id_shipping_address" class="form-label">Address *</label>
-              <textarea name="shipping_address" id="id_shipping_address" class="form-control" rows="3" required></textarea>
+              <textarea name="shipping_address" id="id_shipping_address" class="form-control" rows="3" required>{{ form.shipping_address.value|default:'' }}</textarea>
             </div>
             <div class="col-12">
               <label for="id_notes" class="form-label">Order Notes</label>

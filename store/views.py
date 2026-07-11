@@ -155,7 +155,20 @@ def checkout(request):
                 messages.error(request, str(e))
                 # Fall through to re-render with error.
     else:
-        form = CheckoutForm()
+        initial = {}
+        if request.user.is_authenticated:
+            initial.update({
+                "customer_name": request.user.first_name and f"{request.user.first_name} {request.user.last_name}".strip() or "",
+                "customer_email": request.user.email,
+            })
+            from store.models import CustomerProfile
+            try:
+                profile = request.user.profile
+                initial["customer_phone"] = profile.phone or ""
+                initial["shipping_address"] = profile.shipping_address or ""
+            except CustomerProfile.DoesNotExist:
+                pass
+        form = CheckoutForm(initial=initial)
 
     ctx = _base_context(request)
     ctx.update({"form": form, "cart": summary})
@@ -365,6 +378,38 @@ def account_logout(request):
 def account_profile(request):
     ctx = _base_context(request)
     return render(request, "store/account_profile.html", ctx)
+
+
+@login_required
+def account_profile_edit(request):
+    from store.forms import ProfileEditForm
+    from store.models import CustomerProfile
+    profile, _ = CustomerProfile.objects.get_or_create(user=request.user)
+    if request.method == "POST":
+        form = ProfileEditForm(request.POST, request.FILES)
+        if form.is_valid():
+            request.user.first_name = form.cleaned_data["first_name"]
+            request.user.last_name = form.cleaned_data["last_name"]
+            request.user.email = form.cleaned_data["email"]
+            request.user.save()
+            profile.phone = form.cleaned_data.get("phone", "")
+            profile.shipping_address = form.cleaned_data.get("shipping_address", "")
+            if form.cleaned_data.get("profile_image"):
+                profile.profile_image = form.cleaned_data["profile_image"]
+            profile.save()
+            messages.success(request, "Profile updated.")
+            return redirect("account_profile")
+    else:
+        form = ProfileEditForm(initial={
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "email": request.user.email,
+            "phone": profile.phone or "",
+            "shipping_address": profile.shipping_address or "",
+        })
+    ctx = _base_context(request)
+    ctx["form"] = form
+    return render(request, "store/account_profile_edit.html", ctx)
 
 
 @login_required

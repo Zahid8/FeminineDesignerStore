@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %} — Edit Profile{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg page-shell">
+    <h2 class="mb-4">Edit Profile</h2>
+    <div class="indichic-card p-4">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">First Name</label>
+            <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="{{ form.email.value|default:'' }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone</label>
+            <input type="text" name="phone" class="form-control" value="{{ form.phone.value|default:'' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Shipping Address</label>
+            <textarea name="shipping_address" class="form-control" rows="3">{{ form.shipping_address.value|default:'' }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Profile Image</label>
+            <input type="file" name="profile_image" class="form-control">
+          </div>
+          <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-dark rounded-pill">Save Changes</button>
+            <a href="{% url 'account_profile' %}" class="btn btn-outline-dark rounded-pill ms-2">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

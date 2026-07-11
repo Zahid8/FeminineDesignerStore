@@ -504,3 +504,257 @@ Manual checks:
 - Test status doc records exact passing commands.
 - Task board is updated.
 - Handoff includes remaining optional work only.
+
+---
+
+## Post-MVP Reference Feature Roadmap
+
+The owner requested feature inspiration from `web_temp/indichic/ECommerceSite-Django`.
+Use it as a local reference for feature shape only. Do not copy its code, cookie-based
+cart, old Bootstrap snippets, inline CSS, fake card payment handling, or unsafe profile
+password update behavior.
+
+FemDes already has these reference-equivalent features:
+
+- Django admin-backed product, category, tag, discount, order, payment, and site settings management.
+- Customer registration, login, logout, profile page, and account orders.
+- Session-backed add/update/remove cart.
+- Product search, category filters, and tag filters.
+- Checkout with guest support and authenticated order linking.
+- Manual UPI payment tracking and Razorpay order/payment verification.
+- Product image management through Django admin.
+
+The missing or incomplete reference-inspired features are tracked below as separate
+DeepSeek-sized tasks.
+
+## Task 22: Customer Profile Details And Editable Account Profile
+
+**Reference files:**
+
+- `web_temp/indichic/ECommerceSite-Django/ecom/models.py` (`Customer`)
+- `web_temp/indichic/ECommerceSite-Django/ecom/forms.py` (`CustomerForm`)
+- `web_temp/indichic/ECommerceSite-Django/ecom/views.py` (`my_profile_view`, `edit_profile_view`)
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/my_profile.html`
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/edit_profile.html`
+
+**Files to modify:**
+
+- `store/models.py`
+- `store/forms.py`
+- `store/views.py`
+- `store/urls.py`
+- `store/admin.py`
+- `templates/store/account_profile.html`
+- Create: `templates/store/account_profile_edit.html`
+- `store/tests/test_accounts.py`
+- `store/tests/test_admin.py`
+- migrations
+
+**Expected behavior:**
+
+- Registered customers have persistent profile details: phone, shipping address, optional profile image.
+- Profile details can be edited from the account area.
+- Checkout GET is prefilled for authenticated users from profile data.
+- Guest checkout remains unchanged.
+- Staff can inspect/search customer profiles from admin.
+
+**Tests to run:**
+
+```bash
+conda run -n femdes python manage.py test store.tests.test_accounts store.tests.test_admin store.tests.test_models store.tests.test_storefront -v 2
+conda run -n femdes python manage.py test -v 1
+conda run -n femdes python manage.py check
+conda run -n femdes python manage.py makemigrations --check --dry-run
+conda run -n femdes python manage.py collectstatic --noinput
+conda run -n femdes python -m pip check
+git diff --check
+```
+
+**Acceptance criteria:**
+
+- Customer profile is created reliably for registered users.
+- Profile edit is authenticated, validates email uniqueness, and does not expose password changes.
+- Checkout prefill works only for GET and never overwrites POST data.
+- Admin profile management is searchable and tested.
+
+## Task 23: Customer Order Tracking And Invoice Download
+
+**Reference files:**
+
+- `web_temp/indichic/ECommerceSite-Django/ecom/views.py` (`my_order_view`, `download_invoice_view`)
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/my_order.html`
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/download_invoice.html`
+
+**Files to modify:**
+
+- `requirements.txt` if a PDF library is added
+- `store/views.py`
+- `store/urls.py`
+- `store/selectors.py` or service helper if useful
+- `templates/store/account_orders.html`
+- Create: `templates/store/account_order_detail.html`
+- Create: `templates/store/invoice.html`
+- `store/tests/test_accounts.py`
+- Create or extend: `store/tests/test_invoices.py`
+
+**Expected behavior:**
+
+- Authenticated customers can open an order detail/tracking page for their own orders.
+- Order tracking displays a status timeline derived from existing `Order.status`.
+- Customers can download an invoice PDF for their own order.
+- Unauthorized users cannot access other customers' order detail or invoice.
+
+**Implementation notes:**
+
+- Prefer a maintained PDF approach such as ReportLab if adding a dependency.
+- If PDF dependency is too heavy for one task, first implement a printable HTML invoice and a tested service boundary, then add PDF in the next task.
+- Do not copy the reference app's `xhtml2pdf` code blindly.
+
+**Tests to run:**
+
+```bash
+conda run -n femdes python manage.py test store.tests.test_accounts store.tests.test_invoices -v 2
+conda run -n femdes python manage.py test -v 1
+conda run -n femdes python manage.py check
+conda run -n femdes python manage.py makemigrations --check --dry-run
+conda run -n femdes python -m pip check
+git diff --check
+```
+
+**Acceptance criteria:**
+
+- Order tracking timeline matches each supported order status.
+- Invoice contains store identity, order number/date/status, customer details, item snapshots, totals, and payment status.
+- PDF response uses `application/pdf` and meaningful filename.
+- Cross-user access is blocked.
+
+## Task 24: Staff Operations Dashboard
+
+**Reference files:**
+
+- `web_temp/indichic/ECommerceSite-Django/ecom/views.py` admin dashboard/customer/product/order views
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/admin_dashboard.html`
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/admin_view_booking.html`
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/view_customer.html`
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/admin_products.html`
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/update_order.html`
+
+**Files to modify:**
+
+- `store/views.py`
+- `store/urls.py`
+- `store/admin.py` only if needed
+- Create: `templates/store/staff_dashboard.html`
+- Create: `templates/store/staff_orders.html`
+- Create: `templates/store/staff_order_update.html`
+- Create: `templates/store/staff_customers.html`
+- `store/tests/test_admin.py`
+- Create or extend: `store/tests/test_staff_views.py`
+
+**Expected behavior:**
+
+- Staff users have an operations dashboard with counts for customers, products, orders, paid/pending payments, and recent orders.
+- Staff can list orders and update order status through a small tested view.
+- Staff can list customer profiles and link to Django admin change pages where appropriate.
+- Non-staff users cannot access staff views.
+
+**Constraints:**
+
+- Keep Django admin as the source of truth for product CRUD unless the owner explicitly requests a separate product CRUD UI.
+- Do not add destructive customer/product/order delete views in public templates.
+- Use permission/staff checks, not only login checks.
+
+**Acceptance criteria:**
+
+- Dashboard stats are correct.
+- Staff-only access is enforced.
+- Order status update validates allowed statuses and does not change payment status.
+- Existing Django admin remains functional.
+
+## Task 25: Customer-Facing Order Status Notifications And Search
+
+**Reference files:**
+
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/my_order.html`
+- `web_temp/indichic/ECommerceSite-Django/ecom/views.py` order status handling
+
+**Files to modify:**
+
+- `store/models.py` if status timestamp fields are needed
+- `store/views.py`
+- `store/urls.py`
+- `templates/store/account_orders.html`
+- `templates/store/account_order_detail.html`
+- `store/tests/test_accounts.py`
+- migrations if new fields are added
+
+**Expected behavior:**
+
+- Account orders can be filtered/searched by order number/status.
+- Order tracking clearly shows pending, confirmed, processing/shipped, completed, cancelled states.
+- Status changes made by staff/admin are reflected on customer pages.
+
+**Acceptance criteria:**
+
+- Customer can only search/filter their own orders.
+- Empty states are clear.
+- Status filters and timeline are tested.
+
+## Task 26: Contact And Feedback Capture
+
+**Reference files:**
+
+- `web_temp/indichic/ECommerceSite-Django/ecom/models.py` (`Feedback`)
+- `web_temp/indichic/ECommerceSite-Django/ecom/forms.py` (`FeedbackForm`, `ContactusForm`)
+- `web_temp/indichic/ECommerceSite-Django/ecom/views.py` (`send_feedback_view`, `contactus_view`)
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/contactus.html`
+- `web_temp/indichic/ECommerceSite-Django/templates/ecom/view_feedback.html`
+
+**Files to modify:**
+
+- `store/models.py`
+- `store/forms.py`
+- `store/views.py`
+- `store/urls.py`
+- `store/admin.py`
+- Create: `templates/store/contact.html`
+- Create: `templates/store/contact_success.html`
+- tests under `store/tests/`
+- migrations
+
+**Expected behavior:**
+
+- Public contact/feedback form stores submissions safely.
+- Admin can review and search submissions.
+- Optional email sending must fail gracefully and be covered by tests.
+
+**Acceptance criteria:**
+
+- CSRF-protected POST creates one feedback/contact row.
+- Invalid submissions show form errors.
+- Admin search/list display is tested.
+
+## Task 27: Client-Side Interaction Polish
+
+**Reference area:**
+
+- Reference app advertises basic client-side interaction, but its implementation is mostly older templates. Use the feature idea only.
+
+**Files to modify:**
+
+- `static/store/js/` or a new small `static/store/js/femdes.js`
+- affected templates/partials
+- `store/tests/test_storefront.py`
+- browser verification notes in `docs/agent/TEST_STATUS.md`
+
+**Expected behavior:**
+
+- Quantity controls, cart/remove affordances, search UI, and order tracking interactions feel immediate and polished.
+- All behavior progressively enhances existing server-rendered forms.
+- Site still works without JavaScript.
+
+**Acceptance criteria:**
+
+- No business logic depends only on JavaScript.
+- Form submissions and CSRF remain intact.
+- Browser pass confirms cart/search/order-tracking interactions.
