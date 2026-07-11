@@ -303,3 +303,45 @@ class ProfileValidationTests(TestCase):
     def test_profile_edit_requires_login(self):
         response = self.client.get(reverse("account_profile_edit"))
         self.assertEqual(response.status_code, 302)
+
+    def test_account_profile_creates_missing_profile(self):
+        """Legacy user without profile gets one on profile page visit."""
+        from store.models import CustomerProfile
+        u = User.objects.create_user(username="legacy", email="lg@test.com", password="p")
+        self.client.login(username="legacy", password="p")
+        self.assertFalse(CustomerProfile.objects.filter(user=u).exists())
+        response = self.client.get(reverse("account_profile"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(CustomerProfile.objects.filter(user=u).exists())
+
+    def test_repeated_profile_views_do_not_duplicate(self):
+        """Visiting profile/edit multiple times does not create duplicates."""
+        from store.models import CustomerProfile
+        u = User.objects.create_user(username="nodup", email="nd@test.com", password="p")
+        self.client.login(username="nodup", password="p")
+        self.client.get(reverse("account_profile"))
+        self.client.get(reverse("account_profile_edit"))
+        self.client.get(reverse("account_profile"))
+        self.assertEqual(CustomerProfile.objects.filter(user=u).count(), 1)
+
+    def test_checkout_post_preserves_submitted_values(self):
+        """Checkout POST uses submitted data, not profile defaults."""
+        from store.models import Category, CustomerProfile, Product
+        u = User.objects.create_user(username="poster", email="p@t.com", password="p")
+        CustomerProfile.objects.create(user=u, phone="000", shipping_address="ProfileAddr")
+        cat = Category.objects.create(name="B", slug="b", is_active=True)
+        p = Product.objects.create(
+            category=cat, name="B", slug="b-post", sku="SKU-POST",
+            price=Decimal("50"), stock_quantity=5, is_active=True,
+        )
+        self.client.login(username="poster", password="p")
+        self.client.post(
+            reverse("add_to_cart", kwargs={"product_id": p.pk}), {"quantity": 1}
+        )
+        response = self.client.post(reverse("checkout"), {
+            "customer_name": "ManualName", "customer_email": "manual@t.com",
+            "customer_phone": "111", "shipping_address": "ManualAddr",
+        })
+        self.assertEqual(response.status_code, 302)
+        order = Order.objects.first()
+        self.assertEqual(order.customer_phone, "111")  # not profile's "000"

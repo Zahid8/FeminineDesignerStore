@@ -1,7 +1,10 @@
 # Current Task
 
 ## Task ID
-TASK-022-FIX — COMPLETE (2026-07-11)
+TASK-022-FIX2 — COMPLETE (2026-07-11)
 
 ## Completed
-T22-FIX: Profile created at registration. Email uniqueness validation in edit form. CustomerProfileAdmin tested (search, list_display). 4 new profile tests (registration, duplicate email, own email, auth gated). 291 tests pass.
+T22-FIX2: account_profile creates profile for legacy users. Checkout POST preserves submitted values (not profile defaults). 3 new tests: legacy repair from profile, no-duplicate on repeated views, checkout POST override. 294 tests pass.
+
+## Next Task
+TASK-023 — Customer order tracking and invoice download

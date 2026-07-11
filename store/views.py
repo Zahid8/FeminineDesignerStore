@@ -378,6 +378,8 @@ def account_logout(request):
 
 @login_required
 def account_profile(request):
+    from store.models import CustomerProfile
+    CustomerProfile.objects.get_or_create(user=request.user)
     ctx = _base_context(request)
     return render(request, "store/account_profile.html", ctx)
 
