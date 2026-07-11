@@ -57,4 +57,9 @@ urlpatterns = [
     path("accounts/orders/", views.account_orders, name="account_orders"),
     path("accounts/orders/<str:order_number>/", views.account_order_detail, name="account_order_detail"),
     path("accounts/orders/<str:order_number>/invoice/", views.account_order_invoice, name="account_order_invoice"),
+    # Staff
+    path("staff/", views.staff_dashboard, name="staff_dashboard"),
+    path("staff/orders/", views.staff_order_list, name="staff_order_list"),
+    path("staff/orders/<str:order_number>/", views.staff_order_update, name="staff_order_update"),
+    path("staff/customers/", views.staff_customer_list, name="staff_customer_list"),
 ]

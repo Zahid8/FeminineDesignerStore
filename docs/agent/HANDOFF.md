@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T23-FIX3 complete. 310 tests. PDF invoice deferred to future task. T23-FIX4 (table-cell assertion hardening, doc sync) active.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T24 complete. 318 tests. PDF invoice deferred to future task.
 
 The owner requested a new post-T21 roadmap based on
 `web_temp/indichic/ECommerceSite-Django`. Current FemDes already has

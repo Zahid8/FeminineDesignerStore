@@ -446,3 +446,69 @@ def account_order_invoice(request, order_number):
     ctx = _base_context(request)
     ctx["order"] = order
     return render(request, "store/invoice.html", ctx)
+
+
+# ── Staff views ──────────────────────────────────────────────────
+
+def _staff_required(request):
+    if not request.user.is_authenticated:
+        return redirect("account_login")
+    if not request.user.is_staff:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Staff access required.")
+    return None
+
+
+def staff_dashboard(request):
+    err = _staff_required(request)
+    if err:
+        return err
+    from django.contrib.auth.models import User
+    ctx = _base_context(request)
+    ctx["customer_count"] = User.objects.filter(is_active=True).count()
+    ctx["product_count"] = Product.objects.filter(is_active=True).count()
+    ctx["order_count"] = Order.objects.count()
+    ctx["paid_count"] = Order.objects.filter(payment_status="paid").count()
+    ctx["pending_count"] = Order.objects.filter(payment_status="pending").count()
+    ctx["recent_orders"] = Order.objects.order_by("-created_at")[:10]
+    return render(request, "store/staff_dashboard.html", ctx)
+
+
+def staff_order_list(request):
+    err = _staff_required(request)
+    if err:
+        return err
+    orders = Order.objects.order_by("-created_at")
+    ctx = _base_context(request)
+    ctx["orders"] = orders
+    return render(request, "store/staff_order_list.html", ctx)
+
+
+def staff_order_update(request, order_number):
+    err = _staff_required(request)
+    if err:
+        return err
+    order = get_object_or_404(Order, order_number=order_number)
+    if request.method == "POST":
+        new_status = request.POST.get("status", "")
+        if new_status in dict(Order.STATUS_CHOICES):
+            order.status = new_status
+            order.save(update_fields=["status", "updated_at"])
+            messages.success(request, f"Order {order.order_number} updated to {order.get_status_display()}.")
+        else:
+            messages.error(request, "Invalid status.")
+        return redirect("staff_order_list")
+    ctx = _base_context(request)
+    ctx["order"] = order
+    return render(request, "store/staff_order_update.html", ctx)
+
+
+def staff_customer_list(request):
+    err = _staff_required(request)
+    if err:
+        return err
+    from django.contrib.auth.models import User
+    users = User.objects.filter(is_active=True).select_related("profile").order_by("-date_joined")
+    ctx = _base_context(request)
+    ctx["customers"] = users
+    return render(request, "store/staff_customer_list.html", ctx)

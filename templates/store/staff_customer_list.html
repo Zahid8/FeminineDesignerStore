@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %} — Staff Customers{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <h2 class="mb-3">Customers</h2>
+    <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-dark rounded-pill mb-3">&larr; Dashboard</a>
+    <div class="table-responsive">
+      <table class="table indichic-table"><thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th></tr></thead>
+        <tbody>
+          {% for c in customers %}
+          <tr><td>{{ c.username }}</td><td>{{ c.get_full_name|default:"—" }}</td><td>{{ c.email }}</td><td>{{ c.profile.phone|default:"—" }}</td><td>{{ c.date_joined|date:"M j, Y" }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

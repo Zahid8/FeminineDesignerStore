@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %} — Update Order{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg page-shell">
+    <h2 class="mb-3">Order #{{ order.order_number }}</h2>
+    <div class="indichic-card p-4 mb-3">
+      <p><strong>Customer:</strong> {{ order.customer_name }} ({{ order.customer_email }})</p>
+      <p><strong>Current Status:</strong> {{ order.get_status_display }}</p>
+      <p><strong>Payment:</strong> {{ order.get_payment_status_display }} &mdash; {{ order.get_payment_method_display }}</p>
+      <p><strong>Total:</strong> {{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</p>
+    </div>
+    <div class="indichic-card p-4">
+      <h5>Update Fulfillment Status</h5>
+      <form method="post">
+        {% csrf_token %}
+        <select name="status" class="form-select mb-3" style="max-width:300px;">
+          {% for val, label in order.STATUS_CHOICES %}
+          <option value="{{ val }}" {% if val == order.status %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-dark rounded-pill">Update Status</button>
+        <a href="{% url 'staff_order_list' %}" class="btn btn-outline-dark rounded-pill ms-2">Cancel</a>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

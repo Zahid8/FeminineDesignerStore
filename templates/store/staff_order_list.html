@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %} — Staff Orders{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <h2 class="mb-3">All Orders</h2>
+    <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-dark rounded-pill mb-3">&larr; Dashboard</a>
+    <div class="table-responsive">
+      <table class="table indichic-table"><thead><tr><th>Order #</th><th>Customer</th><th>Status</th><th>Payment</th><th>Total</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for o in orders %}
+          <tr><td><a href="{% url 'staff_order_update' o.order_number %}">{{ o.order_number }}</a></td><td>{{ o.customer_name }}</td><td>{{ o.get_status_display }}</td><td>{{ o.get_payment_status_display }}</td><td>{{ site_settings.currency_symbol|default:"$" }}{{ o.total }}</td><td>{{ o.created_at|date:"M j, Y" }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
