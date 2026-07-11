@@ -179,17 +179,18 @@ class InvoiceTests(TestCase):
         self.assertIn("Order Status", content)
 
     def test_invoice_renders_order_item_snapshots(self):
-        """Invoice renders product name, SKU, quantity, unit price, line total, variants."""
-        content = self._get_invoice_content()
-        # Product identity
-        self.assertIn("Test Blouse", content)
-        self.assertIn("SKU-INV", content)
-        self.assertIn("Red", content)
-        self.assertIn("M", content)
-        # Quantity, unit price, line total (distinct values)
-        self.assertIn("2", content)
-        self.assertIn("123.45", content)
-        self.assertIn("246.90", content)
+        """Invoice renders product name, SKU, qty, unit price, line total, variants as table cells."""
+        self.client.login(username="buyer", password="pass")
+        response = self.client.get(self.invoice_url)
+        # Product identity and variants
+        self.assertContains(response, "Test Blouse")
+        self.assertContains(response, "SKU-INV")
+        self.assertContains(response, "Red")
+        self.assertContains(response, "M")
+        # Table-cell specific assertions — failing if cells are dropped
+        self.assertContains(response, "<td>2</td>", html=True)
+        self.assertContains(response, "<td>$123.45</td>", html=True)
+        self.assertContains(response, "<td>$246.90</td>", html=True)
 
     def test_invoice_renders_customer_and_payment_details(self):
         """Invoice renders phone, address, payment method, status, reference, notes."""

@@ -1,7 +1,7 @@
 # Current Task
 
 ## Task ID
-TASK-023-FIX3 — COMPLETE (2026-07-11)
+TASK-023-FIX4 — COMPLETE (2026-07-11)
 
 ## Completed
-T23-FIX3: Strengthened timeline active-status test (bg-dark badges for every status). Invoice tests now use distinct values (123.45 unit, 246.90 subtotal, 236.90 total). Variant-only tests (color-only, size-only). Docs synced. 310 tests pass.
+T23-FIX4: Invoice item snapshot test now uses table-cell assertions (html=True). Docs synced (HANDOFF/TEST_STATUS). 310 tests pass.
