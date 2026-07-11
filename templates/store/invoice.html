@@ -40,7 +40,7 @@
           {% for item in order.items.all %}
           <tr>
             <td>{{ forloop.counter }}</td>
-            <td>{{ item.product_name }}</td>
+            <td>{{ item.product_name }}{% if item.color or item.size %}<br><small class="text-muted">{{ item.color }}{% if item.size %} / {{ item.size }}{% endif %}</small>{% endif %}</td>
             <td>{{ item.sku }}</td>
             <td>{{ item.quantity }}</td>
             <td>{{ site_settings.currency_symbol|default:"$" }}{{ item.unit_price }}</td>

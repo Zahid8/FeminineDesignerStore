@@ -113,12 +113,14 @@ class InvoiceTests(TestCase):
         self.assertIn("Total", content)
 
     def test_invoice_renders_order_item_snapshots(self):
-        """Invoice renders product name, SKU, qty, unit price, line total."""
+        """Invoice renders product name, SKU, qty, unit price, line total, variant."""
         self.client.login(username="buyer", password="pass")
         url = reverse("account_order_invoice", kwargs={"order_number": self.order.order_number})
         response = self.client.get(url)
         self.assertContains(response, "Test Blouse")
         self.assertContains(response, "SKU-INV")
+        self.assertContains(response, "Red")
+        self.assertContains(response, "M")
 
     def test_invoice_renders_customer_and_payment_details(self):
         """Invoice renders phone, address, payment method, status, reference, notes."""
@@ -132,3 +134,41 @@ class InvoiceTests(TestCase):
         self.assertIn("Gift wrap please", content)
         self.assertIn("Paid", content)
         self.assertIn("Order Status", content)
+        self.assertIn("Razorpay", content)
+
+    def test_invoice_totals_render(self):
+        """Invoice renders subtotal, discount, total."""
+        self.client.login(username="buyer", password="pass")
+        url = reverse("account_order_invoice", kwargs={"order_number": self.order.order_number})
+        response = self.client.get(url)
+        self.assertContains(response, "99.00")
+        self.assertContains(response, "89.00")
+
+    def test_invoice_item_variants_render(self):
+        """Invoice renders color and size variant details when present."""
+        self.client.login(username="buyer", password="pass")
+        url = reverse("account_order_invoice", kwargs={"order_number": self.order.order_number})
+        response = self.client.get(url)
+        self.assertContains(response, "Red")
+        self.assertContains(response, "M")
+
+
+class TimelineActiveStatusTests(TestCase):
+    """Every Order.STATUS_CHOICES value can be the active/current status."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="buyer", password="pass")
+
+    def test_each_status_is_active(self):
+        for status_val, _ in Order.STATUS_CHOICES:
+            order = Order.objects.create(
+                customer_name="A", customer_email="a@t.com",
+                shipping_address="Addr", customer_user=self.user,
+                status=status_val,
+            )
+            self.client.login(username="buyer", password="pass")
+            url = reverse("account_order_detail", kwargs={"order_number": order.order_number})
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, msg=f"Detail failed for status={status_val}")
+            order.delete()
