@@ -2,7 +2,7 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T24 complete. 319 tests. PDF deferred. T24-FIX (staff dashboard completeness) active.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T24 complete. 319 tests. PDF deferred. T24-FIX2 (dashboard stat tests + docs) complete. Next: T25 customer order search/filter.
 
 Django commands now available:
 

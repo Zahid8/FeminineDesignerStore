@@ -1,74 +1,69 @@
 # Current Task
 
 ## Task ID
-TASK-024-FIX — Complete staff dashboard metrics, access coverage, admin links, and docs sync
+TASK-024-FIX2 — Strengthen staff dashboard stat tests and close task docs
 
 ## Context
 
-Commit `15f1ea0` added a staff dashboard, staff order list/update, staff customer list, and `store/tests/test_staff_views.py`. The focused/full suites pass, but the implementation does not yet satisfy every TASK-024 acceptance criterion.
+Commit `1d8176d` fixed the staff dashboard implementation gaps from TASK-024-FIX:
 
-Do not rewrite the entire staff feature. Keep the existing routes/templates and make narrow corrections.
+- Dashboard now excludes staff users from `customer_count`.
+- Dashboard now renders a visible non-paid payment metric.
+- Staff order update is included in anonymous/non-staff access tests.
+- Customer list renders admin user links and profile links when a profile exists.
+- Stale `277 tests` and T23-FIX active text was removed from `HANDOFF.md`/`TEST_STATUS.md`.
 
-## Blocking Findings To Fix
+The remaining issue is that `store/tests/test_staff_views.py::StaffDashboardTests.test_dashboard_has_distinct_counts` is still too weak. It checks generic substrings such as `">2<"` and `">1<"` that can be satisfied by other metric cards. For example, if active products incorrectly counted inactive products, the test could still pass because another metric also renders `2`.
 
-1. Dashboard payment metrics are incomplete.
-   - `store/views.py::staff_dashboard` calculates `pending_count`, but `templates/store/staff_dashboard.html` never renders it.
-   - The task required paid and pending/non-paid payment counts.
-   - Add a visible dashboard card/metric for pending or non-paid payments.
-   - Prefer `non_paid_count = Order.objects.exclude(payment_status="paid").count()` if the label says non-paid, or use only `payment_status="pending"` if the label says pending. Make the label and query agree.
+Do not rewrite the staff feature. Make a narrow test-proof/doc completion fix.
 
-2. Dashboard customer count is ambiguous and likely wrong.
-   - Current code uses `User.objects.filter(is_active=True).count()`, which counts staff/admin accounts as customers.
-   - Change the count to active non-staff users or customer profiles, and make the label/test match the chosen behavior.
+## Required Fixes
 
-3. Staff access coverage is incomplete.
-   - `StaffDashboardAccessTests` checks dashboard, order list, and customer list, but not `staff_order_update`.
-   - Add access tests for anonymous and non-staff users hitting `staff_order_update` with a real order number.
+1. Strengthen dashboard stat assertions.
+   - Replace generic `assertContains(response, ">2<")` / `">1<"` checks with assertions that bind each label to its specific value.
+   - Acceptable approaches:
+     - Add stable `data-testid` attributes to each dashboard metric card and assert the exact rendered value near that label, or
+     - parse the response HTML with a small stdlib `html.parser.HTMLParser` helper and assert a label-to-value mapping.
+   - The test must fail independently if any of these are wrong:
+     - customers count includes staff users,
+     - inactive products are counted,
+     - total order count is wrong,
+     - paid payment count is wrong,
+     - non-paid payment count is wrong,
+     - non-paid metric card is removed.
 
-4. Staff customer list lacks admin change links.
-   - TASK-024 required customer/profile rows to link to Django admin change pages where appropriate.
-   - Add user admin links, and profile admin links when a profile exists.
-   - Keep the page read-only; do not add destructive actions.
+2. Strengthen customer admin-link coverage.
+   - Keep the existing user-admin link assertion.
+   - Add an assertion for the profile admin link when a `CustomerProfile` exists:
+     `reverse("admin:store_customerprofile_change", args=[profile.pk])`.
 
-5. Tests are too superficial.
-   - `test_dashboard_has_counts` asserts `">1<"` twice, which can pass from the same number or unrelated markup.
-   - Replace with exact label/value assertions that prove customer count, active product count, total order count, paid count, and pending/non-paid count are each rendered.
-   - Use fixtures with distinct values: for example 2 customers, 1 staff user, 1 inactive product, multiple orders with paid/pending/failed statuses.
-   - Add a test that inactive products are not counted.
-   - Add a test that staff users are not counted as customers if the implementation uses active non-staff users.
-
-6. Documentation carryover is still stale.
-   - `docs/agent/TEST_STATUS.md` still contains stale current-state text (`T23-FIX3 active`, `277 tests`).
-   - `docs/agent/HANDOFF.md` still contains stale `277 tests` verification text.
-   - Sync both files with actual T24-FIX verification results.
+3. Close current task docs.
+   - Update `docs/agent/CURRENT_TASK.md` to mark TASK-024-FIX2 complete only after verification passes, or write the next task if the review policy requires it.
+   - Update `docs/agent/HANDOFF.md` and `docs/agent/TEST_STATUS.md` so they state T24/T24-FIX/T24-FIX2 completion and the actual final test count.
+   - Preserve the PDF invoice deferral note.
 
 ## Acceptance Criteria
 
-- Staff dashboard displays and tests exact counts for customers, active products, total orders, paid payments, and pending/non-paid payments.
-- Staff users are not counted as customers unless the label explicitly says users; tests lock this behavior.
-- Staff-only access is tested for dashboard, order list, order update, and customer list.
-- Order status update still accepts only valid `Order.STATUS_CHOICES` values and does not change payment status.
-- Staff customer list includes Django admin change links for users and available profiles.
-- No destructive customer/product/order actions are added.
-- Existing account order tracking and invoice tests still pass.
-- Docs contain no stale current-state matches for:
-  ```bash
-  rg -n "277 tests|T23-FIX3 .*active|T23-FIX4 .*active|T18-FIX2 open|T0 through T20|T0 through T21" docs/agent/HANDOFF.md docs/agent/TEST_STATUS.md
-  ```
-- Focused tests, full tests, `check`, migration dry-run, `pip check`, and diff whitespace checks pass.
+- Dashboard stat tests are label/value-specific, not generic substring checks.
+- Tests fail if staff users are counted as customers.
+- Tests fail if inactive products are counted.
+- Tests fail if the non-paid card is removed or computed incorrectly.
+- Customer list tests prove both user and profile admin links render for users with profiles.
+- Staff dashboard/order/customer behavior remains unchanged except for test-friendly stable markup if needed.
+- Focused tests, full tests, `check`, migration dry-run, `pip check`, stale-doc search, and diff whitespace checks pass.
 
 ## DeepSeek Self-Validation Loop
 
 Before claiming completion, DeepSeek must run this loop and include the results in handoff notes:
 
 1. Fail-first audit:
-   - Confirm dashboard tests fail if the pending/non-paid metric card is removed.
-   - Confirm dashboard tests fail if staff users are included in customer count.
-   - Confirm access tests fail if `staff_order_update` is accessible to a non-staff user.
-   - Confirm customer-list tests fail if admin links are removed.
+   - Confirm dashboard tests would fail if `customer_count` used `User.objects.filter(is_active=True).count()`.
+   - Confirm dashboard tests would fail if `product_count` counted inactive products.
+   - Confirm dashboard tests would fail if the non-paid metric card were removed.
+   - Confirm customer-list tests would fail if the profile admin link were removed.
    - Confirm stale docs search returns no current-state matches:
      ```bash
-     rg -n "277 tests|T23-FIX3 .*active|T23-FIX4 .*active|T18-FIX2 open|T0 through T20|T0 through T21" docs/agent/HANDOFF.md docs/agent/TEST_STATUS.md
+     rg -n "277 tests|T23-FIX3 .*active|T23-FIX4 .*active|T24-FIX .*active|T18-FIX2 open|T0 through T20|T0 through T21" docs/agent/HANDOFF.md docs/agent/TEST_STATUS.md
      ```
 
 2. Focused verification:
@@ -91,4 +86,4 @@ Before claiming completion, DeepSeek must run this loop and include the results 
    git diff --name-status HEAD~1..HEAD
    git diff --name-status
    ```
-   Confirm changes are limited to staff dashboard/customer-list implementation, staff tests, and required docs.
+   Confirm changes are limited to staff dashboard test-proof markup if needed, staff tests, and required docs.

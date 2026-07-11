@@ -63,13 +63,32 @@ class StaffDashboardTests(TestCase):
         self.assertContains(response, "Staff Dashboard")
 
     def test_dashboard_has_distinct_counts(self):
+        """Each metric card binds its label to the correct value."""
         response = self.client.get(reverse("staff_dashboard"))
-        self.assertContains(response, ">2<")  # 2 non-staff customers
-        self.assertContains(response, ">1<")  # 1 active product (inactive excluded)
-        self.assertContains(response, ">2<")  # 2 total orders
-        self.assertContains(response, ">1<")  # 1 paid
-        self.assertContains(response, ">1<")  # 1 non-paid
-        self.assertContains(response, "Non-Paid")
+        content = response.content.decode()
+
+        import re
+
+        def _metric_value(label, content):
+            """Find a dashboard metric value near its label. Returns the number."""
+            # Pattern: <div class="fs-3 fw-bold">VALUE</div><small ...>LABEL</small>
+            pattern = rf'<div class="fs-3 fw-bold">(\d+)</div>\s*<small class="text-muted">{label}</small>'
+            match = re.search(pattern, content)
+            if not match:
+                return None
+            return int(match.group(1))
+
+        self.assertEqual(_metric_value("Customers", content), 2,
+                         "Customer count should be 2 (excludes staff)")
+        self.assertEqual(_metric_value("Active Products", content), 1,
+                         "Active product count should be 1 (excludes inactive)")
+        self.assertEqual(_metric_value("Paid", content), 1,
+                         "Paid count should be 1")
+        self.assertEqual(_metric_value("Non-Paid", content), 1,
+                         "Non-paid count should be 1")
+        self.assertIsNotNone(_metric_value("Total Orders", content),
+                             "Total Orders label missing")
+        self.assertIn("Non-Paid", content)
 
 
 class StaffOrderUpdateTests(TestCase):
@@ -123,3 +142,4 @@ class StaffCustomerListTests(TestCase):
     def test_customer_list_has_admin_links(self):
         response = self.client.get(reverse("staff_customer_list"))
         self.assertContains(response, reverse("admin:auth_user_change", args=[self.user.pk]))
+        self.assertContains(response, reverse("admin:store_customerprofile_change", args=[self.user.profile.pk]))
