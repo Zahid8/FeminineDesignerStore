@@ -344,4 +344,7 @@ class ProfileValidationTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         order = Order.objects.first()
-        self.assertEqual(order.customer_phone, "111")  # not profile's "000"
+        self.assertEqual(order.customer_phone, "111")
+        self.assertEqual(order.customer_name, "ManualName")
+        self.assertEqual(order.customer_email, "manual@t.com")
+        self.assertEqual(order.shipping_address, "ManualAddr")

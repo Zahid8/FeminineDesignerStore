@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %} — Invoice {{ order.order_number }}{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg page-shell" id="printable-invoice">
+    <div class="indichic-card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h4>Invoice</h4>
+          <p class="text-muted mb-0">{{ site_settings.store_name|default:"FemDes" }}</p>
+          {% if site_settings.contact_email %}<small class="text-muted">{{ site_settings.contact_email }}</small>{% endif %}
+        </div>
+        <div class="text-end">
+          <h5>Order #{{ order.order_number }}</h5>
+          <p class="text-muted mb-0">Date: {{ order.created_at|date:"F j, Y" }}</p>
+          <small class="text-muted">Status: {{ order.get_payment_status_display }}</small>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row mb-4">
+        <div class="col-6">
+          <strong>Bill To:</strong><br>
+          {{ order.customer_name }}<br>
+          {{ order.customer_email }}<br>
+          {{ order.shipping_address|linebreaksbr }}
+        </div>
+        <div class="col-6 text-end">
+          <strong>Payment:</strong> {{ order.get_payment_method_display }}<br>
+          {% if order.payment_reference %}<strong>Ref:</strong> {{ order.payment_reference }}<br>{% endif %}
+          <strong>Status:</strong> {{ order.get_payment_status_display }}
+        </div>
+      </div>
+
+      <table class="table indichic-table">
+        <thead><tr><th>#</th><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for item in order.items.all %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.product_name }}</td>
+            <td>{{ item.sku }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ site_settings.currency_symbol|default:"$" }}{{ item.unit_price }}</td>
+            <td>{{ site_settings.currency_symbol|default:"$" }}{{ item.line_total }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <hr>
+      <div class="row">
+        <div class="col-6">{% if order.notes %}<strong>Notes:</strong> {{ order.notes }}{% endif %}</div>
+        <div class="col-6 text-end">
+          <p><span>Subtotal:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.subtotal }}</strong></p>
+          {% if order.discount_total > 0 %}<p class="text-success"><span>Discount:</span> <strong>-{{ site_settings.currency_symbol|default:"$" }}{{ order.discount_total }}</strong></p>{% endif %}
+          <p class="fs-5"><span>Total:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 no-print">
+      <button onclick="window.print()" class="btn btn-dark rounded-pill">Print Invoice</button>
+      <a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-outline-dark rounded-pill">Back to Order</a>
+    </div>
+  </div>
+</section>
+
+<style>@media print { .no-print, nav, footer, .search-popup, #offcanvasCart { display: none !important; } }</style>
+{% endblock %}

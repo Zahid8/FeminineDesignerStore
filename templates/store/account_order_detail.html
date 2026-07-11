@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %} — Order {{ order.order_number }}{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg page-shell">
+    <h2 class="mb-3">Order #{{ order.order_number }}</h2>
+    <p class="text-muted">Placed on {{ order.created_at|date:"F j, Y" }}</p>
+
+    <!-- Status Timeline -->
+    <div class="indichic-card p-4 mb-4">
+      <h5>Order Status</h5>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        {% for status_val, status_label in status_timeline %}
+        <span class="badge {% if status_val == order.status %}bg-dark{% else %}bg-light text-muted{% endif %} rounded-pill px-3 py-2">{{ status_label }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="indichic-card p-4 mb-4">
+      <h5>Items</h5>
+      <table class="table indichic-table">
+        <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for item in order.items.all %}
+          <tr>
+            <td>{{ item.product_name }}{% if item.color %}<br><small class="text-muted">{{ item.color }}{% if item.size %} / {{ item.size }}{% endif %}</small>{% endif %}</td>
+            <td>{{ item.sku }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ site_settings.currency_symbol|default:"$" }}{{ item.unit_price }}</td>
+            <td>{{ site_settings.currency_symbol|default:"$" }}{{ item.line_total }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <hr>
+      <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.subtotal }}</strong></div>
+      {% if order.discount_total > 0 %}<div class="d-flex justify-content-between text-success"><span>Discount</span><strong>-{{ site_settings.currency_symbol|default:"$" }}{{ order.discount_total }}</strong></div>{% endif %}
+      <div class="d-flex justify-content-between fs-5 mt-2"><span>Total</span><strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</strong></div>
+    </div>
+
+    <!-- Payment Info -->
+    <div class="indichic-card p-4 mb-4">
+      <h5>Payment</h5>
+      <p><strong>Method:</strong> {{ order.get_payment_method_display }}</p>
+      <p><strong>Status:</strong> {{ order.get_payment_status_display }}</p>
+      {% if order.payment_reference %}<p><strong>Reference:</strong> {{ order.payment_reference }}</p>{% endif %}
+    </div>
+
+    <!-- Shipping -->
+    <div class="indichic-card p-4 mb-4">
+      <h5>Shipping Details</h5>
+      <p><strong>{{ order.customer_name }}</strong><br>
+      {{ order.customer_email }}{% if order.customer_phone %}<br>{{ order.customer_phone }}{% endif %}</p>
+      <p class="mb-0">{{ order.shipping_address|linebreaksbr }}</p>
+    </div>
+
+    <div class="d-flex gap-3">
+      <a href="{% url 'account_order_invoice' order.order_number %}" class="btn btn-outline-dark rounded-pill">Download Invoice</a>
+      <a href="{% url 'account_orders' %}" class="btn btn-outline-dark rounded-pill">Back to Orders</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

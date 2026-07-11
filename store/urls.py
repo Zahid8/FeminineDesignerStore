@@ -55,4 +55,6 @@ urlpatterns = [
     path("accounts/profile/", views.account_profile, name="account_profile"),
     path("accounts/profile/edit/", views.account_profile_edit, name="account_profile_edit"),
     path("accounts/orders/", views.account_orders, name="account_orders"),
+    path("accounts/orders/<str:order_number>/", views.account_order_detail, name="account_order_detail"),
+    path("accounts/orders/<str:order_number>/invoice/", views.account_order_invoice, name="account_order_invoice"),
 ]

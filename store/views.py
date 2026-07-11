@@ -422,3 +422,26 @@ def account_orders(request):
     ctx = _base_context(request)
     ctx["orders"] = orders
     return render(request, "store/account_orders.html", ctx)
+
+
+@login_required
+def account_order_detail(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number, customer_user=request.user)
+    ctx = _base_context(request)
+    ctx["order"] = order
+    ctx["status_timeline"] = [
+        ("pending", "Order Placed"),
+        ("confirmed", "Confirmed"),
+        ("processing", "Processing"),
+        ("shipped", "Shipped"),
+        ("completed", "Completed"),
+    ]
+    return render(request, "store/account_order_detail.html", ctx)
+
+
+@login_required
+def account_order_invoice(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number, customer_user=request.user)
+    ctx = _base_context(request)
+    ctx["order"] = order
+    return render(request, "store/invoice.html", ctx)
