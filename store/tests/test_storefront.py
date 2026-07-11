@@ -212,7 +212,6 @@ class ProductListViewTests(TestCase):
         from store.models import ProductTag
         tag = ProductTag.objects.create(name="Cotton", slug="cotton", is_active=True)
         self.product.tags.add(tag)
-        # Create an untagged product that should be excluded
         Product.objects.create(
             category=self.category, name="Untagged", slug="untagged",
             sku="SKU-UNTAG", price=50, is_active=True,
@@ -221,6 +220,12 @@ class ProductListViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.product.name)
         self.assertNotContains(response, "Untagged")
+        self.assertContains(response, "filter-pill")  # IndiChic pill filter
+
+    def test_product_list_empty_has_indichic_shell(self):
+        response = self.client.get(reverse("product_list") + "?q=zzznonexist")
+        self.assertContains(response, "empty-state")
+        self.assertContains(response, "rounded-pill")
 
     def test_product_list_combined_category_and_tag(self):
         from store.models import ProductTag

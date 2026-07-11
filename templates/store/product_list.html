@@ -2,45 +2,34 @@
 {% load static %}
 
 {% block content %}
-<section class="py-5">
+<section class="indichic-section">
   <div class="container-lg">
-    <div class="row">
-      <!-- Category sidebar -->
-      <div class="col-md-3 mb-4">
-        <h5>Categories</h5>
-        <ul class="list-unstyled">
-          <li><a href="{% url 'product_list' %}" class="text-decoration-none {% if not selected_category %}fw-bold{% endif %}">All</a></li>
-          {% for cat in categories %}
-          <li><a href="{% url 'product_list' %}?category={{ cat.slug }}" class="text-decoration-none {% if selected_category == cat.slug %}fw-bold{% endif %}">{{ cat.name }}</a></li>
-          {% endfor %}
-        </ul>
-        {% if active_tags %}
-        <h5 class="mt-4">Tags</h5>
-        <ul class="list-unstyled">
-          {% for tag in active_tags %}
-          <li><a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="text-decoration-none {% if selected_tag == tag.slug %}fw-bold{% endif %}">{{ tag.name }}</a></li>
-          {% endfor %}
-        </ul>
-        {% endif %}
-      </div>
-      <!-- Product grid -->
-      <div class="col-md-9">
-        {% if query %}<p>Search results for: <strong>{{ query }}</strong></p>{% endif %}
-        {% if products %}
-        <div class="row g-4">
-          {% for product in products %}
-          <div class="col-6 col-lg-4">{% include "store/partials/product_card.html" %}</div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-          <h4>No products found</h4>
-          <p class="text-muted">Try a different search or browse our categories.</p>
-          <a href="{% url 'product_list' %}" class="btn btn-outline-dark">View All Products</a>
-        </div>
-        {% endif %}
-      </div>
+    {% if query %}<p class="text-center text-muted mb-4">Search results for: <strong>{{ query }}</strong></p>{% endif %}
+
+    <!-- Pill filters -->
+    <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+      <a href="{% url 'product_list' %}" class="filter-pill {% if not selected_category and not selected_tag %}active{% endif %}">All</a>
+      {% for cat in categories %}
+      <a href="{% url 'product_list' %}?category={{ cat.slug }}" class="filter-pill {% if selected_category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+      {% endfor %}
+      {% for tag in active_tags %}
+      <a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="filter-pill {% if selected_tag == tag.slug %}active{% endif %}">{{ tag.name }}</a>
+      {% endfor %}
     </div>
+
+    {% if products %}
+    <div class="row g-4">
+      {% for product in products %}
+      <div class="col-6 col-md-4 col-lg-3">{% include "store/partials/product_card.html" %}</div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h4>No products found</h4>
+      <p class="text-muted">Try a different search or browse our categories.</p>
+      <a href="{% url 'product_list' %}" class="btn btn-outline-dark rounded-pill mt-2">View All Products</a>
+    </div>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

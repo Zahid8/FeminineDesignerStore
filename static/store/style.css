@@ -1776,3 +1776,23 @@ FemDes Blouse Boutique
 }
 .promo-float-card { min-width: 120px; z-index: 2; }
 .rounded-4 { border-radius: .75rem !important; }
+.text-warm { color: var(--warm-brown); }
+.bg-soft { background: var(--cream); }
+.bg-pastel { background: var(--pastel-blue); }
+.bg-blush { background: var(--blush); }
+.indichic-card { background: #fff; border-radius: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,.04); border: none; }
+.indichic-section { padding: 3rem 0; }
+.indichic-section .section-heading { font-size: 1.5rem; font-weight: 600; color: var(--soft-charcoal); }
+.tag-pill { display: inline-block; padding: .3rem .9rem; border-radius: 2rem; font-size: .8rem; font-weight: 500; background: var(--cream); color: var(--soft-charcoal); text-decoration: none; transition: background .2s; }
+.tag-pill:hover { background: var(--pastel-blue); color: var(--soft-charcoal); }
+.tag-pill.active { background: var(--warm-brown); color: #fff; }
+.filter-pill { display: inline-block; padding: .35rem 1rem; border-radius: 2rem; font-size: .82rem; font-weight: 500; text-decoration: none; border: 1px solid #dee2e6; color: var(--soft-charcoal); background: #fff; transition: all .2s; }
+.filter-pill:hover, .filter-pill.active { border-color: var(--warm-brown); color: var(--warm-brown); }
+.indichic-table { border-radius: .75rem; overflow: hidden; }
+.indichic-table thead th { background: var(--cream); font-weight: 600; border: none; font-size: .85rem; }
+.page-shell { max-width: 720px; margin: 0 auto; }
+.page-shell-wide { max-width: 960px; margin: 0 auto; }
+/* Mobile brand fix */
+@media (max-width: 991px) {
+  .indichic-nav .navbar-brand { position: static !important; transform: none !important; }
+}
