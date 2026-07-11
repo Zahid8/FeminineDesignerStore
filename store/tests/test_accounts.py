@@ -258,3 +258,48 @@ class CustomerProfileTests(TestCase):
         )
         response = self.client.get(reverse("checkout"))
         self.assertEqual(response.status_code, 200)
+
+
+class ProfileValidationTests(TestCase):
+    """Profile creation at registration, email uniqueness, auth gating."""
+
+    def setUp(self):
+        self.client = Client()
+
+    def test_registration_creates_profile(self):
+        from store.models import CustomerProfile
+        self.client.post(reverse("account_register"), {
+            "username": "withprofile", "email": "wp@test.com",
+            "password1": "TestPass123!", "password2": "TestPass123!",
+        })
+        user = User.objects.get(username="withprofile")
+        self.assertTrue(CustomerProfile.objects.filter(user=user).exists())
+
+    def test_profile_edit_rejects_duplicate_email(self):
+        User.objects.create_user(username="other", email="dup@test.com", password="p")
+        u = User.objects.create_user(username="me", email="me@test.com", password="p")
+        self.client.login(username="me", password="p")
+        response = self.client.post(reverse("account_profile_edit"), {
+            "first_name": "", "last_name": "",
+            "email": "dup@test.com",
+            "phone": "", "shipping_address": "",
+        })
+        self.assertEqual(response.status_code, 200)
+        u.refresh_from_db()
+        self.assertEqual(u.email, "me@test.com")  # unchanged
+
+    def test_profile_edit_allows_own_email(self):
+        u = User.objects.create_user(username="self", email="s@test.com", password="p")
+        self.client.login(username="self", password="p")
+        response = self.client.post(reverse("account_profile_edit"), {
+            "first_name": "", "last_name": "",
+            "email": "s@test.com",
+            "phone": "", "shipping_address": "",
+        })
+        self.assertRedirects(response, reverse("account_profile"))
+        u.refresh_from_db()
+        self.assertEqual(u.email, "s@test.com")
+
+    def test_profile_edit_requires_login(self):
+        response = self.client.get(reverse("account_profile_edit"))
+        self.assertEqual(response.status_code, 302)

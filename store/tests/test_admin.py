@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from store.admin import (
     CategoryAdmin,
+    CustomerProfileAdmin,
     CustomizationRequestAdmin,
     DiscountAdmin,
     NewsletterSubscriberAdmin,
@@ -21,6 +22,7 @@ from store.admin import (
 )
 from store.models import (
     Category,
+    CustomerProfile,
     CustomizationRequest,
     Discount,
     NewsletterSubscriber,
@@ -47,6 +49,7 @@ class AdminRegistrationTests(TestCase):
         OrderItem,
         CustomizationRequest,
         ProductTag,
+        CustomerProfile,
     ]
 
 
@@ -311,6 +314,19 @@ class PaymentAdminConfigTests(TestCase):
 
     def test_customization_paid_at_readonly(self):
         self.assertIn("paid_at", CustomizationRequestAdmin.readonly_fields)
+
+
+class CustomerProfileAdminConfigTests(TestCase):
+    """CustomerProfileAdmin search, list_display, and registration check."""
+
+    def test_search_fields(self):
+        self.assertIn("user__username", CustomerProfileAdmin.search_fields)
+        self.assertIn("user__email", CustomerProfileAdmin.search_fields)
+        self.assertIn("phone", CustomerProfileAdmin.search_fields)
+
+    def test_list_display(self):
+        self.assertIn("user", CustomerProfileAdmin.list_display)
+        self.assertIn("phone", CustomerProfileAdmin.list_display)
 
 
 class AdminAccessTests(TestCase):

@@ -338,6 +338,8 @@ def account_register(request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            from store.models import CustomerProfile
+            CustomerProfile.objects.get_or_create(user=user)
             auth_login(request, user)
             return redirect("account_profile")
     else:
@@ -386,7 +388,7 @@ def account_profile_edit(request):
     from store.models import CustomerProfile
     profile, _ = CustomerProfile.objects.get_or_create(user=request.user)
     if request.method == "POST":
-        form = ProfileEditForm(request.POST, request.FILES)
+        form = ProfileEditForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             request.user.first_name = form.cleaned_data["first_name"]
             request.user.last_name = form.cleaned_data["last_name"]
@@ -400,7 +402,7 @@ def account_profile_edit(request):
             messages.success(request, "Profile updated.")
             return redirect("account_profile")
     else:
-        form = ProfileEditForm(initial={
+        form = ProfileEditForm(user=request.user, initial={
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
             "email": request.user.email,

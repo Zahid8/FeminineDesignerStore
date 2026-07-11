@@ -1,7 +1,7 @@
 # Current Task
 
 ## Task ID
-TASK-022 — COMPLETE (2026-07-11)
+TASK-022-FIX — COMPLETE (2026-07-11)
 
 ## Completed
-T22: CustomerProfile model (1:1 User, phone, address, image). Profile edit form/view. Checkout prefill for authenticated users. Admin registration. 5 profile tests. 285 tests pass.
+T22-FIX: Profile created at registration. Email uniqueness validation in edit form. CustomerProfileAdmin tested (search, list_display). 4 new profile tests (registration, duplicate email, own email, auth gated). 291 tests pass.
