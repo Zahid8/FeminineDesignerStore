@@ -653,6 +653,29 @@ class TemplateStructureTests(TestCase):
         self.assertContains(response, 'class="search-button"')
         self.assertContains(response, 'href="#search"')
 
+    def test_cart_page_has_form_and_checkout_link(self):
+        """Cart renders update/remove forms and checkout link."""
+        self._create_homepage_products()
+        p = Product.objects.filter(is_new_arrival=True).first()
+        self.client.post(
+            reverse("add_to_cart", kwargs={"product_id": p.pk}),
+            {"quantity": 1},
+        )
+        response = self.client.get(reverse("cart_detail"))
+        self.assertContains(response, 'name="quantity"')
+        self.assertContains(response, reverse("checkout"))
+
+    def test_account_pages_have_indichic_shell(self):
+        """Login/register pages render with consistent shells."""
+        for url_name in ("account_login", "account_register"):
+            response = self.client.get(reverse(url_name))
+            self.assertEqual(response.status_code, 200)
+
+    def test_footer_has_attribution(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "TemplatesJungle")
+        self.assertContains(response, "ThemeWagon")
+
 
 class NewsletterViewTests(TestCase):
     def setUp(self):
