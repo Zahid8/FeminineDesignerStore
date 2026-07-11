@@ -2,13 +2,13 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T23-FIX2 complete. 310 tests pass. T23 implements printable HTML invoice; PDF deferred. T23-FIX3 (invoice/timeline test strengthening) active.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T24 complete. 319 tests. PDF deferred. T24-FIX (staff dashboard completeness) active.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (277 tests)
+conda run -n femdes python manage.py test       # PASS (319 tests)
 ```
 
 ## T10/T10-FIX Verification (2026-07-09)

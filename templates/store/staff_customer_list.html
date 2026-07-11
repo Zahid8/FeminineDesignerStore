@@ -6,10 +6,10 @@
     <h2 class="mb-3">Customers</h2>
     <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-dark rounded-pill mb-3">&larr; Dashboard</a>
     <div class="table-responsive">
-      <table class="table indichic-table"><thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th></tr></thead>
+      <table class="table indichic-table"><thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Admin</th></tr></thead>
         <tbody>
           {% for c in customers %}
-          <tr><td>{{ c.username }}</td><td>{{ c.get_full_name|default:"—" }}</td><td>{{ c.email }}</td><td>{{ c.profile.phone|default:"—" }}</td><td>{{ c.date_joined|date:"M j, Y" }}</td></tr>
+          <tr><td>{{ c.username }}</td><td>{{ c.get_full_name|default:"—" }}</td><td>{{ c.email }}</td><td>{{ c.profile.phone|default:"—" }}</td><td>{{ c.date_joined|date:"M j, Y" }}</td><td><a href="{% url 'admin:auth_user_change' c.pk %}" class="btn btn-sm btn-outline-dark rounded-pill">User</a>{% if c.profile.pk %} <a href="{% url 'admin:store_customerprofile_change' c.profile.pk %}" class="btn btn-sm btn-outline-dark rounded-pill">Profile</a>{% endif %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

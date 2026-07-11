@@ -465,11 +465,11 @@ def staff_dashboard(request):
         return err
     from django.contrib.auth.models import User
     ctx = _base_context(request)
-    ctx["customer_count"] = User.objects.filter(is_active=True).count()
+    ctx["customer_count"] = User.objects.filter(is_active=True, is_staff=False).count()
     ctx["product_count"] = Product.objects.filter(is_active=True).count()
     ctx["order_count"] = Order.objects.count()
     ctx["paid_count"] = Order.objects.filter(payment_status="paid").count()
-    ctx["pending_count"] = Order.objects.filter(payment_status="pending").count()
+    ctx["non_paid_count"] = Order.objects.exclude(payment_status="paid").count()
     ctx["recent_orders"] = Order.objects.order_by("-created_at")[:10]
     return render(request, "store/staff_dashboard.html", ctx)
 

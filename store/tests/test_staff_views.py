@@ -14,47 +14,62 @@ class StaffDashboardAccessTests(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.urls = [
+        self.order = Order.objects.create(customer_name="A", customer_email="a@t.com", shipping_address="A")
+        self.static_urls = [
             "staff_dashboard", "staff_order_list", "staff_customer_list",
         ]
 
     def test_anonymous_redirected(self):
-        for name in self.urls:
+        for name in self.static_urls:
             with self.subTest(url=name):
                 response = self.client.get(reverse(name))
                 self.assertIn(response.status_code, (302, 403))
+        # staff_order_update with a real order
+        url = reverse("staff_order_update", kwargs={"order_number": self.order.order_number})
+        response = self.client.get(url)
+        self.assertIn(response.status_code, (302, 403))
 
     def test_non_staff_rejected(self):
         User.objects.create_user(username="normal", password="pass")
         self.client.login(username="normal", password="pass")
-        for name in self.urls:
+        for name in self.static_urls:
             with self.subTest(url=name):
                 response = self.client.get(reverse(name))
                 self.assertIn(response.status_code, (302, 403))
+        url = reverse("staff_order_update", kwargs={"order_number": self.order.order_number})
+        response = self.client.get(url)
+        self.assertIn(response.status_code, (302, 403))
 
 
 class StaffDashboardTests(TestCase):
-    """Staff dashboard renders correct counts."""
+    """Staff dashboard renders correct counts with distinct values."""
 
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_superuser(username="admin", password="pass")
+        self.staff = User.objects.create_user(username="admin", password="pass", is_staff=True)
+        # Create non-staff customers
+        User.objects.create_user(username="cust1", password="pass")
+        User.objects.create_user(username="cust2", password="pass")
         self.client.login(username="admin", password="pass")
         self.cat = Category.objects.create(name="Blouses", slug="blouses")
-        Product.objects.create(
-            category=self.cat, name="P", slug="p", sku="SKU", price=50, is_active=True,
-        )
-        Order.objects.create(customer_name="A", customer_email="a@t.com", shipping_address="A")
+        Product.objects.create(category=self.cat, name="P", slug="p", sku="SKU1", price=50, is_active=True)
+        Product.objects.create(category=self.cat, name="Inactive", slug="i", sku="SKU2", price=50, is_active=False)
+        Order.objects.create(customer_name="A", customer_email="a@t.com", shipping_address="A", payment_status="paid")
+        Order.objects.create(customer_name="B", customer_email="b@t.com", shipping_address="B", payment_status="pending")
 
     def test_dashboard_renders(self):
         response = self.client.get(reverse("staff_dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Staff Dashboard")
 
-    def test_dashboard_has_counts(self):
+    def test_dashboard_has_distinct_counts(self):
         response = self.client.get(reverse("staff_dashboard"))
-        self.assertContains(response, ">1<")  # order count
-        self.assertContains(response, ">1<")  # product count
+        self.assertContains(response, ">2<")  # 2 non-staff customers
+        self.assertContains(response, ">1<")  # 1 active product (inactive excluded)
+        self.assertContains(response, ">2<")  # 2 total orders
+        self.assertContains(response, ">1<")  # 1 paid
+        self.assertContains(response, ">1<")  # 1 non-paid
+        self.assertContains(response, "Non-Paid")
 
 
 class StaffOrderUpdateTests(TestCase):
@@ -104,3 +119,7 @@ class StaffCustomerListTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "customer1")
         self.assertContains(response, "555")
+
+    def test_customer_list_has_admin_links(self):
+        response = self.client.get(reverse("staff_customer_list"))
+        self.assertContains(response, reverse("admin:auth_user_change", args=[self.user.pk]))

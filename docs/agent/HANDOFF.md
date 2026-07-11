@@ -46,7 +46,7 @@ and editable account profile.
 ## Verification Status
 
 - `conda run -n femdes python manage.py check` — **PASS** (0 issues)
-- `conda run -n femdes python manage.py test` — **PASS** (277 tests)
+- `conda run -n femdes python manage.py test` — **PASS** (319 tests)
 - `conda run -n femdes python manage.py collectstatic --noinput` — **PASS**
 - `conda run -n femdes python manage.py makemigrations --check --dry-run` — **PASS** (no changes)
 - `conda run -n femdes python manage.py seed_demo_store` — **PASS** (idempotent, 18 records updated on repeat)
