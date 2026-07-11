@@ -13,7 +13,8 @@
         <div class="text-end">
           <h5>Order #{{ order.order_number }}</h5>
           <p class="text-muted mb-0">Date: {{ order.created_at|date:"F j, Y" }}</p>
-          <small class="text-muted">Status: {{ order.get_payment_status_display }}</small>
+          <small class="text-muted">Order Status: {{ order.get_status_display }}</small><br>
+          <small class="text-muted">Payment: {{ order.get_payment_status_display }}</small>
         </div>
       </div>
 
@@ -23,6 +24,7 @@
           <strong>Bill To:</strong><br>
           {{ order.customer_name }}<br>
           {{ order.customer_email }}<br>
+          {% if order.customer_phone %}{{ order.customer_phone }}<br>{% endif %}
           {{ order.shipping_address|linebreaksbr }}
         </div>
         <div class="col-6 text-end">

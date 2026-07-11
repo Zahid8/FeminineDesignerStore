@@ -435,6 +435,7 @@ def account_order_detail(request, order_number):
         ("processing", "Processing"),
         ("shipped", "Shipped"),
         ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
     ]
     return render(request, "store/account_order_detail.html", ctx)
 

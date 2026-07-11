@@ -17,7 +17,7 @@
             <td>{{ order.created_at|date:"M j, Y" }}</td>
             <td><span class="badge bg-secondary">{{ order.get_status_display }}</span></td>
             <td>${{ order.total }}</td>
-            <td><a href="{% url 'order_success' order.order_number %}" class="btn btn-sm btn-outline-dark">View</a></td>
+            <td><a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark">View</a></td>
           </tr>
           {% endfor %}
         </tbody>
