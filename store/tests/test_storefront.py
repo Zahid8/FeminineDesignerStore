@@ -664,9 +664,16 @@ class TemplateStructureTests(TestCase):
         self.assertContains(response, "TemplatesJungle")
         self.assertContains(response, "ThemeWagon")
 
-    def test_storefront_includes_base_static_assets(self):
+    def test_storefront_includes_femdes_js_after_script_min(self):
+        """femdes.js included once, after script.min.js."""
         response = self.client.get(reverse("home"))
-        self.assertContains(response, 'src="/static/store/js/script.min.js"')
+        content = response.content.decode()
+        script_pos = content.find('script.min.js')
+        femdes_pos = content.find('femdes.js')
+        self.assertGreater(femdes_pos, script_pos,
+                           "femdes.js must appear after script.min.js in base.html")
+        # Exactly one include
+        self.assertEqual(content.count('femdes.js'), 1)
 
 
 class NewsletterViewTests(TestCase):

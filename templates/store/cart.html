@@ -30,7 +30,7 @@
             <td>
               <form method="post" action="{% url 'update_cart' line.key %}" class="d-flex align-items-center" style="max-width:140px">
                 {% csrf_token %}
-                <input type="number" name="quantity" value="{{ line.quantity }}" min="0" max="99" class="form-control form-control-sm me-2" style="width:70px">
+                <input type="number" name="quantity" value="{{ line.quantity }}" min="0" max="99" class="form-control form-control-sm me-2 qty-input" style="width:70px">
                 <button type="submit" class="btn btn-outline-dark btn-sm">Update</button>
               </form>
             </td>

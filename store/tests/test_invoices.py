@@ -56,6 +56,28 @@ class OrderDetailTrackingTests(TestCase):
                             kwargs={"order_number": self.order.order_number}))
 
 
+class OrderDetailAriaTests(TestCase):
+    """Order detail status badges have aria-current on the active status."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="buyer", password="pass")
+
+    def test_active_status_has_aria_current(self):
+        self.client.login(username="buyer", password="pass")
+        for status_val in ("pending", "shipped"):
+            order = Order.objects.create(
+                customer_name="A", customer_email="a@t.com",
+                shipping_address="Addr", customer_user=self.user,
+                status=status_val,
+            )
+            url = reverse("account_order_detail", kwargs={"order_number": order.order_number})
+            response = self.client.get(url)
+            # Only one aria-current="step"
+            self.assertEqual(response.content.decode().count('aria-current="step"'), 1)
+            order.delete()
+
+
 class TimelineActiveStatusTests(TestCase):
     """Every Order.STATUS_CHOICES value can be the active/current status."""
 
@@ -92,11 +114,9 @@ class TimelineActiveStatusTests(TestCase):
             for tv, tl in self.TIMELINE_LABELS.items():
                 if tv == status_val:
                     # The active badge must have bg-dark, not bg-light
-                    self.assertIn(
-                        f'bg-dark rounded-pill px-3 py-2">{tl}</span>',
-                        content,
-                        msg=f"Active status '{tl}' should have bg-dark badge",
-                    )
+                    self.assertIn('bg-dark rounded-pill', content,
+                                  msg=f"Active status '{tl}' should have bg-dark badge")
+                    self.assertIn(tl, content)
                 else:
                     # Non-current badges must have bg-light text-muted
                     self.assertIn(

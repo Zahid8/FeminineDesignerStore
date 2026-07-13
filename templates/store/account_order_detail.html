@@ -11,7 +11,7 @@
       <h5>Order Status</h5>
       <div class="d-flex flex-wrap gap-2 mt-2">
         {% for status_val, status_label in status_timeline %}
-        <span class="badge {% if status_val == order.status %}bg-dark{% else %}bg-light text-muted{% endif %} rounded-pill px-3 py-2">{{ status_label }}</span>
+        <span class="badge {% if status_val == order.status %}bg-dark{% else %}bg-light text-muted{% endif %} rounded-pill px-3 py-2"{% if status_val == order.status %} aria-current="step"{% endif %}>{{ status_label }}</span>
         {% endfor %}
       </div>
     </div>
