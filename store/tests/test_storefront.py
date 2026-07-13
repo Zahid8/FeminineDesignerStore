@@ -664,9 +664,9 @@ class TemplateStructureTests(TestCase):
         self.assertContains(response, "TemplatesJungle")
         self.assertContains(response, "ThemeWagon")
 
-    def test_storefront_includes_store_js(self):
+    def test_storefront_includes_base_static_assets(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, 'src="/static/store/js/store.js"')
+        self.assertContains(response, 'src="/static/store/js/script.min.js"')
 
 
 class NewsletterViewTests(TestCase):

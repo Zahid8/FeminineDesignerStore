@@ -210,14 +210,21 @@ class OrderSearchFilterTests(TestCase):
             customer_name="C", customer_email="c@t.com", shipping_address="C",
             customer_user=self.other, status="pending",
         )
+        self.other_shipped = Order.objects.create(
+            customer_name="D", customer_email="d@t.com", shipping_address="D",
+            customer_user=self.other, status="shipped",
+        )
 
     def test_status_filter_shows_only_matching(self):
+        """Same-status foreign order must not leak through status filter."""
         self.client.login(username="buyer", password="pass")
         response = self.client.get(reverse("account_orders") + "?status=shipped")
         self.assertContains(response, self.o2.order_number)
         self.assertNotContains(response, self.o1.order_number)
         self.assertNotContains(response, reverse("account_order_detail",
             kwargs={"order_number": self.other_order.order_number}))
+        self.assertNotContains(response, reverse("account_order_detail",
+            kwargs={"order_number": self.other_shipped.order_number}))
 
     def test_order_search_finds_match(self):
         self.client.login(username="buyer", password="pass")
