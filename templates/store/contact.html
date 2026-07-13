@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %} — Contact Us{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg page-shell">
+    <h2 class="mb-4">Contact Us</h2>
+    <div class="indichic-card p-4">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Name</label>
+            <input type="text" name="name" class="form-control" maxlength="160" required value="{{ form.name.value|default:'' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" required value="{{ form.email.value|default:'' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Subject</label>
+            <input type="text" name="subject" class="form-control" maxlength="255" required value="{{ form.subject.value|default:'' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Message</label>
+            <textarea name="message" class="form-control" rows="5" required>{{ form.message.value|default:'' }}</textarea>
+          </div>
+          <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-dark rounded-pill">Send Message</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

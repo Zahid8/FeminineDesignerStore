@@ -62,4 +62,7 @@ urlpatterns = [
     path("staff/orders/", views.staff_order_list, name="staff_order_list"),
     path("staff/orders/<str:order_number>/", views.staff_order_update, name="staff_order_update"),
     path("staff/customers/", views.staff_customer_list, name="staff_customer_list"),
+    path("staff/feedback/", views.staff_feedback_list, name="staff_feedback_list"),
+    # Public
+    path("contact/", views.contact_view, name="contact"),
 ]

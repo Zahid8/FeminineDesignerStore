@@ -74,3 +74,21 @@ class ProfileEditForm(forms.Form):
         if self.user and User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists():
             raise forms.ValidationError("This email is already in use.")
         return email
+
+
+class FeedbackForm(forms.Form):
+    name = forms.CharField(max_length=160)
+    email = forms.EmailField()
+    subject = forms.CharField(max_length=255)
+    message = forms.CharField(widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        from django.contrib.auth.models import User
+        if self.user and User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists():
+            raise forms.ValidationError("This email is already in use.")
+        return email

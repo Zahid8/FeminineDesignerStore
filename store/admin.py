@@ -4,6 +4,7 @@ from store.models import (
     Category,
     CustomerProfile,
     CustomizationRequest,
+    Feedback,
     Discount,
     NewsletterSubscriber,
     Order,
@@ -292,3 +293,11 @@ class CustomerProfileAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "phone")
     list_filter = ("created_at",)
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ("name", "email", "subject", "is_read", "created_at")
+    list_filter = ("is_read", "created_at")
+    search_fields = ("name", "email", "subject", "message")
+    readonly_fields = ("created_at",)

@@ -524,3 +524,32 @@ def staff_customer_list(request):
     ctx = _base_context(request)
     ctx["customers"] = users
     return render(request, "store/staff_customer_list.html", ctx)
+
+
+# ── Contact / Feedback ──────────────────────────────────────────
+
+def contact_view(request):
+    from store.forms import FeedbackForm
+    if request.method == "POST":
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            from store.models import Feedback
+            Feedback.objects.create(**form.cleaned_data)
+            messages.success(request, "Thank you! Your message has been sent.")
+            return redirect("home")
+    else:
+        form = FeedbackForm()
+    ctx = _base_context(request)
+    ctx["form"] = form
+    return render(request, "store/contact.html", ctx)
+
+
+def staff_feedback_list(request):
+    err = _staff_required(request)
+    if err:
+        return err
+    from store.models import Feedback
+    feedbacks = Feedback.objects.order_by("-created_at")
+    ctx = _base_context(request)
+    ctx["feedbacks"] = feedbacks
+    return render(request, "store/staff_feedback_list.html", ctx)

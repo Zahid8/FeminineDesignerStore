@@ -588,3 +588,20 @@ class CustomerProfile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+
+
+class Feedback(models.Model):
+    """Customer contact/feedback messages."""
+
+    name = models.CharField(max_length=160)
+    email = models.EmailField()
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Feedback from {self.name}: {self.subject}"

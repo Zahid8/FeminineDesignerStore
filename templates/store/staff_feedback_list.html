@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %} — Staff Feedback{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <h2 class="mb-3">Customer Feedback</h2>
+    <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-dark rounded-pill mb-3">&larr; Dashboard</a>
+    {% if feedbacks %}
+    <div class="table-responsive">
+      <table class="table indichic-table"><thead><tr><th>Name</th><th>Email</th><th>Subject</th><th>Date</th><th>Read</th></tr></thead>
+        <tbody>
+          {% for f in feedbacks %}
+          <tr>
+            <td>{{ f.name }}</td><td>{{ f.email }}</td><td>{{ f.subject }}</td>
+            <td>{{ f.created_at|date:"M j, Y" }}</td>
+            <td>{% if f.is_read %}✓{% else %}<span class="badge bg-warning text-dark">New</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No feedback messages yet.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
