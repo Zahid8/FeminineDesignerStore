@@ -86,8 +86,8 @@ class StaffDashboardTests(TestCase):
                          "Paid count should be 1")
         self.assertEqual(_metric_value("Non-Paid", content), 1,
                          "Non-paid count should be 1")
-        self.assertIsNotNone(_metric_value("Total Orders", content),
-                             "Total Orders label missing")
+        self.assertEqual(_metric_value("Total Orders", content), 2,
+                         "Total Orders count should be 2")
         self.assertIn("Non-Paid", content)
 
 
