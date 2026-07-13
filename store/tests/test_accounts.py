@@ -223,6 +223,7 @@ class OrderSearchFilterTests(TestCase):
         self.assertNotContains(response, self.o1.order_number)
         self.assertNotContains(response, reverse("account_order_detail",
             kwargs={"order_number": self.other_order.order_number}))
+        self.assertNotContains(response, self.other_shipped.order_number)
         self.assertNotContains(response, reverse("account_order_detail",
             kwargs={"order_number": self.other_shipped.order_number}))
 

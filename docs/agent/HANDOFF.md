@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T25 complete. 325 tests. PDF invoice deferred to future task.
+This repo has been converted from a static Kaira Bootstrap fashion-store template into a database-backed FemDes blouse webstore. T0 through T25 complete. 330 tests. PDF invoice deferred to future task.
 
 ## Completed Tasks
 
