@@ -192,7 +192,7 @@ class AuthenticatedCheckoutTests(TestCase):
 
 
 class OrderSearchFilterTests(TestCase):
-    """Customers can search/filter their own orders."""
+    """Customers can search/filter their own orders with ownership protection."""
 
     def setUp(self):
         self.client = Client()
@@ -206,7 +206,7 @@ class OrderSearchFilterTests(TestCase):
             customer_name="B", customer_email="b@t.com", shipping_address="B",
             customer_user=self.user, status="shipped",
         )
-        Order.objects.create(
+        self.other_order = Order.objects.create(
             customer_name="C", customer_email="c@t.com", shipping_address="C",
             customer_user=self.other, status="pending",
         )
@@ -216,26 +216,45 @@ class OrderSearchFilterTests(TestCase):
         response = self.client.get(reverse("account_orders") + "?status=shipped")
         self.assertContains(response, self.o2.order_number)
         self.assertNotContains(response, self.o1.order_number)
+        self.assertNotContains(response, reverse("account_order_detail",
+            kwargs={"order_number": self.other_order.order_number}))
 
     def test_order_search_finds_match(self):
         self.client.login(username="buyer", password="pass")
         response = self.client.get(reverse("account_orders") + f"?search={self.o1.order_number[:8]}")
         self.assertContains(response, self.o1.order_number)
 
-    def test_filter_never_shows_others_orders(self):
+    def test_search_other_users_order_returns_empty(self):
+        """Searching by another user's order number returns no-match empty state."""
         self.client.login(username="buyer", password="pass")
-        response = self.client.get(reverse("account_orders") + "?status=pending")
-        self.assertNotContains(response, "c@t.com")
+        response = self.client.get(reverse("account_orders") + f"?search={self.other_order.order_number}")
+        self.assertEqual(response.status_code, 200)
+        # The search term appears in the form input — check that the empty state renders
+        self.assertContains(response, "No matching orders")
+        # The other user's order should not appear as a table row link
+        self.assertNotContains(response, reverse("account_order_detail",
+            kwargs={"order_number": self.other_order.order_number}))
 
-    def test_invalid_status_does_not_crash(self):
+    def test_invalid_status_still_user_scoped(self):
+        """Invalid status filter still shows only current user's orders, not others'."""
         self.client.login(username="buyer", password="pass")
         response = self.client.get(reverse("account_orders") + "?status=bogus")
         self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, reverse("account_order_detail",
+            kwargs={"order_number": self.other_order.order_number}))
 
     def test_no_match_shows_empty_state(self):
         self.client.login(username="buyer", password="pass")
         response = self.client.get(reverse("account_orders") + "?search=ZZZNOTFOUND")
         self.assertContains(response, "No matching orders")
+
+    def test_no_orders_empty_state(self):
+        """User with no orders sees 'No orders yet' empty state."""
+        new_user = User.objects.create_user(username="fresh", password="pass")
+        self.client.login(username="fresh", password="pass")
+        response = self.client.get(reverse("account_orders"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No orders yet")
 
 
 class CustomerProfileTests(TestCase):

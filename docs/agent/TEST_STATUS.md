@@ -2,13 +2,13 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T24 complete. 319 tests. PDF deferred. T24-FIX3 (exact dashboard total-order assertion + docs) complete. Next: T25 customer order search/filter.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T25 complete. 325 tests. PDF deferred. T25-FIX (strengthened search/filter tests) complete.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (319 tests)
+conda run -n femdes python manage.py test       # PASS (325 tests)
 ```
 
 ## T10/T10-FIX Verification (2026-07-09)
