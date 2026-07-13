@@ -418,9 +418,21 @@ def account_profile_edit(request):
 
 @login_required
 def account_orders(request):
-    orders = Order.objects.filter(customer_user=request.user).order_by("-created_at")
+    orders = Order.objects.filter(customer_user=request.user)
+    status_filter = request.GET.get("status", "")
+    order_search = request.GET.get("search", "")
+    if status_filter and status_filter in dict(Order.STATUS_CHOICES):
+        orders = orders.filter(status=status_filter)
+    if order_search:
+        orders = orders.filter(order_number__icontains=order_search)
+    orders = orders.order_by("-created_at")
     ctx = _base_context(request)
-    ctx["orders"] = orders
+    ctx.update({
+        "orders": orders,
+        "status_filter": status_filter,
+        "order_search": order_search,
+        "status_choices": Order.STATUS_CHOICES,
+    })
     return render(request, "store/account_orders.html", ctx)
 
 

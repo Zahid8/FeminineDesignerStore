@@ -3,28 +3,56 @@
 {% block content %}
 <section class="py-5">
   <div class="container-lg">
-    <h2 class="mb-4">My Orders</h2>
+    <h2 class="mb-3">My Orders</h2>
+    <!-- Filter + Search -->
+    <form method="get" class="row g-2 mb-4">
+      <div class="col-md-3">
+        <select name="status" class="form-select">
+          <option value="">All Statuses</option>
+          {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <input type="search" name="search" class="form-control" placeholder="Search by order number..." value="{{ order_search }}">
+      </div>
+      <div class="col-md-auto">
+        <button type="submit" class="btn btn-outline-dark rounded-pill">Filter</button>
+        {% if status_filter or order_search %}<a href="{% url 'account_orders' %}" class="btn btn-link ms-2">Clear</a>{% endif %}
+      </div>
+    </form>
+
     {% if orders %}
     <div class="table-responsive">
-      <table class="table align-middle">
-        <thead class="table-light">
-          <tr><th>Order #</th><th>Date</th><th>Status</th><th>Total</th><th></th></tr>
-        </thead>
+      <table class="table indichic-table">
+        <thead><tr><th>Order #</th><th>Date</th><th>Status</th><th>Payment</th><th>Total</th><th></th></tr></thead>
         <tbody>
           {% for order in orders %}
           <tr>
             <td>{{ order.order_number }}</td>
             <td>{{ order.created_at|date:"M j, Y" }}</td>
-            <td><span class="badge bg-secondary">{{ order.get_status_display }}</span></td>
-            <td>${{ order.total }}</td>
-            <td><a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark">View</a></td>
+            <td><span class="badge bg-secondary rounded-pill">{{ order.get_status_display }}</span></td>
+            <td>{{ order.get_payment_status_display }}</td>
+            <td>{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</td>
+            <td><a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark rounded-pill">View</a></td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+    {% elif status_filter or order_search %}
+    <div class="empty-state">
+      <h5>No matching orders</h5>
+      <p class="text-muted">Try a different status or search term.</p>
+      <a href="{% url 'account_orders' %}" class="btn btn-outline-dark rounded-pill mt-2">View All Orders</a>
+    </div>
     {% else %}
-    <p class="text-muted">No orders yet. <a href="{% url 'product_list' %}">Start shopping</a>.</p>
+    <div class="empty-state">
+      <h5>No orders yet</h5>
+      <p class="text-muted">Start shopping to see your orders here.</p>
+      <a href="{% url 'product_list' %}" class="btn btn-outline-dark rounded-pill mt-2">Browse Products</a>
+    </div>
     {% endif %}
     <a href="{% url 'account_profile' %}" class="btn btn-link mt-3">&larr; Back to Account</a>
   </div>

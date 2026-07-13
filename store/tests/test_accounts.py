@@ -191,6 +191,53 @@ class AuthenticatedCheckoutTests(TestCase):
         self.assertNotContains(response, "Other")
 
 
+class OrderSearchFilterTests(TestCase):
+    """Customers can search/filter their own orders."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="buyer", password="pass")
+        self.other = User.objects.create_user(username="other", password="pass")
+        self.o1 = Order.objects.create(
+            customer_name="A", customer_email="a@t.com", shipping_address="A",
+            customer_user=self.user, status="pending",
+        )
+        self.o2 = Order.objects.create(
+            customer_name="B", customer_email="b@t.com", shipping_address="B",
+            customer_user=self.user, status="shipped",
+        )
+        Order.objects.create(
+            customer_name="C", customer_email="c@t.com", shipping_address="C",
+            customer_user=self.other, status="pending",
+        )
+
+    def test_status_filter_shows_only_matching(self):
+        self.client.login(username="buyer", password="pass")
+        response = self.client.get(reverse("account_orders") + "?status=shipped")
+        self.assertContains(response, self.o2.order_number)
+        self.assertNotContains(response, self.o1.order_number)
+
+    def test_order_search_finds_match(self):
+        self.client.login(username="buyer", password="pass")
+        response = self.client.get(reverse("account_orders") + f"?search={self.o1.order_number[:8]}")
+        self.assertContains(response, self.o1.order_number)
+
+    def test_filter_never_shows_others_orders(self):
+        self.client.login(username="buyer", password="pass")
+        response = self.client.get(reverse("account_orders") + "?status=pending")
+        self.assertNotContains(response, "c@t.com")
+
+    def test_invalid_status_does_not_crash(self):
+        self.client.login(username="buyer", password="pass")
+        response = self.client.get(reverse("account_orders") + "?status=bogus")
+        self.assertEqual(response.status_code, 200)
+
+    def test_no_match_shows_empty_state(self):
+        self.client.login(username="buyer", password="pass")
+        response = self.client.get(reverse("account_orders") + "?search=ZZZNOTFOUND")
+        self.assertContains(response, "No matching orders")
+
+
 class CustomerProfileTests(TestCase):
     """CustomerProfile model, views, and admin."""
 
