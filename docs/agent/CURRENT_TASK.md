@@ -528,3 +528,18 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   WhatsApp messages (confirmation / shipped / delivered / payment reminder)
   carrying the bill link; templates editable in Settings. No webstore changes.
 - Browser check: `docs/agent/browser-checks/billing_bill.js` (12/12).
+
+## T39 — Google Maps location + full order details in billing (2026-10-18)
+
+- Optional "Google Maps location" on checkout/profile (store/locations.py
+  accepts only Google Maps links, extracts the URL from pasted share text;
+  "Use my current location" fills a maps?q=lat,lng link). Order.location_url
+  and CustomerProfile.location_url (migration 0026); shown on confirmation,
+  My Orders, invoice, staff page, admin; remembered on the profile.
+- Checkout keeps the order notes when the form re-renders with an error
+  (they were silently lost before).
+- API: location_url, payment_notes, Razorpay ids, customer account /
+  verified phone / orders_count, item sleeve/tailor notes/category/photo/
+  absolute product link. Billing app shows all of it (Delivery card with
+  Maps button + copy, Customer, Payment, Order info, item photos).
+- Browser check: `browser-checks/location_e2e.js` (27/27, shop → billing → bill PDF).

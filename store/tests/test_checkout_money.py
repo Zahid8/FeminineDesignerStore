@@ -230,3 +230,16 @@ class CheckoutLocationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Paste a Google Maps link")
         self.assertEqual(Order.objects.count(), 0)
+
+
+class CheckoutKeepsInputOnErrorTests(TestCase):
+    def test_notes_survive_a_validation_error(self):
+        from store.models import Category, Product
+
+        cat = Category.objects.create(name="Silk", slug="silk-keep", is_active=True)
+        p = Product.objects.create(category=cat, name="Rose", slug="rose-keep", sku="K-1", price=Decimal("500"), stock_quantity=5, is_active=True)
+        self.client.post(reverse("add_to_cart", args=[p.pk]), {"quantity": "1"})
+        response = self.client.post(reverse("checkout"), {"customer_name": "A", "customer_email": "a@example.com", "shipping_address": "Pune",
+                                                          "notes": "Gate code 2244", "location_url": "not a link"})
+        self.assertContains(response, ">Gate code 2244</textarea>")
+        self.assertContains(response, 'value="not a link"')

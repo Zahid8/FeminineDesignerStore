@@ -74,7 +74,7 @@
             </div>
             <div class="col-12">
               <label for="id_notes" class="form-label">Order Notes</label>
-              <textarea name="notes" id="id_notes" class="form-control" rows="2" placeholder="Anything we should know?"></textarea>
+              <textarea name="notes" id="id_notes" class="form-control" rows="2" placeholder="Anything we should know?">{{ form.notes.value|default:'' }}</textarea>
             </div>
             <div class="col-12 mt-4"><span class="fd-eyebrow mb-0">Step 3</span><h5>Payment</h5></div>
             <div class="col-12">
