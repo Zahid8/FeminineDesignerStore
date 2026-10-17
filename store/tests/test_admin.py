@@ -437,3 +437,58 @@ class SuperuserCanDeleteOrderTests(TestCase):
         staff = User.objects.create_user("clerk", "c@example.com", "pw-12345!", is_staff=True)
         request = RequestFactory().get("/"); request.user = staff
         self.assertFalse(OrderItemAdmin(OrderItem, site).has_delete_permission(request))
+
+
+class AdminDeletesCascadeCleanlyTests(TestCase):
+    """Nothing in the admin is undeletable for a superuser, and the billing feed follows."""
+
+    def setUp(self):
+        from decimal import Decimal
+
+        from store.models import Category, CustomerProfile, CustomizationRequest, Order, OrderItem, Product, WishlistItem
+
+        self.boss = User.objects.create_superuser("boss2", "boss2@example.com", "pw-12345!")
+        self.client = Client(); self.client.force_login(self.boss)
+        cat = Category.objects.create(name="Silk", slug="silk-cas", is_active=True)
+        self.product = Product.objects.create(category=cat, name="Rose", slug="rose-cas", sku="CAS-1", price=Decimal("500"), stock_quantity=5, is_active=True)
+        self.customer = User.objects.create_user("cust", "cust@example.com", "pw-12345!")
+        CustomerProfile.objects.create(user=self.customer, phone="9876543210")
+        WishlistItem.objects.create(user=self.customer, product=self.product)
+        self.order = Order.objects.create(customer_name="C", customer_email="cust@example.com", shipping_address="x", total=Decimal("500"), customer_user=self.customer)
+        OrderItem.objects.create(order=self.order, product=self.product, product_name="Rose", unit_price=Decimal("500"), quantity=1, line_total=Decimal("500"))
+        self.cr = CustomizationRequest.objects.create(product=self.product, customer_name="C", customer_phone="9876543210",
+                                                      length=Decimal("15"), chest=Decimal("36"), waist=Decimal("30"), armhole=Decimal("16"),
+                                                      opening=Decimal("11"), bicep=Decimal("13"))
+
+    def test_delete_product_keeps_orders_and_fitting_requests(self):
+        from store.models import CustomizationRequest, OrderItem, Product
+
+        self.assertEqual(self.cr.product_name, "Rose")
+        response = self.client.post(reverse("admin:store_product_delete", args=[self.product.pk]), {"post": "yes"})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Product.objects.filter(pk=self.product.pk).exists())
+        self.assertEqual(OrderItem.objects.get().product, None)  # order history survives
+        cr = CustomizationRequest.objects.get()
+        self.assertIsNone(cr.product)
+        self.assertEqual(cr.display_name, "Rose")
+        self.assertEqual(self.client.get(reverse("customization_detail", args=[cr.token])).status_code, 200)
+
+    def test_delete_customer_user_keeps_orders(self):
+        from store.models import Order
+
+        response = self.client.post(reverse("admin:auth_user_delete", args=[self.customer.pk]), {"post": "yes"})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(pk=self.customer.pk).exists())
+        self.assertIsNone(Order.objects.get(pk=self.order.pk).customer_user)
+
+    def test_deleted_order_disappears_from_the_billing_feed(self):
+        from django.test import override_settings
+
+        with override_settings(WEBSTORE_API_TOKEN="t"):
+            before = self.client.get(reverse("api_online_orders"), HTTP_AUTHORIZATION="Bearer t").json()["orders"]
+            self.assertEqual([o["order_number"] for o in before], [self.order.order_number])
+            self.client.post(reverse("admin:store_order_delete", args=[self.order.pk]), {"post": "yes"})
+            after = self.client.get(reverse("api_online_orders"), HTTP_AUTHORIZATION="Bearer t").json()["orders"]
+            self.assertEqual(after, [])
+            detail = self.client.get(reverse("api_online_order_detail", args=[self.order.order_number]), HTTP_AUTHORIZATION="Bearer t")
+            self.assertEqual(detail.status_code, 404)

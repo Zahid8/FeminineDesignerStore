@@ -616,3 +616,14 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   Logged-in customers get name/phone/address remembered and prefilled.
 - Partial `store/partials/address_fields.html` used by checkout and profile
   edit. Tests: StructuredAddressTests; older tests given valid mobiles.
+
+## T43 — Admin deletes audit (2026-10-18)
+
+- Audit of every admin permission override and FK delete rule. Blockers
+  found and fixed: OrderItemAdmin denied delete to everyone (now superuser
+  only, so orders delete with their items); CustomizationRequest.product
+  was PROTECT (now SET_NULL + `product_name` snapshot, migration 0028 with
+  backfill, `display_name` used by emails/pages). Users delete cleanly
+  (profile/wishlist cascade, orders and appointments keep their data).
+- Billing app holds no copy of shop data: it reads the API live, so a shop
+  deletion disappears from Online Orders immediately (API list/detail test).

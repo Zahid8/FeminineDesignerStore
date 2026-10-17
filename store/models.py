@@ -803,9 +803,15 @@ class CustomizationRequest(models.Model):
     """Blouse customization request with measurements and shareable token."""
 
     product = models.ForeignKey(
-        Product, on_delete=models.PROTECT, related_name="customization_requests"
+        Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="customization_requests"
     )
+    product_name = models.CharField(max_length=200, blank=True, help_text="Kept even if the product is deleted later.")
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+
+    @property
+    def display_name(self):
+        return self.product.name if self.product_id and self.product else (self.product_name or "Deleted product")
+
     customer_name = models.CharField(max_length=160)
     customer_phone = models.CharField(max_length=40)
     length = models.DecimalField(
@@ -866,6 +872,8 @@ class CustomizationRequest(models.Model):
         return mspec.summary(self.as_custom())
 
     def save(self, *args, **kwargs):
+        if self.product_id and self.product and not self.product_name:
+            self.product_name = self.product.name
         transitioning_to_paid = self.payment_status == "paid"
         if self.pk:
             old = CustomizationRequest.objects.filter(pk=self.pk).first()

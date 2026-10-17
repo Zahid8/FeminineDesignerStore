@@ -382,8 +382,8 @@ def _notify_customization_request(request, cr):
         return
     try:
         send_mail(
-            f"Fitting request {cr.reference}: {cr.customer_name} — {cr.product.name}",
-            f"{cr.customer_name} · {cr.customer_phone}\n{cr.product.name}\n"
+            f"Fitting request {cr.reference}: {cr.customer_name} — {cr.display_name}",
+            f"{cr.customer_name} · {cr.customer_phone}\n{cr.display_name}\n"
             + "\n".join(f"{label}: {value}" for label, value in cr.summary_rows())
             + (f"\nNotes: {cr.notes}" if cr.notes else "")
             + f"\n\n{request.build_absolute_uri(reverse('customization_detail', args=[cr.token]))}",
@@ -403,10 +403,10 @@ def _customization_ctx(request, cr):
         "customization": cr,
         "product": cr.product,
         "rows": cr.summary_rows(),
-        "lead_time": cr.product.custom_lead_time(site),
+        "lead_time": cr.product.custom_lead_time(site) if cr.product else getattr(site, "customization_lead_time", "") or "3–4 weeks",
         "whatsapp_link": (
             f"{whatsapp}?text=" + __import__("urllib.parse").parse.quote(
-                f"Hi, I've saved my measurements for {cr.product.name} (ref {cr.reference}). "
+                f"Hi, I've saved my measurements for {cr.display_name} (ref {cr.reference}). "
                 "Could you confirm them with me?")
             if whatsapp else ""
         ),

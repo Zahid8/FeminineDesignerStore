@@ -4,7 +4,7 @@
 <header class="fd-page-header is-compact">
   <div class="container-lg">
     <span class="fd-eyebrow is-center">Fitting request {{ customization.reference }}</span>
-    <h1>{{ product.name }}</h1>
+    <h1>{{ customization.display_name }}</h1>
     <p>Saved for {{ customization.customer_name }} on {{ customization.created_at|date:"j F Y" }}</p>
   </div>
 </header>
@@ -18,7 +18,7 @@
       {% if customization.notes %}<p class="fd-custom-notes mt-2">“{{ customization.notes }}”</p>{% endif %}
       <p class="mt-4 mb-2"><strong>Status:</strong> {{ customization.get_payment_status_display }}</p>
       <div class="d-flex flex-wrap gap-2 mt-3">
-        <a href="{{ product.get_absolute_url }}?fit=custom#customize-section" class="btn btn-dark">Add to Bag with These Measurements</a>
+        {% if product %}<a href="{{ product.get_absolute_url }}?fit=custom#customize-section" class="btn btn-dark">Add to Bag with These Measurements</a>{% endif %}
         {% if whatsapp_link %}<a href="{{ whatsapp_link }}" class="btn btn-wa" target="_blank" rel="noopener"><svg width="16" height="16" class="me-2" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg>Chat with us</a>{% endif %}
       </div>
     </div>
