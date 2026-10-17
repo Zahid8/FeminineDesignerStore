@@ -486,3 +486,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 514 OK
 - `browser-checks/gallery_pswp.js` (phone + desktop, DEBUG on and off) — viewer opens from tap and from the expand button, next works, closes, carousel follows; no JS errors
 - `browser-checks/qa_design.js` — unchanged baseline (demo-DB missing images, labelled 13px radio)
+
+## T48 — Blouse catalogue import (2026-10-18)
+
+- `python manage.py test` — 521 OK (test_import_catalogue.py: create, reuse, re-run skip, SKU clash, dry run, validation, shipped catalogue dry-run = 22)
+- `makemigrations --check` — no changes
+- Demo import: 22 added; shop + product pages render all photos on phone/desktop, no JS errors

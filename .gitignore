@@ -10,3 +10,5 @@ staticfiles/
 .claude/
 reference.png
 web_temp/
+# Raw lookbook canvases (split copies live in catalogue/)
+product_image_canvas/

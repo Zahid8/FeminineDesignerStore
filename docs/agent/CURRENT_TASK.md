@@ -677,3 +677,15 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   counter, in the studio cream palette. Closing returns the gallery to the
   photo the customer was on.
 - Product cards: 4:5 frame, whole photo shown instead of a crop.
+
+## T48 — Blouse catalogue import (2026-10-18)
+
+- 22 lookbook canvases (2×2: front, back, worn front, worn back) split by
+  `catalogue/split_canvas.py` (cuts on the white gutters, trims, squares to
+  1080px; full-bleed studio shots are centre-cropped instead of boxed).
+- `catalogue/2026-10-blouses/`: photos + `catalogue.json` (names and copy
+  written from the photos; ₹2,200, stock 10, Blouses, new arrival,
+  SKUs FD-BL-101…122, colour, fabric, care, occasions).
+- `python manage.py import_catalogue <folder> [--dry-run]`: validates first,
+  creates products + ordered photos (first = primary, alt text per view),
+  reuses category/occasions, skips existing slugs and taken SKUs.
