@@ -39,7 +39,13 @@ def _safe_next(request, value):
 
 def phone_login(request):
     """Step 1: collect the number and send a code."""
+    from store.sms import otp_delivery_available
+
     next_url = _safe_next(request, request.GET.get("next") or request.POST.get("next"))
+    available = otp_delivery_available()
+    if request.method == "POST" and not available:
+        messages.error(request, "Mobile sign-in is not available right now. Please use email or Google.")
+        return redirect("phone_login")
     if request.method == "POST":
         form = PhoneLoginForm(request.POST)
         if form.is_valid():
@@ -57,7 +63,7 @@ def phone_login(request):
     else:
         form = PhoneLoginForm()
     ctx = _base_context(request)
-    ctx.update({"form": form, "next": next_url})
+    ctx.update({"form": form, "next": next_url, "otp_available": available})
     return render(request, "store/account_phone_login.html", ctx)
 
 

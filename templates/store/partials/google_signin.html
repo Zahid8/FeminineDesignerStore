@@ -1,0 +1,40 @@
+{% if google_client_id %}
+<div class="fd-or" role="separator"><span>or</span></div>
+<form method="post" action="{% url 'google_signin' %}" data-google-form hidden>
+  {% csrf_token %}
+  <input type="hidden" name="credential">
+  <input type="hidden" name="next" value="{{ next|default:'' }}">
+</form>
+<div class="fd-google-btn" data-google-button data-client-id="{{ google_client_id }}" aria-label="Continue with Google"></div>
+<script>
+(function () {
+  var holder = document.currentScript.previousElementSibling;
+  var form = holder.previousElementSibling;
+  function render() {
+    if (!window.google || !google.accounts || !google.accounts.id) return;
+    if (!window.__fdGoogleInit) {
+      google.accounts.id.initialize({
+        client_id: holder.getAttribute('data-client-id'),
+        callback: function (resp) {
+          var f = document.querySelector('[data-google-form]');
+          f.querySelector('[name=credential]').value = resp.credential;
+          f.submit();
+        },
+        ux_mode: 'popup',
+        context: 'signin',
+        itp_support: true
+      });
+      window.__fdGoogleInit = true;
+    }
+    google.accounts.id.renderButton(holder, {
+      type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'center',
+      width: Math.min(400, Math.max(200, Math.round(holder.getBoundingClientRect().width || 320)))
+    });
+  }
+  if (window.google && google.accounts) { render(); return; }
+  var s = document.querySelector('script[src^="https://accounts.google.com/gsi/client"]');
+  if (!s) { s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.defer = true; document.head.appendChild(s); }
+  s.addEventListener('load', render);
+})();
+</script>
+{% endif %}

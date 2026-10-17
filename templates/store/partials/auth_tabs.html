@@ -1,4 +1,4 @@
 <nav class="fd-auth-tabs" aria-label="Sign-in method">
-  <a href="{% url 'account_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="{% if active == 'email' %}is-active{% endif %}"{% if active == 'email' %} aria-current="page"{% endif %}>Email &amp; password</a>
   <a href="{% url 'phone_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="{% if active == 'phone' %}is-active{% endif %}"{% if active == 'phone' %} aria-current="page"{% endif %}>Mobile OTP</a>
+  <a href="{% url 'account_login' %}?method=email{% if next %}&amp;next={{ next|urlencode }}{% endif %}" class="{% if active == 'email' %}is-active{% endif %}"{% if active == 'email' %} aria-current="page"{% endif %}>Email &amp; password</a>
 </nav>

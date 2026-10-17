@@ -713,3 +713,20 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - Payment page opens Checkout automatically, retry button, failure/dismiss
   messages, 15-min Checkout timeout, WhatsApp help; success page shows
   "Almost there — Pay now" / "Order cancelled"; account orders get Pay now.
+
+## T51 — Real OTP SMS + Google sign-in (2026-10-18)
+
+- `store/sms.py`: `send_otp(to, code, minutes, store)` path for DLT
+  providers; `Msg91OtpBackend` (POST control.msg91.com/api/v5/otp with
+  template_id/mobile/authkey/otp) and `TwoFactorOtpBackend`; friendly errors,
+  failed sends discard the code. Console backend counts as "not live": in
+  production the OTP page says mobile sign-in is being set up and offers
+  Google/email instead of silently never sending.
+- Once a real SMS backend is set, `/accounts/login/` opens the Mobile OTP
+  screen (tab first); `?method=email` keeps email login one tap away.
+  Register page leads with "Continue with mobile" + Google.
+- Google sign-in (`views_google.py`, GIS button partial): ID token verified
+  with google-auth (audience, issuer, expiry); links by `CustomerProfile.
+  google_sub` (migration 0029), links an existing customer by verified email
+  (never staff), else creates a passwordless account; profile page can
+  connect Google. Hidden when GOOGLE_CLIENT_ID is empty.

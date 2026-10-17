@@ -1,6 +1,9 @@
 from django.contrib import messages
 import logging
 
+from django.conf import settings
+from urllib.parse import quote
+
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -49,6 +52,7 @@ def _base_context(request):
         "wishlist_count": len(wishlist_ids),
         "footer_pages": selectors.get_footer_pages(),
         "has_faq": selectors.has_faq(),
+        "google_client_id": getattr(settings, "GOOGLE_CLIENT_ID", ""),
     }
     ctx.update(_cart_context(request))
     return ctx
@@ -592,14 +596,24 @@ def account_register(request):
             return redirect("home")
     else:
         form = RegistrationForm()
+    from store.sms import real_sms_configured
+
     ctx = _base_context(request)
     ctx["form"] = form
+    ctx["otp_available"] = real_sms_configured() or settings.DEBUG
     return render(request, "store/account_register.html", ctx)
 
 
 def account_login(request):
+    from store.sms import real_sms_configured
+
     if request.user.is_authenticated:
         return redirect("account_profile")
+    # Most customers sign in with a mobile code: once SMS is set up, that is the default screen.
+    if request.method == "GET" and request.GET.get("method") != "email" and real_sms_configured():
+        target = reverse("phone_login")
+        nxt = request.GET.get("next", "")
+        return redirect(target + (f"?next={quote(nxt)}" if nxt else ""))
     if request.method == "POST":
         form = LoginForm(data=request.POST)
         if form.is_valid():

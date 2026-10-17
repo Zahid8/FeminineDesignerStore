@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -219,6 +220,15 @@ SMS_BACKEND = os.getenv("SMS_BACKEND", "store.sms.ConsoleSmsBackend")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
 TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER", "")  # +E.164 number or MG... service SID
+# Google sign-in (Google Identity Services). OAuth client ID of type "Web application";
+# add the site origin under Authorized JavaScript origins. Empty = button hidden.
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+# MSG91 (SMS_BACKEND=store.sms.Msg91OtpBackend): auth key + DLT-approved OTP template (uses ##OTP##).
+MSG91_AUTH_KEY = os.getenv("MSG91_AUTH_KEY", "")
+MSG91_OTP_TEMPLATE_ID = os.getenv("MSG91_OTP_TEMPLATE_ID", "")
+# 2Factor.in (SMS_BACKEND=store.sms.TwoFactorOtpBackend): API key + approved OTP template name.
+TWOFACTOR_API_KEY = os.getenv("TWOFACTOR_API_KEY", "")
+TWOFACTOR_OTP_TEMPLATE = os.getenv("TWOFACTOR_OTP_TEMPLATE", "")
 OTP_LENGTH = 6
 OTP_TTL_SECONDS = 300
 OTP_MAX_ATTEMPTS = 5
@@ -235,3 +245,6 @@ CLIENT_IP_TRUSTED_PROXIES = int(os.getenv("CLIENT_IP_TRUSTED_PROXIES", "1"))
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# True while running the test suite (console SMS counts as delivered there).
+TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"

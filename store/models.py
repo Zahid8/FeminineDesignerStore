@@ -897,6 +897,7 @@ class CustomerProfile(models.Model):
     # Verified number in E.164 form, used for OTP login (one account per number).
     phone_e164 = models.CharField(max_length=20, unique=True, blank=True, null=True)
     phone_verified_at = models.DateTimeField(blank=True, null=True)
+    google_sub = models.CharField("Google account ID", max_length=64, unique=True, blank=True, null=True)
     saved_measurements = models.JSONField(blank=True, null=True, help_text="Last measurements used, in inches.")
     shipping_address = models.TextField(blank=True, null=True)
     address_line1 = models.CharField("Address line 1", max_length=160, blank=True, help_text="House / flat, building, street")

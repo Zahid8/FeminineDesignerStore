@@ -1328,3 +1328,8 @@ a.fd-link-underline, a.btn-link.fd-link-underline, .fd-link-underline { border-b
 .fd-pay-status { margin: 0 0 1rem; padding: 0.8rem 1rem; border-radius: var(--fd-r-sm); font-size: 0.92rem; text-align: left; background: var(--fd-paper); box-shadow: var(--fd-pressed-sm); }
 .fd-pay-status.is-error { color: #8a1c2b; }
 .fd-pay-status.is-ok { color: #1d6b43; }
+/* ===== T51 sign-in options ===== */
+.fd-or { display: flex; align-items: center; gap: 0.9rem; margin: 1.4rem 0 1.1rem; color: var(--fd-muted); font-size: 0.66rem; letter-spacing: var(--fd-track); text-transform: uppercase; }
+.fd-or::before, .fd-or::after { content: ""; flex: 1; height: 1px; background: var(--fd-line); }
+.fd-google-btn { display: flex; justify-content: center; min-height: 44px; }
+.fd-register-fast { margin-bottom: 0; }

@@ -14,6 +14,12 @@
       <div class="fd-auth-form">
         <h2 class="mb-2">Create Account</h2>
         <p class="text-muted mb-4">It only takes a minute.</p>
+        {% if otp_available %}
+        <a href="{% url 'phone_login' %}" class="btn btn-dark btn-lg w-100 fd-register-fast">Continue with mobile</a>
+        <p class="helptext text-center mt-2 mb-0">We text you a code. No password needed.</p>
+        {% endif %}
+        {% include "store/partials/google_signin.html" %}
+        {% if otp_available or google_client_id %}<div class="fd-or" role="separator"><span>or create one with email</span></div>{% endif %}
         <form method="post" class="fd-form" novalidate>
           {% csrf_token %}
           {% include "store/partials/form_fields.html" with form=form %}

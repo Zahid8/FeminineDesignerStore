@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from store import views, views_api, views_extra, views_phone
+from store import views_google, views, views_api, views_extra, views_phone
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -54,6 +54,7 @@ urlpatterns = [
     path("accounts/register/", views.account_register, name="account_register"),
     path("accounts/login/", views.account_login, name="account_login"),
     path("accounts/login/phone/", views_phone.phone_login, name="phone_login"),
+    path("accounts/login/google/", views_google.google_signin, name="google_signin"),
     path("accounts/login/phone/verify/", views_phone.phone_verify, name="phone_verify"),
     path("accounts/logout/", views.account_logout, name="account_logout"),
     path(

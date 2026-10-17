@@ -16,7 +16,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from store.models import CustomerProfile, PhoneOTP
-from store.sms import SmsDeliveryError, send_sms
+from store.sms import SmsDeliveryError, send_otp_sms
 
 
 class OTPError(Exception):
@@ -60,7 +60,7 @@ def issue(phone, ip=None, store_name="FemDes"):
         )
     minutes = settings.OTP_TTL_SECONDS // 60
     try:
-        send_sms(phone, f"{code} is your {store_name} login code. It expires in {minutes} minutes. Do not share it with anyone.")
+        send_otp_sms(phone, code, minutes, store_name)
     except SmsDeliveryError as exc:
         otp.delete()
         raise OTPError(str(exc)) from exc

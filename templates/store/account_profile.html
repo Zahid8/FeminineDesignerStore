@@ -21,6 +21,7 @@
           <p class="text-muted mb-1">{{ user.email }}</p>
           {% if user.profile.phone %}<p class="text-muted mb-1">Phone: {{ user.profile.phone }}</p>{% endif %}
           {% if user.profile.phone_e164 %}<p class="small mb-1"><span class="fd-stock">Mobile verified for OTP sign-in</span></p>{% else %}<p class="small mb-1"><a href="{% url 'phone_login' %}">Verify a mobile number for OTP sign-in &rarr;</a></p>{% endif %}
+          {% if google_client_id %}{% if user.profile.google_sub %}<p class="small mb-1"><span class="fd-stock">Google sign-in connected</span></p>{% else %}<details class="fd-connect-google small mb-1"><summary>Connect Google for one-tap sign-in &rarr;</summary>{% url 'account_profile' as profile_url %}{% include "store/partials/google_signin.html" with next=profile_url %}</details>{% endif %}{% endif %}
         </div>
       </div>
       {% if user.profile.shipping_address %}
