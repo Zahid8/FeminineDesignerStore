@@ -45,16 +45,16 @@
               <div class="col-sm-6"><strong>Date:</strong> {{ order.created_at|date:"F j, Y" }}</div>
             </div>
             <div class="table-responsive">
-            <table class="table">
+            <table class="table fd-stack-table">
               <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
               <tbody>
                 {% for item in order.items.all %}
                 <tr>
-                  <td>{{ item.product_name }}{% if item.color or item.size %}<br><small class="text-muted">{{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}</small>{% endif %}{% include "store/partials/custom_summary.html" with rows=item.customization|custom_rows notes=item.customization.notes compact=True %}</td>
-                  <td>{{ item.sku }}</td>
-                  <td>{{ item.quantity }}</td>
-                  <td>{{ currency }}{{item.unit_price }}</td>
-                  <td>{{ currency }}{{item.line_total }}</td>
+                  <td data-label="Product">{{ item.product_name }}{% if item.color or item.size %}<br><small class="text-muted">{{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}</small>{% endif %}{% include "store/partials/custom_summary.html" with rows=item.customization|custom_rows notes=item.customization.notes compact=True %}</td>
+                  <td data-label="SKU">{{ item.sku }}</td>
+                  <td data-label="Qty">{{ item.quantity }}</td>
+                  <td data-label="Price">{{ currency }}{{item.unit_price }}</td>
+                  <td data-label="Total">{{ currency }}{{item.line_total }}</td>
                 </tr>
                 {% endfor %}
               </tbody>

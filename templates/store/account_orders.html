@@ -31,17 +31,17 @@
 
     {% if orders %}
     <div class="indichic-card p-3 p-md-4"><div class="table-responsive">
-      <table class="table indichic-table align-middle mb-0">
+      <table class="table fd-stack-table indichic-table align-middle mb-0">
         <thead><tr><th>Order #</th><th>Date</th><th>Status</th><th>Payment</th><th>Total</th><th></th></tr></thead>
         <tbody>
           {% for order in orders %}
           <tr>
-            <td class="fw-semibold text-dark">{{ order.order_number }}</td>
-            <td>{{ order.created_at|date:"M j, Y" }}</td>
-            <td><span class="fd-status-pill">{{ order.get_status_display }}</span></td>
-            <td>{{ order.get_payment_status_display }}</td>
-            <td>{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</td>
-            <td><a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark rounded-pill">View</a></td>
+            <td data-label="Order" class="fw-semibold text-dark">{{ order.order_number }}</td>
+            <td data-label="Date">{{ order.created_at|date:"M j, Y" }}</td>
+            <td data-label="Status"><span class="fd-status-pill">{{ order.get_status_display }}</span></td>
+            <td data-label="Payment">{{ order.get_payment_status_display }}</td>
+            <td data-label="Total">{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</td>
+            <td data-label=""><a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark rounded-pill">View</a></td>
           </tr>
           {% endfor %}
         </tbody>

@@ -639,3 +639,16 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   `/storefront-admin` (staff-only via middleware) redirects to the shop; a
   big "Edit storefront" card sits at the top of Online Orders. Shared test
   vector in both test suites. Browser check: `browser-checks/handoff.js`.
+
+## T45 — Full design QA (2026-10-18)
+
+- `browser-checks/qa_design.js`: every customer page at 360/390/768/1024/1440
+  for sideways scroll, text escaping or touching its box, clipped/overlapping
+  text, contrast, broken images, phone tap targets, JS/HTTP errors;
+  `btnwrap.js` for button labels wrapping; `screens.js` phone screen captures.
+- Fixed: order tables stack as labelled rows on phones (orders, order
+  detail, order success); checkout sideways scroll (phone + tablet gutters);
+  eyebrow and WhatsApp-button contrast; image-less category tiles (wine text,
+  no muddy overlay); stat boxes; card badges single-line; underline links
+  and breadcrumbs alignment; button labels on phones; tap targets ≥ 36px.
+- Final run: 0 design issues (only demo-only missing images remain).
