@@ -196,6 +196,143 @@
 
             </div>
 
+            {% if can_custom %}
+            <noscript><style>#customize-section{display:block!important}</style></noscript>
+            <section class="fd-builder" id="customize-section" x-show="fit === 'custom'"{% if not custom_open %} style="display:none"{% endif %}{% if custom_form.errors %} x-init="$nextTick(() => serverErrors())"{% endif %}
+              x-data="{ step: 1, unit: '{{ custom_form.unit.value|default:'in' }}', m: { {% for field, spec in custom_form.measurement_fields %}{{ field.name }}: '{{ field.value|default_if_none:''|escapejs }}', {% endfor %}sleeve_style: '{{ custom_form.sleeve_style.value|default_if_none:''|escapejs }}', notes: '{{ custom_form.notes.value|default_if_none:''|escapejs }}' }, req: ['length', 'chest', 'waist', 'armhole', 'opening', 'bicep'], convert(to) { if (to === this.unit) return; const f = to === 'cm' ? 2.54 : 1 / 2.54; this.$root.querySelectorAll('input[data-measure]').forEach(i => { if (i.value !== '') { i.value = (Math.round(parseFloat(i.value) * f * 100) / 100).toString(); i.dispatchEvent(new Event('input')); } }); this.unit = to; }, missing() { return this.req.filter(k => !this.m[k] && this.m[k] !== 0).length; }, showErrors: {% if custom_form.errors %}true{% else %}false{% endif %}, problems() { const out = []; this.$root.querySelectorAll('input[data-measure]').forEach(i => { const raw = this.m[i.name]; const v = parseFloat(raw); const label = i.dataset.label; if (raw === undefined || raw === null || String(raw).trim() === '' || isNaN(v)) { if (i.required) out.push({ name: i.name, msg: 'Please enter your ' + label.toLowerCase() + '.' }); return; } const f = this.unit === 'cm' ? 2.54 : 1; const lo = parseFloat(i.dataset.min), hi = parseFloat(i.dataset.max); const inches = v / f; if (inches < lo - 0.005 || inches > hi + 0.005) out.push({ name: i.name, msg: label + ' should be between ' + (Math.round(lo * f * 10) / 10) + '–' + (Math.round(hi * f * 10) / 10) + ' ' + this.unit + '.' }); }); return out; }, err(name) { const p = this.problems().find(x => x.name === name); return p ? p.msg : ''; }, goFix() { this.step = 1; this.showErrors = true; this.$nextTick(() => { const p = this.problems()[0]; const el = p ? this.$root.querySelector('#id_' + p.name) : this.$root; if (!el) return; const d = el.closest && el.closest('details'); if (d) d.open = true; el.scrollIntoView({ block: 'center' }); if (el.focus) el.focus({ preventScroll: true }); }); }, guard(e) { if (this.problems().length) { e.preventDefault(); this.goFix(); } }, serverErrors() { if (this.problems().length) { this.goFix(); return; } this.step = 3; this.$nextTick(() => { const e = this.$root.querySelector('.fd-field-error, .alert-danger'); const d = e && e.closest('details'); if (d) d.open = true; (e || this.$root).scrollIntoView({ block: 'center' }); }); } }">
+              <header class="fd-builder-head">
+                <div>
+                  <span class="fd-eyebrow">Made to measure</span>
+                  <h3 class="mb-1">Customize Your Blouse</h3>
+                  <p class="text-muted mb-0">Enter your measurements below and we tailor this design to you. {{ custom_lead_time }} to dispatch.</p>
+                </div>
+                <ol class="fd-builder-steps" aria-label="Steps">
+                  <li :class="{ 'is-active': step === 1, 'is-done': step > 1 }"><button type="button" @click="step = 1">Measurements</button></li>
+                  <li :class="{ 'is-active': step === 2, 'is-done': step > 2 }"><button type="button" @click="step = 2">Style</button></li>
+                  <li :class="{ 'is-active': step === 3 }"><button type="button" @click="step = 3">Review</button></li>
+                </ol>
+              </header>
+
+              <form method="post" action="{% url 'add_to_cart' product.pk %}" id="custom-fit-form" class="fd-builder-form" data-fd-busy novalidate @submit="guard($event)">
+                {% csrf_token %}
+                <input type="hidden" name="custom" value="1">
+                <input type="hidden" name="quantity" value="1">
+                <input type="hidden" name="unit" :value="unit" value="{{ custom_form.unit.value|default:'in' }}">
+                {% for e in custom_form.non_field_errors %}<div class="alert alert-danger small">{{ e }}</div>{% endfor %}
+
+                <!-- Step 1: measurements -->
+                <div class="fd-builder-step" x-show="step === 1">
+                  <div class="fd-builder-grid">
+                    <div>
+                      {% if custom_from_request %}<p class="fd-note mb-3"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#check"></use></svg><span>Prefilled from your fitting request — review and add to bag when you're ready.</span></p>{% elif custom_from_profile %}<p class="fd-note mb-3"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#check"></use></svg><span>Prefilled with your saved measurements — please review them.</span></p>{% endif %}
+                      <div class="fd-builder-tools">
+                      <div class="fd-unit-toggle" role="group" aria-label="Units">
+                        <button type="button" :aria-pressed="(unit === 'in').toString()" @click="convert('in')">inches</button>
+                        <button type="button" :aria-pressed="(unit === 'cm').toString()" @click="convert('cm')">cm</button>
+                      </div>
+                      </div>
+                      <div class="fd-measure-grid">
+                        {% for field, spec in custom_form.measurement_fields %}
+                        {% if spec.2 %}
+                        <div class="fd-measure{% if field.errors %} has-error{% endif %}" :class="{ 'has-error': showErrors && err('{{ field.name }}') }">
+                          <label for="{{ field.id_for_label }}"><span class="fd-measure-num">{{ forloop.counter }}</span><span x-text="'{{ spec.1 }} (' + unit + ')'">{{ spec.1 }} (in)</span></label>
+                          <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" required data-measure data-label="{{ spec.1 }}" data-min="{{ spec.3.0 }}" data-max="{{ spec.3.1 }}" x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
+                          <small id="{{ field.id_for_label }}-hint">{{ spec.4 }}</small>
+                          {% for e in field.errors %}<p class="fd-field-error" x-show="!showErrors || !err('{{ field.name }}')">{{ e }}</p>{% endfor %}
+                          <p class="fd-field-error" role="alert" x-show="showErrors && err('{{ field.name }}')" x-text="err('{{ field.name }}')" style="display:none"></p>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                      </div>
+                      <details class="fd-optional">
+                        <summary>Optional details <span class="text-muted">(sleeve length, necklines)</span></summary>
+                        <div class="fd-measure-grid mt-3">
+                          {% for field, spec in custom_form.measurement_fields %}
+                          {% if not spec.2 %}
+                          <div class="fd-measure{% if field.errors %} has-error{% endif %}" :class="{ 'has-error': showErrors && err('{{ field.name }}') }">
+                            <label for="{{ field.id_for_label }}"><span class="fd-measure-num">{{ forloop.counter }}</span><span x-text="'{{ spec.1 }} (' + unit + ')'">{{ spec.1 }} (in)</span></label>
+                            <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" data-measure data-label="{{ spec.1 }}" data-min="{{ spec.3.0 }}" data-max="{{ spec.3.1 }}" x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
+                            <small id="{{ field.id_for_label }}-hint">{{ spec.4 }}</small>
+                            {% for e in field.errors %}<p class="fd-field-error" x-show="!showErrors || !err('{{ field.name }}')">{{ e }}</p>{% endfor %}
+                          <p class="fd-field-error" role="alert" x-show="showErrors && err('{{ field.name }}')" x-text="err('{{ field.name }}')" style="display:none"></p>
+                          </div>
+                          {% endif %}
+                          {% endfor %}
+                        </div>
+                      </details>
+                      {% if product.measurement_note %}<p class="fd-guide-note mt-3">{{ product.measurement_note }}</p>{% endif %}
+                      <p class="fd-guide-help mt-3 mb-0">Not sure? <a href="{% url 'appointment_book' %}?product={{ product.pk }}">Book a fitting consultation</a>{% if site_settings.whatsapp_url %} or <a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">ask on WhatsApp</a>{% endif %}.</p>
+                    </div>
+                  </div>
+                  <div class="fd-builder-nav">
+                    <span class="text-muted small" x-show="missing() > 0" x-text="missing() + ' required measurement' + (missing() === 1 ? '' : 's') + ' left'"></span>
+                    <button type="button" class="btn btn-dark ms-auto" @click="problems().length ? goFix() : (step = 2)">Continue to style</button>
+                  </div>
+                </div>
+
+                <!-- Step 2: style -->
+                <div class="fd-builder-step" x-show="step === 2">
+                  <p class="fd-label">Sleeves</p>
+                  <div class="fd-options mb-4">
+                    {% for value, label in custom_form.fields.sleeve_style.choices %}
+                    <input type="radio" name="sleeve_style" value="{{ value }}" id="sleeve-{{ forloop.counter }}"{% if custom_form.sleeve_style.value|default:"" == value %} checked{% endif %} x-model="m.sleeve_style">
+                    <label for="sleeve-{{ forloop.counter }}">{{ label }}</label>
+                    {% endfor %}
+                  </div>
+                  <label class="form-label" for="custom-notes">Notes for the tailor</label>
+                  <textarea name="notes" id="custom-notes" class="form-control" rows="3" maxlength="500" placeholder="Neckline shape, closure preference, padding, lining…" x-model="m.notes">{{ custom_form.notes.value|default:"" }}</textarea>
+                  <div class="fd-builder-nav">
+                    <button type="button" class="btn btn-outline-dark" @click="step = 1">Back</button>
+                    <button type="button" class="btn btn-dark ms-auto" @click="step = 3">Review</button>
+                  </div>
+                </div>
+
+                <!-- Step 3: review -->
+                <div class="fd-builder-step" x-show="step === 3">
+                  <div class="fd-review">
+                    <div class="fd-review-list">
+                      <p class="fd-label mb-2">Your measurements</p>
+                      <ul class="fd-custom-chips">
+                        {% for field, spec in custom_form.measurement_fields %}
+                        <li x-show="m.{{ field.name }}"><span>{{ spec.1 }}</span><span x-text="(m.{{ field.name }} || '') + ' ' + unit"></span></li>
+                        {% endfor %}
+                        <li x-show="m.sleeve_style"><span>Sleeves</span><span x-text="({ sleeveless: 'Sleeveless', cap: 'Cap sleeve', short: 'Short sleeve', elbow: 'Elbow length', three_quarter: 'Three-quarter', full: 'Full sleeve' })[m.sleeve_style] || ''"></span></li>
+                      </ul>
+                      <div class="alert alert-warning small mt-3 mb-0" role="alert" x-show="problems().length" style="display:none" data-mtm-problems>
+                        <p class="mb-1"><strong>Before we can add this to your bag:</strong></p>
+                        <ul class="mb-2 ps-3"><template x-for="p in problems()" :key="p.name"><li x-text="p.msg"></li></template></ul>
+                        <button type="button" class="btn btn-dark btn-sm" @click="goFix()">Complete measurements</button>
+                      </div>
+                    </div>
+                    <div class="fd-review-price">
+                      <div class="fd-summary-row"><span>{{ product.name }}</span><span>{{ currency }}{{ product.get_effective_price }}</span></div>
+                      <div class="fd-summary-row"><span>Made-to-measure tailoring</span><span>{% if custom_fee %}{{ currency }}{{ custom_fee }}{% else %}Included{% endif %}</span></div>
+                      <div class="fd-summary-row is-total"><span>Per piece</span><strong>{{ currency }}{{ custom_total }}</strong></div>
+                      <p class="fd-dispatch mt-3"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#truck"></use></svg><span>Dispatch in <strong>{{ custom_lead_time }}</strong> after confirmation</span></p>
+                      <p class="small text-muted mt-3 mb-0">Payment is taken at checkout like any other item.</p>
+                    </div>
+                  </div>
+                  <div class="fd-terms">
+                    <p class="fd-label mb-1">Made-to-measure terms</p>
+                    <p class="mb-0">{{ site_settings.customization_terms|default:"Made-to-measure pieces are cut and stitched to the measurements you provide, so they cannot be exchanged for a different size. Our team will confirm your measurements with you before stitching begins." }}</p>
+                  </div>
+                  <div class="fd-builder-actions">
+                    <button type="submit" class="btn btn-dark btn-lg">Add Made-to-Measure to Bag</button>
+                    <details class="fd-share-request"{% if custom_form.customer_name.errors or custom_form.customer_phone.errors %} open{% endif %}>
+                      <summary>Prefer to talk first? Request a fitting call</summary>
+                      <p class="small text-muted mt-2 mb-2">We'll save these measurements and call you to confirm them — no payment needed now.</p>
+                      <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="cf-name">Name</label><input type="text" id="cf-name" name="customer_name" class="form-control" maxlength="160" autocomplete="name" value="{{ custom_form.customer_name.value|default:'' }}">{% for e in custom_form.customer_name.errors %}<p class="fd-field-error">{{ e }}</p>{% endfor %}</div>
+                        <div class="col-md-6"><label class="form-label" for="cf-phone">Mobile</label><input type="text" id="cf-phone" name="customer_phone" class="form-control" maxlength="40" autocomplete="tel" inputmode="tel" value="{{ custom_form.customer_phone.value|default:'' }}">{% for e in custom_form.customer_phone.errors %}<p class="fd-field-error">{{ e }}</p>{% endfor %}</div>
+                        <div class="col-12"><button type="submit" class="btn btn-outline-dark" formaction="{% url 'customization_create' product.slug %}" formnovalidate>Request a Fitting Call</button></div>
+                      </div>
+                    </details>
+                  </div>
+                  <div class="fd-builder-nav mt-3"><button type="button" class="btn btn-link" @click="step = 2">&larr; Back</button></div>
+                </div>
+              </form>
+            </section>
+            {% endif %}
           </div>
           {% endwith %}
 
@@ -280,147 +417,6 @@
       </div>
     </div>
 
-    {% if product.allow_customization %}
-    <div class="row" id="customize-row">
-      <div class="col-12">
-            {% if product.allow_customization %}
-            <noscript><style>#customize-section{display:block!important}</style></noscript>
-            <section class="fd-builder" id="customize-section" x-show="fit === 'custom'"{% if not custom_open %} style="display:none"{% endif %}{% if custom_form.errors %} x-init="$nextTick(() => serverErrors())"{% endif %}
-              x-data="{ step: 1, unit: '{{ custom_form.unit.value|default:'in' }}', m: { {% for field, spec in custom_form.measurement_fields %}{{ field.name }}: '{{ field.value|default_if_none:''|escapejs }}', {% endfor %}sleeve_style: '{{ custom_form.sleeve_style.value|default_if_none:''|escapejs }}', notes: '{{ custom_form.notes.value|default_if_none:''|escapejs }}' }, req: ['length', 'chest', 'waist', 'armhole', 'opening', 'bicep'], convert(to) { if (to === this.unit) return; const f = to === 'cm' ? 2.54 : 1 / 2.54; this.$root.querySelectorAll('input[data-measure]').forEach(i => { if (i.value !== '') { i.value = (Math.round(parseFloat(i.value) * f * 100) / 100).toString(); i.dispatchEvent(new Event('input')); } }); this.unit = to; }, missing() { return this.req.filter(k => !this.m[k] && this.m[k] !== 0).length; }, showErrors: {% if custom_form.errors %}true{% else %}false{% endif %}, problems() { const out = []; this.$root.querySelectorAll('input[data-measure]').forEach(i => { const raw = this.m[i.name]; const v = parseFloat(raw); const label = i.dataset.label; if (raw === undefined || raw === null || String(raw).trim() === '' || isNaN(v)) { if (i.required) out.push({ name: i.name, msg: 'Please enter your ' + label.toLowerCase() + '.' }); return; } const f = this.unit === 'cm' ? 2.54 : 1; const lo = parseFloat(i.dataset.min), hi = parseFloat(i.dataset.max); const inches = v / f; if (inches < lo - 0.005 || inches > hi + 0.005) out.push({ name: i.name, msg: label + ' should be between ' + (Math.round(lo * f * 10) / 10) + '–' + (Math.round(hi * f * 10) / 10) + ' ' + this.unit + '.' }); }); return out; }, err(name) { const p = this.problems().find(x => x.name === name); return p ? p.msg : ''; }, goFix() { this.step = 1; this.showErrors = true; this.$nextTick(() => { const p = this.problems()[0]; const el = p ? this.$root.querySelector('#id_' + p.name) : this.$root; if (!el) return; const d = el.closest && el.closest('details'); if (d) d.open = true; el.scrollIntoView({ block: 'center' }); if (el.focus) el.focus({ preventScroll: true }); }); }, guard(e) { if (this.problems().length) { e.preventDefault(); this.goFix(); } }, serverErrors() { if (this.problems().length) { this.goFix(); return; } this.step = 3; this.$nextTick(() => { const e = this.$root.querySelector('.fd-field-error, .alert-danger'); const d = e && e.closest('details'); if (d) d.open = true; (e || this.$root).scrollIntoView({ block: 'center' }); }); } }">
-              <header class="fd-builder-head">
-                <div>
-                  <span class="fd-eyebrow">Made to measure</span>
-                  <h3 class="mb-1">Customize Your Blouse</h3>
-                  <p class="text-muted mb-0">Enter your measurements below and we tailor this design to you. {{ custom_lead_time }} to dispatch.</p>
-                </div>
-                <ol class="fd-builder-steps" aria-label="Steps">
-                  <li :class="{ 'is-active': step === 1, 'is-done': step > 1 }"><button type="button" @click="step = 1">Measurements</button></li>
-                  <li :class="{ 'is-active': step === 2, 'is-done': step > 2 }"><button type="button" @click="step = 2">Style</button></li>
-                  <li :class="{ 'is-active': step === 3 }"><button type="button" @click="step = 3">Review</button></li>
-                </ol>
-              </header>
-
-              <form method="post" action="{% url 'add_to_cart' product.pk %}" id="custom-fit-form" class="fd-builder-form" data-fd-busy novalidate @submit="guard($event)">
-                {% csrf_token %}
-                <input type="hidden" name="custom" value="1">
-                <input type="hidden" name="quantity" value="1">
-                <input type="hidden" name="unit" :value="unit" value="{{ custom_form.unit.value|default:'in' }}">
-                {% for e in custom_form.non_field_errors %}<div class="alert alert-danger small">{{ e }}</div>{% endfor %}
-
-                <!-- Step 1: measurements -->
-                <div class="fd-builder-step" x-show="step === 1">
-                  <div class="fd-builder-grid">
-                    <div>
-                      {% if custom_from_request %}<p class="fd-note mb-3"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#check"></use></svg><span>Prefilled from your fitting request — review and add to bag when you're ready.</span></p>{% elif custom_from_profile %}<p class="fd-note mb-3"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#check"></use></svg><span>Prefilled with your saved measurements — please review them.</span></p>{% endif %}
-                      <div class="fd-builder-tools">
-                      <div class="fd-unit-toggle" role="group" aria-label="Units">
-                        <button type="button" :aria-pressed="(unit === 'in').toString()" @click="convert('in')">inches</button>
-                        <button type="button" :aria-pressed="(unit === 'cm').toString()" @click="convert('cm')">cm</button>
-                      </div>
-                      </div>
-                      <div class="fd-measure-grid">
-                        {% for field, spec in custom_form.measurement_fields %}
-                        {% if spec.2 %}
-                        <div class="fd-measure{% if field.errors %} has-error{% endif %}" :class="{ 'has-error': showErrors && err('{{ field.name }}') }">
-                          <label for="{{ field.id_for_label }}"><span class="fd-measure-num">{{ forloop.counter }}</span><span x-text="'{{ spec.1 }} (' + unit + ')'">{{ spec.1 }} (in)</span></label>
-                          <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" required data-measure data-label="{{ spec.1 }}" data-min="{{ spec.3.0 }}" data-max="{{ spec.3.1 }}" x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
-                          <small id="{{ field.id_for_label }}-hint">{{ spec.4 }}</small>
-                          {% for e in field.errors %}<p class="fd-field-error" x-show="!showErrors || !err('{{ field.name }}')">{{ e }}</p>{% endfor %}
-                          <p class="fd-field-error" role="alert" x-show="showErrors && err('{{ field.name }}')" x-text="err('{{ field.name }}')" style="display:none"></p>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                      </div>
-                      <details class="fd-optional">
-                        <summary>Optional details <span class="text-muted">(sleeve length, necklines)</span></summary>
-                        <div class="fd-measure-grid mt-3">
-                          {% for field, spec in custom_form.measurement_fields %}
-                          {% if not spec.2 %}
-                          <div class="fd-measure{% if field.errors %} has-error{% endif %}" :class="{ 'has-error': showErrors && err('{{ field.name }}') }">
-                            <label for="{{ field.id_for_label }}"><span class="fd-measure-num">{{ forloop.counter }}</span><span x-text="'{{ spec.1 }} (' + unit + ')'">{{ spec.1 }} (in)</span></label>
-                            <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" data-measure data-label="{{ spec.1 }}" data-min="{{ spec.3.0 }}" data-max="{{ spec.3.1 }}" x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
-                            <small id="{{ field.id_for_label }}-hint">{{ spec.4 }}</small>
-                            {% for e in field.errors %}<p class="fd-field-error" x-show="!showErrors || !err('{{ field.name }}')">{{ e }}</p>{% endfor %}
-                          <p class="fd-field-error" role="alert" x-show="showErrors && err('{{ field.name }}')" x-text="err('{{ field.name }}')" style="display:none"></p>
-                          </div>
-                          {% endif %}
-                          {% endfor %}
-                        </div>
-                      </details>
-                    </div>
-                  </div>
-                  <div class="fd-builder-nav">
-                    <span class="text-muted small" x-show="missing() > 0" x-text="missing() + ' required measurement' + (missing() === 1 ? '' : 's') + ' left'"></span>
-                    <button type="button" class="btn btn-dark ms-auto" @click="problems().length ? goFix() : (step = 2)">Continue to style</button>
-                  </div>
-                </div>
-
-                <!-- Step 2: style -->
-                <div class="fd-builder-step" x-show="step === 2">
-                  <p class="fd-label">Sleeves</p>
-                  <div class="fd-options mb-4">
-                    {% for value, label in custom_form.fields.sleeve_style.choices %}
-                    <input type="radio" name="sleeve_style" value="{{ value }}" id="sleeve-{{ forloop.counter }}"{% if custom_form.sleeve_style.value|default:"" == value %} checked{% endif %} x-model="m.sleeve_style">
-                    <label for="sleeve-{{ forloop.counter }}">{{ label }}</label>
-                    {% endfor %}
-                  </div>
-                  <label class="form-label" for="custom-notes">Notes for the tailor</label>
-                  <textarea name="notes" id="custom-notes" class="form-control" rows="3" maxlength="500" placeholder="Neckline shape, closure preference, padding, lining…" x-model="m.notes">{{ custom_form.notes.value|default:"" }}</textarea>
-                  <div class="fd-builder-nav">
-                    <button type="button" class="btn btn-outline-dark" @click="step = 1">Back</button>
-                    <button type="button" class="btn btn-dark ms-auto" @click="step = 3">Review</button>
-                  </div>
-                </div>
-
-                <!-- Step 3: review -->
-                <div class="fd-builder-step" x-show="step === 3">
-                  <div class="fd-review">
-                    <div class="fd-review-list">
-                      <p class="fd-label mb-2">Your measurements</p>
-                      <ul class="fd-custom-chips">
-                        {% for field, spec in custom_form.measurement_fields %}
-                        <li x-show="m.{{ field.name }}"><span>{{ spec.1 }}</span><span x-text="(m.{{ field.name }} || '') + ' ' + unit"></span></li>
-                        {% endfor %}
-                        <li x-show="m.sleeve_style"><span>Sleeves</span><span x-text="({ sleeveless: 'Sleeveless', cap: 'Cap sleeve', short: 'Short sleeve', elbow: 'Elbow length', three_quarter: 'Three-quarter', full: 'Full sleeve' })[m.sleeve_style] || ''"></span></li>
-                      </ul>
-                      <div class="alert alert-warning small mt-3 mb-0" role="alert" x-show="problems().length" style="display:none" data-mtm-problems>
-                        <p class="mb-1"><strong>Before we can add this to your bag:</strong></p>
-                        <ul class="mb-2 ps-3"><template x-for="p in problems()" :key="p.name"><li x-text="p.msg"></li></template></ul>
-                        <button type="button" class="btn btn-dark btn-sm" @click="goFix()">Complete measurements</button>
-                      </div>
-                    </div>
-                    <div class="fd-review-price">
-                      <div class="fd-summary-row"><span>{{ product.name }}</span><span>{{ currency }}{{ product.get_effective_price }}</span></div>
-                      <div class="fd-summary-row"><span>Made-to-measure tailoring</span><span>{% if custom_fee %}{{ currency }}{{ custom_fee }}{% else %}Included{% endif %}</span></div>
-                      <div class="fd-summary-row is-total"><span>Per piece</span><strong>{{ currency }}{{ custom_total }}</strong></div>
-                      <p class="fd-dispatch mt-3"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#truck"></use></svg><span>Dispatch in <strong>{{ custom_lead_time }}</strong> after confirmation</span></p>
-                      <p class="small text-muted mt-3 mb-0">Payment is taken at checkout like any other item.</p>
-                    </div>
-                  </div>
-                  <div class="fd-terms">
-                    <p class="fd-label mb-1">Made-to-measure terms</p>
-                    <p class="mb-0">{{ site_settings.customization_terms|default:"Made-to-measure pieces are cut and stitched to the measurements you provide, so they cannot be exchanged for a different size. Our team will confirm your measurements with you before stitching begins." }}</p>
-                  </div>
-                  <div class="fd-builder-actions">
-                    <button type="submit" class="btn btn-dark btn-lg">Add Made-to-Measure to Bag</button>
-                    <details class="fd-share-request"{% if custom_form.customer_name.errors or custom_form.customer_phone.errors %} open{% endif %}>
-                      <summary>Prefer to talk first? Request a fitting call</summary>
-                      <p class="small text-muted mt-2 mb-2">We'll save these measurements and call you to confirm them — no payment needed now.</p>
-                      <div class="row g-3">
-                        <div class="col-md-6"><label class="form-label" for="cf-name">Name</label><input type="text" id="cf-name" name="customer_name" class="form-control" maxlength="160" autocomplete="name" value="{{ custom_form.customer_name.value|default:'' }}">{% for e in custom_form.customer_name.errors %}<p class="fd-field-error">{{ e }}</p>{% endfor %}</div>
-                        <div class="col-md-6"><label class="form-label" for="cf-phone">Mobile</label><input type="text" id="cf-phone" name="customer_phone" class="form-control" maxlength="40" autocomplete="tel" inputmode="tel" value="{{ custom_form.customer_phone.value|default:'' }}">{% for e in custom_form.customer_phone.errors %}<p class="fd-field-error">{{ e }}</p>{% endfor %}</div>
-                        <div class="col-12"><button type="submit" class="btn btn-outline-dark" formaction="{% url 'customization_create' product.slug %}" formnovalidate>Request a Fitting Call</button></div>
-                      </div>
-                    </details>
-                  </div>
-                  <div class="fd-builder-nav mt-3"><button type="button" class="btn btn-link" @click="step = 2">&larr; Back</button></div>
-                </div>
-              </form>
-            </section>
-            {% endif %}
-      </div>
-    </div>
-    {% endif %}
   </div>
 
   {% if complete_the_look %}

@@ -1164,3 +1164,11 @@ input[type=checkbox], input[type=radio] { accent-color: var(--fd-wine); }
   .filter-pill { min-height: 44px; }
   .fd-crumbs a { display: inline-block; padding: 0.3rem 0; }
 }
+/* Customize section sits in the buy column again: compact, single column, no guide images */
+.fd-builder { margin-top: 1.25rem; padding: clamp(1.2rem, 2vw, 1.6rem); }
+.fd-builder-head h3 { font-size: clamp(1.5rem, 2vw, 1.9rem); }
+.fd-measure-grid { grid-template-columns: repeat(2, 1fr); gap: 0.9rem 0.9rem; }
+@media (min-width: 992px) { .fd-measure-grid { grid-template-columns: repeat(2, 1fr); } }
+.fd-review { grid-template-columns: 1fr; gap: 1.25rem; }
+.fd-builder-tools { justify-content: flex-start; }
+@media (max-width: 767.98px) { .fd-builder-steps li { flex: 0 1 auto; } .fd-builder-steps li.is-active { flex: 1 1 auto; } .fd-builder-steps button { font-size: 0.58rem; padding: 0.45rem 0.55rem 0.45rem 0.35rem; } }

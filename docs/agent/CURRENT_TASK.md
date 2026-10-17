@@ -596,3 +596,7 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   product page's "Measurement Guide" accordion). The "How to measure" button
   and dialog were removed; the builder is just the fields and the step
   buttons.
+- Owner: keep the original customize design (in the buy column under the
+  fit tabs); only the two guide images go. Restored: builder back inside
+  `.fd-fit`, two fields per row, measurement note + "Not sure? Book a
+  fitting…" text under the fields, Continue button right below.
