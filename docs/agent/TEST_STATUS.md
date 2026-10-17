@@ -11,6 +11,17 @@ conda run -n femdes python manage.py check     # PASS (0 issues)
 conda run -n femdes python manage.py test       # PASS (448 tests)
 ```
 
+## T34 Verification — Online Orders API (2026-10-17)
+
+```bash
+conda run -n femdes python manage.py test   # PASS (472 tests)
+# billing app (separate repo): npm run typecheck, npm run lint, npx vitest run — 217 passed
+```
+End-to-end: billing app production build at :3010 against the demo webstore at
+:8766 with `WEBSTORE_API_TOKEN=demo-token-123` — list rendered 6 orders, detail
+opened, status→Confirmed and payment→Paid saved; webstore API then reported
+`confirmed / paid / paid_at set`. No page errors.
+
 ## T33 Verification — Made-to-measure (2026-10-17)
 
 ```bash

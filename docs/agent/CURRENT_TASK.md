@@ -1,5 +1,6 @@
 # Current Task
 
+> **T34 — Online Orders in the billing app: DONE (2026-10-17)** (notes at end).
 > **T33 — Made-to-measure redesign: DONE (2026-10-17)** (notes at end).
 > **T32 — Component polish pass: DONE (2026-10-17)** (notes at end).
 > **T31 — Concept A + B styling pass: DONE (2026-10-17)** (notes at end).
@@ -402,3 +403,39 @@ the advance" step with something customer-friendly.
 - Tests: `store/tests/test_custom_fit.py` (18). Two older tests updated:
   "Disclaimer" → "Made-to-measure terms"; related products exclude the
   product itself.
+
+
+---
+
+## T34 Notes — Online Orders in the Feminine Designer billing app (2026-10-17)
+
+Owner asked to route webstore orders into the billing system
+(`~/Projects/Zahid/Feminine_Designer`, Next.js 16 + Supabase on Vercel) as an
+"Online Orders" section, following that app's design principles.
+
+Approach: the billing app pulls from a token-protected JSON API on the
+webstore (no shared database; Vercel cannot reach the shop's SQLite/Postgres).
+
+Webstore (`store/views_api.py`, tests in `store/tests/test_api.py`):
+- `GET /api/online-orders/?status=&payment_status=&since=&q=&limit=` — newest
+  first, items with made-to-measure summaries, links to admin/staff pages.
+- `GET|POST /api/online-orders/<number>/` — detail; POST JSON
+  `{status, payment_status, payment_notes}` updates the order (choices validated,
+  `paid_at` set when marked paid).
+- Auth: `Authorization: Bearer <WEBSTORE_API_TOKEN>`; 503 until the env var is
+  set; `/api/` disallowed in robots.txt.
+
+Billing app (changes left **uncommitted** there pending owner approval):
+- `src/lib/webstore/env.ts`, `src/services/online-orders/online-order-service.ts`
+  (+ vitest), `src/app/online-orders/{page,loading,actions}.tsx`,
+  `src/app/online-orders/[orderNumber]/page.tsx`,
+  `src/components/online-orders/*`, sidebar entry (`app-shell-frame.tsx`,
+  `--color-section-online`), "Online Orders" button on the Orders page (phone
+  tabs intentionally stay at five), `.env.example` vars
+  `WEBSTORE_API_URL` / `WEBSTORE_API_TOKEN`.
+- Verified with a production build against the demo webstore: list, detail,
+  status + payment update synced back (`docs/agent/browser-checks/billing.js`,
+  screenshots in `docs/agent/screenshots/t34/`).
+
+Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
+`WEBSTORE_API_URL` on Vercel, then redeploy the billing app.

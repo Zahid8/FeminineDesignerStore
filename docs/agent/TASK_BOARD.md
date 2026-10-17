@@ -44,6 +44,7 @@
 | T31 | Done (2026-10-17) | Concept A (luxury) primary + Concept B (merchandising) supporting | brown-gold accent tokens, Inter body, nav category links, single hero CTA, settings-driven announcement bar, promo banners (HomeBanner placement), −% / Bestseller badges, filled Add to Cart, 44px mobile quick-add (migration 0022) | 448 tests, check, migration dry-run, collectstatic, screenshots t31 |
 | T32 | Done (2026-10-17) | Component-level polish pass | cart page (image, columns, dispatch, move-to-wishlist, suggestions), cart drawer (thumbs, inline qty), styled auth forms, add-to-bag toast with View bag, compact utility headers, vertical PDP thumbnails, colour count on cards, lifestyle fallback, mobile badge fix | 448 tests, check, migration dry-run, collectstatic, audit.js screenshots t32 |
 | T33 | Done (2026-10-17) | Made-to-measure redesign (UI + functionality) | fit switch + 3-step builder on PDP, measurements spec (store/measurements.py), custom lines in cart/orders with fee + lead time, saved measurements, fitting-call request flow (reference, staff email, one-tap WhatsApp, session prefill), editable terms (migrations 0023–0024) | 466 tests, check, migration dry-run, collectstatic, builder.js walkthrough, screenshots t33 |
+| T34 | Done (2026-10-17) | Online Orders in the Feminine Designer billing app | webstore JSON API (`store/views_api.py`, Bearer `WEBSTORE_API_TOKEN`), billing-app page/detail/status update (separate repo, uncommitted) | 472 tests; billing app typecheck/lint/217 vitest; end-to-end status sync verified |
 
 ## Dependency Order
 

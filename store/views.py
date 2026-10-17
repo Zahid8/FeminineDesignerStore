@@ -716,6 +716,7 @@ def robots_txt(request):
         "Disallow: /accounts/",
         "Disallow: /cart/",
         "Disallow: /checkout/",
+        "Disallow: /api/",
         f"Sitemap: {request.build_absolute_uri(reverse('sitemap'))}",
     ]
     return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")

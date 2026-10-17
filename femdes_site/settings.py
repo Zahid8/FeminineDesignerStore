@@ -198,6 +198,10 @@ DEFAULT_FROM_EMAIL = os.getenv("DJANGO_DEFAULT_FROM_EMAIL", "FemDes <no-reply@lo
 STORE_NOTIFY_EMAIL = os.getenv("STORE_NOTIFY_EMAIL", "")
 
 LOGIN_URL = "account_login"
+
+# Token for the Feminine Designer billing app to read/update online orders.
+# Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+WEBSTORE_API_TOKEN = os.getenv("WEBSTORE_API_TOKEN", "")
 # Public site origin used in emails sent outside a request (e.g. back-in-stock), no trailing slash.
 SITE_URL = os.getenv("SITE_URL", "").rstrip("/")
 

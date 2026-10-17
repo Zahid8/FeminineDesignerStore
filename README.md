@@ -141,3 +141,9 @@ FAQs, Client diaries and Home banners. Email, SMS (phone OTP login) and proxy
 settings are environment variables — see `.env.example` and the deploy
 checklist in `docs/agent/CURRENT_TASK.md`. Indian SMS providers require DLT
 registration of the sender ID and OTP template.
+
+## Billing app integration (Online Orders)
+
+The Feminine Designer billing app reads webstore orders through
+`/api/online-orders/`. Set `WEBSTORE_API_TOKEN` here (long random string) and
+the same token with `WEBSTORE_API_URL` in the billing app's environment.
