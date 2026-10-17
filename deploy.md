@@ -453,3 +453,9 @@ BILL_LINK_SECRET=<the billing app's BILL_LINK_SECRET>
 
 Then Reload the web app. Leave them empty to offer "Save as PDF" (browser
 print) instead.
+
+## "Edit storefront" button in the billing app
+
+Needs nothing new on the shop beyond `WEBSTORE_API_TOKEN` (already set for
+Online Orders). Optional: `STOREFRONT_MANAGER_USERNAME` (default `manager`)
+names the superuser the button signs in as; it is created automatically.

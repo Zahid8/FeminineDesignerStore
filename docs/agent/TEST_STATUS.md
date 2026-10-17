@@ -468,3 +468,9 @@ conda run -n femdes python manage.py runserver
 
 - `python manage.py test` — 504 OK; `makemigrations --check` — 0027 committed
 - `browser-checks/e2e_mtm.js` 28/28, `location_e2e.js` 27/27 on the DEBUG=False server (both fill the new fields)
+
+## T44 — Admin handoff (2026-10-18)
+
+- `python manage.py test` — 514 OK (test_sso.py: valid/expired/replayed/tampered/other-user/disabled)
+- Billing: vitest 235 OK, tsc OK, eslint OK
+- `browser-checks/handoff.js` — 6/6: login required, big button, new tab opens /admin/ signed in as manager, superuser pages open, link single-use

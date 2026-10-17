@@ -205,6 +205,8 @@ WEBSTORE_API_TOKEN = os.getenv("WEBSTORE_API_TOKEN", "")
 # Billing app (Feminine Designer): lets the shop link to the same PDF bill the
 # staff app produces. Set both to the billing app's values, or leave empty.
 BILLING_APP_URL = os.getenv("BILLING_APP_URL", "")
+# Superuser the billing app's "Edit storefront" button signs in as (created on first use).
+STOREFRONT_MANAGER_USERNAME = os.getenv("STOREFRONT_MANAGER_USERNAME", "manager")
 BILL_LINK_SECRET = os.getenv("BILL_LINK_SECRET", "")
 # Public site origin used in emails sent outside a request (e.g. back-in-stock), no trailing slash.
 SITE_URL = os.getenv("SITE_URL", "").rstrip("/")

@@ -22,8 +22,10 @@ from django.urls import include, path
 
 from store.sitemaps import SITEMAPS
 from store.views import robots_txt
+from store.views_sso import admin_handoff
 
 urlpatterns = [
+    path("admin/handoff/", admin_handoff, name="admin_handoff"),
     path("admin/", admin.site.urls),
     path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="sitemap"),
     path("robots.txt", robots_txt, name="robots_txt"),

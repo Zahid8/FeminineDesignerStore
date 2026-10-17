@@ -627,3 +627,15 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   (profile/wishlist cascade, orders and appointments keep their data).
 - Billing app holds no copy of shop data: it reads the API live, so a shop
   deletion disappears from Online Orders immediately (API list/detail test).
+
+## T44 — "Edit storefront" handoff from the billing app (2026-10-18)
+
+- `store/views_sso.py` + `/admin/handoff/?t=…` (before admin urls): verifies a
+  short-lived (≤5 min), single-use token signed with the shared
+  WEBSTORE_API_TOKEN (context "feminine-designer/storefront-admin/v1"),
+  signs in the `STOREFRONT_MANAGER_USERNAME` superuser (default "manager",
+  created on first use with an unusable password) and opens the admin.
+- Billing app: `src/lib/webstore/storefront-admin.ts` mints the token,
+  `/storefront-admin` (staff-only via middleware) redirects to the shop; a
+  big "Edit storefront" card sits at the top of Online Orders. Shared test
+  vector in both test suites. Browser check: `browser-checks/handoff.js`.
