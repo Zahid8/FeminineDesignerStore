@@ -312,9 +312,12 @@
                   <div class="fd-builder-grid">
                     <div>
                       {% if custom_from_request %}<p class="fd-note mb-3"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#check"></use></svg><span>Prefilled from your fitting request — review and add to bag when you're ready.</span></p>{% elif custom_from_profile %}<p class="fd-note mb-3"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#check"></use></svg><span>Prefilled with your saved measurements — please review them.</span></p>{% endif %}
+                      <div class="fd-builder-tools">
                       <div class="fd-unit-toggle" role="group" aria-label="Units">
                         <button type="button" :aria-pressed="(unit === 'in').toString()" @click="convert('in')">inches</button>
                         <button type="button" :aria-pressed="(unit === 'cm').toString()" @click="convert('cm')">cm</button>
+                      </div>
+                      <button type="button" class="fd-guide-btn" data-open-dialog="measure-guide-dialog"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#ruler"></use></svg>How to measure</button>
                       </div>
                       <div class="fd-measure-grid">
                         {% for field, spec in custom_form.measurement_fields %}
@@ -346,12 +349,6 @@
                         </div>
                       </details>
                     </div>
-                    <aside class="fd-builder-aside">
-                      {% include "store/partials/measure_guide.html" %}
-                      {% if product.measurement_guide_image %}<img src="{{ product.measurement_guide_image.url }}" alt="Measurement guide" class="fd-guide-img mt-3" loading="lazy">{% endif %}
-                      {% if product.measurement_note %}<p class="fd-guide-note">{{ product.measurement_note }}</p>{% endif %}
-                      <p class="fd-guide-help mb-0">Not sure? <a href="{% url 'appointment_book' %}?product={{ product.pk }}">Book a fitting consultation</a>{% if site_settings.whatsapp_url %} or <a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">ask on WhatsApp</a>{% endif %}.</p>
-                    </aside>
                   </div>
                   <div class="fd-builder-nav">
                     <span class="text-muted small" x-show="missing() > 0" x-text="missing() + ' required measurement' + (missing() === 1 ? '' : 's') + ' left'"></span>
@@ -421,6 +418,23 @@
                 </div>
               </form>
             </section>
+            <dialog class="fd-dialog fd-guide-dialog" id="measure-guide-dialog" aria-labelledby="measure-guide-title">
+              <div class="fd-dialog-head">
+                <h3 id="measure-guide-title" class="h4 mb-0">How to measure</h3>
+                <button type="button" class="btn-close" data-close-dialog aria-label="Close measurement guide"></button>
+              </div>
+              <div class="fd-guide-dialog-body">
+                {% include "store/partials/measure_guide.html" %}
+                <div class="fd-guide-dialog-side">
+                  {% if product.measurement_guide_image %}<img src="{{ product.measurement_guide_image.url }}" alt="Measurement guide for {{ product.name }}" class="fd-guide-img" loading="lazy">{% endif %}
+                  {% if product.measurement_note %}<p class="fd-guide-note">{{ product.measurement_note }}</p>{% endif %}
+                  <ol class="fd-guide-list">
+                    {% for field, spec in custom_form.measurement_fields %}{% if spec.2 %}<li><span class="fd-guide-term">{{ spec.1 }}</span> {{ spec.4 }}</li>{% endif %}{% endfor %}
+                  </ol>
+                  <p class="fd-guide-help mb-0">Not sure? <a href="{% url 'appointment_book' %}?product={{ product.pk }}">Book a fitting consultation</a>{% if site_settings.whatsapp_url %} or <a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">ask on WhatsApp</a>{% endif %}.</p>
+                </div>
+              </div>
+            </dialog>
             {% endif %}
       </div>
     </div>

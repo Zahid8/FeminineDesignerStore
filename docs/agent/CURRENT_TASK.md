@@ -566,3 +566,8 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - Checks: `browser-checks/overflow.js` (0 sideways pages), `audit.js`
   before/after captures, e2e_mtm 28/28 and mtm_guard 24/24 on a
   DEBUG=False server, 495 tests OK.
+- Follow-up (owner): the measurement guide must not sit above the inputs.
+  The guide (diagram, product guide image, note, per-field how-to) now lives
+  in `#measure-guide-dialog`, opened by the "How to measure" button next to
+  the unit toggle; the builder form is a single column (3 fields per row on
+  desktop). Check: `browser-checks/guide_dialog.js`.

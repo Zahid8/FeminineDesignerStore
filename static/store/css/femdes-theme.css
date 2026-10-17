@@ -1125,3 +1125,21 @@ input[type=checkbox], input[type=radio] { accent-color: var(--fd-wine); }
 .add-to-cart-form { transform: translateY(calc(100% + 0.9rem)); }
 .product-item:hover .add-to-cart-form, .product-item:focus-within .add-to-cart-form { transform: none; }
 @media (hover: none) { .add-to-cart-form { transform: none; } }
+/* Measurement guide lives in a dialog; the form is a single column */
+.fd-builder-grid { grid-template-columns: 1fr; }
+.fd-builder-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.1rem; }
+.fd-builder-tools .fd-unit-toggle { margin-bottom: 0; }
+.fd-guide-btn { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 42px; padding: 0.45rem 1.1rem; border: var(--fd-edge); border-radius: var(--fd-r-pill); background: var(--fd-surface); box-shadow: var(--fd-raised-sm); color: var(--fd-wine); font-size: 0.66rem; font-weight: 500; letter-spacing: var(--fd-track); text-transform: uppercase; transition: transform 0.2s var(--fd-ease), box-shadow 0.25s; }
+.fd-guide-btn:hover { transform: translateY(-1px); box-shadow: var(--fd-raised); }
+.fd-guide-btn:active { transform: none; box-shadow: var(--fd-pressed-sm); }
+.fd-guide-dialog { width: min(900px, 94vw); max-height: 90vh; overflow: auto; }
+.fd-guide-dialog-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.fd-guide-dialog .fd-guide { box-shadow: var(--fd-pressed-sm); }
+.fd-guide-dialog .fd-guide svg { max-width: 340px; }
+.fd-guide-dialog-side { display: grid; gap: 1rem; }
+.fd-guide-dialog .fd-guide-img { width: 100%; max-width: none; aspect-ratio: auto; max-height: 300px; object-fit: contain; padding: 0.6rem; border: var(--fd-edge); border-radius: var(--fd-r); background: #fff; box-shadow: var(--fd-raised-sm); }
+.fd-guide-list { margin: 0; padding-left: 1.2rem; font-size: 0.86rem; color: var(--fd-ink-soft); display: grid; gap: 0.4rem; }
+.fd-guide-list .fd-guide-term { font-weight: 500; color: var(--fd-ink); }
+.fd-guide-list li::marker { color: var(--fd-wine); font-weight: 600; }
+@media (min-width: 992px) { .fd-measure-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 767.98px) { .fd-guide-dialog-body { grid-template-columns: 1fr; } .fd-guide-dialog .fd-guide svg { max-width: 260px; } }
