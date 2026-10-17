@@ -455,3 +455,12 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - Login rules use `body.login` so they beat Django's later-loaded login.css.
 - Verified by Playwright screenshots (login, index, changelist, change form;
   light + dark + mobile login) — script in /tmp/fdshot/admin.js.
+
+## T35-FIX — Made-to-measure ignores stock (2026-10-17)
+
+- Bug (owner report, deployed site): "Add Made-to-Measure to Bag" did nothing
+  on products with stock 0. The PDP offers the builder on sold-out products,
+  but `services.add_to_cart` rejected them as out of stock.
+- Owner decision: made-to-measure is stitched to order, so custom lines skip
+  stock checks (add, update, checkout) and do not decrement stock. Ready-made
+  lines keep all stock rules. Tests: `MadeToMeasureStockTests`.

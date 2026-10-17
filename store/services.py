@@ -74,9 +74,11 @@ def _save_cart(request, cart):
 
 
 def add_to_cart(request, product, quantity=1, color="", size="", custom=None):
+    # Made-to-measure pieces are stitched to order: they skip stock checks
+    # and do not consume stock (see create_order_from_cart).
     if not product.is_active:
         raise ValueError("Product is not active.")
-    if product.stock_quantity <= 0:
+    if not custom and product.stock_quantity <= 0:
         raise ValueError("Product is out of stock.")
     if quantity <= 0:
         raise ValueError("Quantity must be positive.")
@@ -89,7 +91,7 @@ def add_to_cart(request, product, quantity=1, color="", size="", custom=None):
     key = _cart_key(product.pk, color, size, custom)
     current_qty = cart.get(key, {}).get("quantity", 0)
     new_qty = current_qty + quantity
-    if new_qty > product.stock_quantity:
+    if not custom and new_qty > product.stock_quantity:
         raise ValueError("Requested quantity exceeds available stock.")
 
     cart[key] = {
@@ -121,7 +123,7 @@ def update_cart_item(request, cart_key, quantity):
         _save_cart(request, cart)
         return
 
-    if quantity > product.stock_quantity:
+    if not item.get("custom") and quantity > product.stock_quantity:
         raise ValueError("Requested quantity exceeds available stock.")
     if quantity <= 0:
         del cart[cart_key]
@@ -202,11 +204,13 @@ def create_order_from_cart(request, checkout_data):
         )
         product_map = {p.pk: p for p in products}
 
-        # Aggregate quantities per product across all cart lines.
+        # Aggregate ready-made quantities per product across all cart lines
+        # (made-to-measure lines are stitched to order and need no stock).
         aggregate_qty = {}
         for item in cart.values():
             pid = item["product_id"]
-            aggregate_qty[pid] = aggregate_qty.get(pid, 0) + item["quantity"]
+            ready = 0 if item.get("custom") else item["quantity"]
+            aggregate_qty[pid] = aggregate_qty.get(pid, 0) + ready
 
         # Validate aggregate stock before creating order.
         for pid, aggr in aggregate_qty.items():
@@ -297,9 +301,10 @@ def create_order_from_cart(request, checkout_data):
                 size=item_data["size"],
                 customization=item_data["customization"],
             )
-            # Decrement stock.
-            item_data["product"].stock_quantity -= item_data["quantity"]
-            item_data["product"].save(update_fields=["stock_quantity"])
+            # Decrement stock for ready-made lines only.
+            if not item_data["customization"]:
+                item_data["product"].stock_quantity -= item_data["quantity"]
+                item_data["product"].save(update_fields=["stock_quantity"])
 
         # Remember measurements for next time.
         user = getattr(request, "user", None)

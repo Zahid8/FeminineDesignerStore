@@ -427,3 +427,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 474 tests OK (2 new AdminThemeTests)
 - `python manage.py makemigrations --check --dry-run` — no changes
 - `python manage.py collectstatic --noinput` — OK
+
+## T35-FIX — Made-to-measure ignores stock (2026-10-17)
+
+- `python manage.py check` — no issues
+- `python manage.py test` — 478 tests OK (4 new MadeToMeasureStockTests)
+- `python manage.py makemigrations --check --dry-run` — no changes

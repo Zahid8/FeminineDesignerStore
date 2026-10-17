@@ -200,3 +200,45 @@ class FittingRequestFlowTests(TestCase):
         self.assertIn("Prefilled from your fitting request", content)
         self.assertIn('name="chest" id="id_chest" value="36.00"', content)
         self.assertIn("deep back", content)
+
+
+class MadeToMeasureStockTests(TestCase):
+    """Made-to-measure is stitched to order: it ignores and does not consume stock."""
+
+    def setUp(self):
+        cat = Category.objects.create(name="Silk", slug="silk-st", is_active=True)
+        self.p = Product.objects.create(category=cat, name="Rose Blouse", slug="rose-st", sku="ST-1",
+                                        price=Decimal("1500"), stock_quantity=0, is_active=True)
+
+    def add_custom(self, qty="1"):
+        return self.client.post(reverse("add_to_cart", args=[self.p.pk]), {**MEASURES, "custom": "1", "quantity": qty})
+
+    def test_sold_out_product_can_be_added_made_to_measure(self):
+        self.add_custom()
+        cart = self.client.session["femdes_cart"]
+        self.assertEqual(len(cart), 1)
+        self.assertEqual(next(iter(cart.values()))["size"], "Made to measure")
+
+    def test_ready_made_still_blocked_when_sold_out(self):
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1", "size": "M"})
+        self.assertFalse(self.client.session.get("femdes_cart"))
+
+    def test_custom_quantity_can_exceed_stock_and_order_keeps_stock(self):
+        self.add_custom()
+        key = next(iter(self.client.session["femdes_cart"]))
+        self.client.post(reverse("update_cart", args=[key]), {"quantity": "3"})
+        self.assertEqual(self.client.session["femdes_cart"][key]["quantity"], 3)
+        self.client.post(reverse("checkout"), CHECKOUT)
+        order = Order.objects.get()
+        self.assertEqual(order.items.get().quantity, 3)
+        self.p.refresh_from_db()
+        self.assertEqual(self.p.stock_quantity, 0)
+
+    def test_mixed_cart_only_ready_made_consumes_stock(self):
+        Product.objects.filter(pk=self.p.pk).update(stock_quantity=2)
+        self.add_custom()
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "2"})
+        self.client.post(reverse("checkout"), CHECKOUT)
+        self.assertEqual(Order.objects.count(), 1)
+        self.p.refresh_from_db()
+        self.assertEqual(self.p.stock_quantity, 0)
