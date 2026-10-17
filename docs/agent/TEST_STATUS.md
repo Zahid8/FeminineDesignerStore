@@ -452,3 +452,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 488 tests OK (BuilderClientValidationTests)
 - `node docs/agent/browser-checks/mtm_guard.js` — 24/24 PASS (desktop + mobile)
 - `node docs/agent/browser-checks/e2e_mtm.js` (DEBUG=False server) — 28/28 PASS
+
+## T40 — Soft studio UI pass (2026-10-18)
+
+- `python manage.py test` — 495 OK; `check` — no issues; `collectstatic` — OK
+- `node docs/agent/browser-checks/overflow.js` — no page scrolls sideways (desktop + mobile)
+- `node docs/agent/browser-checks/e2e_mtm.js` — 28/28; `mtm_guard.js` — 24/24 (DEBUG=False server)

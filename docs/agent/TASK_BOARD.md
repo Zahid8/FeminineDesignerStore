@@ -119,3 +119,8 @@ Do not start these until T8 is done:
 
 Owner request: "make the admin panel a little better, using neumorphism".
 Template override + additive stylesheet; no model or admin behaviour changes.
+
+## T40 — Soft studio UI pass — DONE (2026-10-18)
+
+Builder moved to a full-width row, neumorphic surfaces, billing-app wine/rose
+actions, Three.js silk bands. See CURRENT_TASK.md T40 notes.

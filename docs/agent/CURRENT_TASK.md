@@ -543,3 +543,26 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   absolute product link. Billing app shows all of it (Delivery card with
   Maps button + copy, Customer, Payment, Order info, item photos).
 - Browser check: `browser-checks/location_e2e.js` (27/27, shop → billing → bill PDF).
+
+## T40 — Soft studio UI pass (2026-10-18)
+
+- Owner: measurement guide and builder "going out of the box", Add to Cart
+  "ugly", make every page amazing, sprinkle neumorphism, may use billing
+  colours, add Three.js-style animation.
+- Builder now lives in its own full-width row under the gallery/buy panel
+  (`#customize-row`; Alpine `fit` state moved up to `section.fd-pdp`), so
+  the guide, product guide image and 3-column measurement grid fit on
+  desktop; steps wrap into a pill track on mobile. No page scrolls sideways
+  any more (checkout `row.g-5` gutter fixed on phones).
+- `femdes-theme.css` §21: billing wine→rose primary buttons (pill), raised
+  ivory secondary buttons, pressed inputs/steppers/unit toggle, raised
+  cards (summary, checkout, auth, dialogs, notes), pill chips/badges,
+  rounded media, round icon buttons, payment/fit option cards.
+- `static/store/js/silk.js`: Three.js (r158, SRI, lazy-loaded on first
+  approach) silk shader behind the home made-to-measure band (wine) and the
+  newsletter band (ivory); renders only while visible, DPR ≤ 1.5,
+  reduced-motion = still frame. Markup: `<canvas data-silk data-silk-palette>`
+  inside a `.has-silk` section.
+- Checks: `browser-checks/overflow.js` (0 sideways pages), `audit.js`
+  before/after captures, e2e_mtm 28/28 and mtm_guard 24/24 on a
+  DEBUG=False server, 495 tests OK.
