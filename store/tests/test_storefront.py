@@ -174,10 +174,11 @@ class HomeViewTests(TestCase):
         self.assertIn("/static/store/js/script.min.js", content)
         self.assertIn("/static/store/images/main-logo.png", content)
 
-    def test_home_preserves_templatesjungle_attribution(self):
+    def test_home_has_no_template_credit(self):
+        # Owner confirmed a no-attribution licence (2026-10-18).
         response = self.client.get(reverse("home"))
-        self.assertContains(response, "TemplatesJungle")
-        self.assertContains(response, "ThemeWagon")
+        self.assertNotContains(response, "TemplatesJungle")
+        self.assertNotContains(response, "ThemeWagon")
 
 
 class ProductListViewTests(TestCase):
@@ -678,10 +679,9 @@ class TemplateStructureTests(TestCase):
             response = self.client.get(reverse(url_name))
             self.assertEqual(response.status_code, 200)
 
-    def test_footer_has_attribution(self):
+    def test_footer_keeps_copyright_line(self):
         response = self.client.get(reverse("home"))
-        self.assertContains(response, "TemplatesJungle")
-        self.assertContains(response, "ThemeWagon")
+        self.assertContains(response, "All rights reserved.")
 
     def test_storefront_includes_femdes_js_after_script_min(self):
         """femdes.js included once, after script.min.js."""

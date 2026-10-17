@@ -93,7 +93,7 @@
 
 ## 2026-07-06: Preserve Upstream Attribution
 
-**Status:** Accepted.
+**Status:** Superseded on 2026-10-18 — the owner confirmed a no-attribution licence and asked for the credit to be removed site-wide.
 
 **Decision:** Keep the TemplatesJungle/ThemeWagon footer attribution unless the owner confirms a no-attribution license.
 

@@ -22,7 +22,7 @@ Read these files in order:
 
 - Do not implement webstore functionality unless the user explicitly asks you to implement.
 - Do not remove or overwrite current Kaira assets without first preserving the original in `legacy_static/`.
-- Do not remove upstream footer attribution unless the owner confirms a no-attribution license.
+- Footer template credit removed on 2026-10-18 after the owner confirmed a no-attribution license (see `docs/decisions.md`).
 - Do not invent a different stack unless the user explicitly changes the decision in `docs/decisions.md`.
 - Do not treat `.omx/` as application source.
 - Do not assume Git is available; this directory currently has no `.git/`.

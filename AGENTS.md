@@ -27,7 +27,7 @@ This repository is currently a static Kaira fashion-store template that is plann
    - Jost body font and Marcellus heading font.
    - Existing image filenames and local asset paths during migration.
    - Existing product-card, carousel, search popup, offcanvas cart, and footer styling.
-6. Preserve the TemplatesJungle attribution in the footer unless the owner confirms a no-attribution license.
+6. Template attribution: removed on 2026-10-18 after the owner confirmed a no-attribution license (see `docs/decisions.md`).
 7. Do not delete original static files during planning. During implementation, copy them to `legacy_static/` before moving assets.
 8. Keep required changes separate from optional improvements.
 
