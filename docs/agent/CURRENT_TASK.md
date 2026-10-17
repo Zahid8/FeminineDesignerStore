@@ -592,3 +592,7 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   Without them the page offers "Save as PDF" (print).
 - Checks: `browser-checks/invoice_check.js` (no sideways scroll on phone,
   PDF link present; PDF fetched from the billing app = 200 application/pdf).
+- Owner: no guide in the customize section at all (it is already in the
+  product page's "Measurement Guide" accordion). The "How to measure" button
+  and dialog were removed; the builder is just the fields and the step
+  buttons.
