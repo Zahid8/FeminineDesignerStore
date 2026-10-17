@@ -16,3 +16,11 @@ class StoreConfig(AppConfig):
             wishlist.merge_session_into_user(request, user)
 
         user_logged_in.connect(merge_guest_state, dispatch_uid="store_merge_guest_state")
+
+        from django.db.models.signals import post_save, pre_save
+
+        from store import stock_alerts
+        from store.models import Product
+
+        pre_save.connect(stock_alerts.remember_stock, sender=Product, dispatch_uid="store_remember_stock")
+        post_save.connect(stock_alerts.notify_if_restocked, sender=Product, dispatch_uid="store_notify_restock")

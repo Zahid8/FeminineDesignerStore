@@ -15,6 +15,7 @@
       {% else %}
       {% if product.compare_at_price and product.compare_at_price > product.price %}<span class="fd-badge is-sale">Sale</span>{% endif %}
       {% if product.is_new_arrival %}<span class="fd-badge">New</span>{% endif %}
+      {% if product.fulfilment == "made_to_order" %}<span class="fd-badge">Made to order</span>{% endif %}
       {% endif %}
     </div>
     {% if product.is_in_stock %}

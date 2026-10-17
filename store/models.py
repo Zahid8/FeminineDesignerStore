@@ -128,6 +128,79 @@ class ProductTag(models.Model):
         return self.name
 
 
+class Occasion(models.Model):
+    """Shopping occasion (e.g. wedding, festive, everyday) used for filtering."""
+
+    name = models.CharField(max_length=80)
+    slug = models.SlugField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class SizeChart(models.Model):
+    """Admin-managed size chart shown on product pages.
+
+    A product uses its own chart, else its category's chart, else the default.
+    """
+
+    UNITS = [("in", "inches"), ("cm", "cm")]
+
+    name = models.CharField(max_length=120)
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, blank=True, null=True,
+        related_name="size_charts", help_text="Use this chart for products in this category.",
+    )
+    is_default = models.BooleanField(default=False, help_text="Fallback chart for products without one.")
+    unit = models.CharField(max_length=2, choices=UNITS, default="in")
+    notes = models.TextField(blank=True, help_text="How to measure, fit notes, etc.")
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def columns(self):
+        """Measurement columns that have at least one value."""
+        rows = list(self.rows.all())
+        return [(field, label) for field, label in SizeChartRow.MEASUREMENTS
+                if any(getattr(r, field) is not None for r in rows)]
+
+
+class SizeChartRow(models.Model):
+    MEASUREMENTS = [
+        ("bust", "Bust"), ("under_bust", "Under bust"), ("waist", "Waist"),
+        ("shoulder", "Shoulder"), ("armhole", "Armhole"), ("length", "Length"),
+        ("sleeve_length", "Sleeve length"),
+    ]
+
+    chart = models.ForeignKey(SizeChart, on_delete=models.CASCADE, related_name="rows")
+    size_label = models.CharField(max_length=20)
+    bust = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    under_bust = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    waist = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    shoulder = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    armhole = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    length = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    sleeve_length = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"{self.chart.name} — {self.size_label}"
+
+    def values(self, columns):
+        return [getattr(self, field) for field, _ in columns]
+
+
 class Product(models.Model):
     """Sellable catalog item with prices, stock, flags, and discount-aware pricing."""
 
@@ -153,6 +226,28 @@ class Product(models.Model):
     allow_discounts = models.BooleanField(default=True)
     color_options = models.TextField(blank=True)
     size_options = models.TextField(blank=True)
+    # Merchandising attributes (filters + product page details)
+    FULFILMENT_CHOICES = [
+        ("ready_to_ship", "Ready to ship"),
+        ("made_to_order", "Made to order"),
+    ]
+    fulfilment = models.CharField(max_length=20, choices=FULFILMENT_CHOICES, default="ready_to_ship")
+    dispatch_note = models.CharField(
+        max_length=120, blank=True,
+        help_text='Shown on the product page, e.g. "Ships in 2–3 days" or "Made to order: 3 weeks".',
+    )
+    fabric = models.CharField(max_length=80, blank=True, help_text="e.g. Silk, Cotton, Georgette")
+    care_instructions = models.TextField(blank=True)
+    country_of_origin = models.CharField(max_length=60, default="India")
+    occasions = models.ManyToManyField(Occasion, blank=True, related_name="products")
+    pairs_with = models.ManyToManyField(
+        "self", blank=True, symmetrical=False, related_name="paired_in",
+        help_text='Shown as "Complete the look" on the product page.',
+    )
+    size_chart = models.ForeignKey(
+        SizeChart, on_delete=models.SET_NULL, blank=True, null=True, related_name="products",
+        help_text="Overrides the category/default size chart.",
+    )
     # Blouse measurement defaults (admin-editable, optional)
     default_length = models.DecimalField(
         max_digits=6, decimal_places=2, blank=True, null=True, default=None
@@ -228,6 +323,25 @@ class Product(models.Model):
     @property
     def is_in_stock(self):
         return self.stock_quantity > 0
+
+    @property
+    def is_on_sale(self):
+        return self.compare_at_price is not None and self.compare_at_price > self.price
+
+    def get_size_chart(self):
+        if self.size_chart_id:
+            return self.size_chart
+        if self.category_id:
+            chart = SizeChart.objects.filter(category_id=self.category_id).first()
+            if chart:
+                return chart
+        return SizeChart.objects.filter(is_default=True).first()
+
+    def low_stock_count(self, threshold):
+        """Units left when at or below `threshold` (and in stock), else None."""
+        if threshold and 0 < self.stock_quantity <= threshold:
+            return self.stock_quantity
+        return None
 
     def active_tags(self):
         return self.tags.filter(is_active=True)
@@ -757,3 +871,24 @@ class WishlistItem(models.Model):
 
     def __str__(self):
         return f"{self.user} ♥ {self.product}"
+
+
+class StockAlert(models.Model):
+    """'Notify me when back in stock' request for an out-of-stock product."""
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="stock_alerts")
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    notified_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "email"], condition=models.Q(notified_at__isnull=True),
+                name="unique_pending_stock_alert",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.email} → {self.product}"

@@ -94,4 +94,5 @@ urlpatterns = [
     path("contact/", views.contact_view, name="contact"),
     path("wishlist/", views_extra.wishlist_page, name="wishlist"),
     path("wishlist/toggle/<int:product_id>/", views_extra.wishlist_toggle, name="wishlist_toggle"),
+    path("products/<int:product_id>/notify/", views_extra.stock_alert_subscribe, name="stock_alert_subscribe"),
 ]

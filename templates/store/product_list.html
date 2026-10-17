@@ -36,12 +36,15 @@
 
   <div class="container-lg">
     <div class="fd-toolbar">
-      <p class="fd-result-meta">{{ products|length }} piece{{ products|length|pluralize }}</p>
+      <div class="d-flex align-items-center gap-3">
+        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="offcanvas" data-bs-target="#fd-filters" aria-controls="fd-filters">
+          Filter{% if filter_count %} ({{ filter_count }}){% endif %}
+        </button>
+        <p class="fd-result-meta">{{ product_count }} piece{{ product_count|pluralize }}</p>
+      </div>
       <div class="fd-toolbar-right">
         <form method="get" class="fd-sort" data-auto-submit>
-          {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-          {% if selected_tag %}<input type="hidden" name="tag" value="{{ selected_tag }}">{% endif %}
-          {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+          {% for key, values in request.GET.lists %}{% if key != "sort" and key != "page" %}{% for v in values %}<input type="hidden" name="{{ key }}" value="{{ v }}">{% endfor %}{% endif %}{% endfor %}
           <label for="sort">Sort</label>
           <select name="sort" id="sort" class="form-select form-select-sm">
             <option value=""{% if not sort %} selected{% endif %}>Featured</option>
@@ -59,12 +62,32 @@
       </div>
     </div>
 
+    {% if filter_chips %}
+    <div class="fd-chips" aria-label="Active filters">
+      {% for label, url in filter_chips %}
+      <a href="{{ url }}" class="fd-chip" aria-label="Remove filter {{ label }}">{{ label }} <span aria-hidden="true">&times;</span></a>
+      {% endfor %}
+      <a href="{% url 'product_list' %}?{% if selected_category %}category={{ selected_category }}&amp;{% endif %}{% if selected_tag %}tag={{ selected_tag }}&amp;{% endif %}{% if query %}q={{ query|urlencode }}&amp;{% endif %}{% if sort %}sort={{ sort }}{% endif %}" class="fd-chip-clear">Clear all</a>
+    </div>
+    {% endif %}
+
     {% if products %}
-    <div class="row g-3 g-lg-4 gy-5 fd-grid" :data-density="density">
+    <div class="row g-3 g-lg-4 gy-5 fd-grid" :data-density="density" data-product-grid>
       {% for product in products %}
       <div class="col-6 col-md-4 col-lg-3" data-reveal>{% include "store/partials/product_card.html" %}</div>
       {% endfor %}
     </div>
+    {% if page_obj.has_other_pages %}
+    <nav class="fd-pager" aria-label="Pagination" data-pager>
+      <p class="fd-result-meta mb-3">Showing {{ page_obj.end_index }} of {{ product_count }}</p>
+      {% if page_obj.has_next %}
+      <a href="?{% if base_query %}{{ base_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}" class="btn btn-outline-dark" rel="next" data-load-more>Load More</a>
+      {% endif %}
+      {% if page_obj.has_previous %}
+      <a href="?{% if base_query %}{{ base_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" class="btn btn-link ms-2" rel="prev">Previous page</a>
+      {% endif %}
+    </nav>
+    {% endif %}
     {% else %}
     <div class="empty-state">
       <div class="fd-empty-icon"><svg width="30" height="30" aria-hidden="true"><use xlink:href="#search"></use></svg></div>
@@ -73,6 +96,86 @@
       <a href="{% url 'product_list' %}" class="btn btn-outline-dark rounded-pill mt-2">View All Products</a>
     </div>
     {% endif %}
+  </div>
+
+  <!-- Filter drawer -->
+  <div class="offcanvas offcanvas-start fd-filter-drawer" tabindex="-1" id="fd-filters" aria-labelledby="fd-filters-title">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="fd-filters-title">Filter</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close filters"></button>
+    </div>
+    <form method="get" class="offcanvas-body d-flex flex-column" action="{% url 'product_list' %}">
+      {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+      {% if selected_tag %}<input type="hidden" name="tag" value="{{ selected_tag }}">{% endif %}
+      {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+      {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+      <div class="fd-details flex-grow-1 mt-0">
+        <details open>
+          <summary>Availability</summary>
+          <div class="fd-details-body fd-check-list">
+            <label><input type="checkbox" name="in_stock" value="1"{% if facets.in_stock %} checked{% endif %}> In stock only</label>
+            <label><input type="checkbox" name="ready" value="1"{% if facets.ready %} checked{% endif %}> Ready to ship</label>
+            <label><input type="checkbox" name="sale" value="1"{% if facets.sale %} checked{% endif %}> On sale</label>
+          </div>
+        </details>
+        <details open>
+          <summary>Price</summary>
+          <div class="fd-details-body">
+            <div class="d-flex gap-2 align-items-center">
+              <label class="visually-hidden" for="price_min">Minimum price</label>
+              <input type="number" min="0" step="1" name="price_min" id="price_min" class="form-control form-control-sm" placeholder="Min{% if facet_options.price_lo %} {{ facet_options.price_lo|floatformat:0 }}{% endif %}" value="{{ facets.price_min|default_if_none:'' }}">
+              <span aria-hidden="true">&ndash;</span>
+              <label class="visually-hidden" for="price_max">Maximum price</label>
+              <input type="number" min="0" step="1" name="price_max" id="price_max" class="form-control form-control-sm" placeholder="Max{% if facet_options.price_hi %} {{ facet_options.price_hi|floatformat:0 }}{% endif %}" value="{{ facets.price_max|default_if_none:'' }}">
+            </div>
+          </div>
+        </details>
+        {% if facet_options.sizes %}
+        <details open>
+          <summary>Size</summary>
+          <div class="fd-details-body fd-options">
+            {% for v in facet_options.sizes %}
+            <input type="checkbox" name="size" value="{{ v }}" id="f-size-{{ forloop.counter }}"{% if v in facets.size %} checked{% endif %}><label for="f-size-{{ forloop.counter }}">{{ v }}</label>
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+        {% if facet_options.colors %}
+        <details{% if facets.color %} open{% endif %}>
+          <summary>Colour</summary>
+          <div class="fd-details-body fd-options">
+            {% for v in facet_options.colors %}
+            <input type="checkbox" name="color" value="{{ v }}" id="f-color-{{ forloop.counter }}"{% if v in facets.color %} checked{% endif %}><label for="f-color-{{ forloop.counter }}">{{ v }}</label>
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+        {% if facet_options.occasions %}
+        <details{% if facets.occasion %} open{% endif %}>
+          <summary>Occasion</summary>
+          <div class="fd-details-body fd-options">
+            {% for o in facet_options.occasions %}
+            <input type="checkbox" name="occasion" value="{{ o.slug }}" id="f-occ-{{ forloop.counter }}"{% if o.slug in facets.occasion %} checked{% endif %}><label for="f-occ-{{ forloop.counter }}">{{ o.name }}</label>
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+        {% if facet_options.fabrics %}
+        <details{% if facets.fabric %} open{% endif %}>
+          <summary>Fabric</summary>
+          <div class="fd-details-body fd-options">
+            {% for v in facet_options.fabrics %}
+            <input type="checkbox" name="fabric" value="{{ v }}" id="f-fab-{{ forloop.counter }}"{% if v in facets.fabric %} checked{% endif %}><label for="f-fab-{{ forloop.counter }}">{{ v }}</label>
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+      </div>
+      <div class="fd-filter-actions">
+        <a href="{% url 'product_list' %}?{% if selected_category %}category={{ selected_category }}&amp;{% endif %}{% if selected_tag %}tag={{ selected_tag }}&amp;{% endif %}{% if query %}q={{ query|urlencode }}{% endif %}" class="btn btn-outline-dark">Clear</a>
+        <button type="submit" class="btn btn-dark">Show Results</button>
+      </div>
+    </form>
   </div>
 </section>
 {% endblock %}

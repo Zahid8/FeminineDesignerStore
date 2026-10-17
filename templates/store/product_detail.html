@@ -72,14 +72,23 @@
             <span class="fd-badge is-sale">Sale</span>
             {% endif %}
           </div>
+          {% if site_settings.price_note %}<p class="fd-price-note">{{ site_settings.price_note }}</p>{% endif %}
           {% if product.short_description %}<p class="fd-pdp-short">{{ product.short_description }}</p>{% endif %}
-          <p>
+          <div class="fd-pdp-status">
             {% if product.is_in_stock %}
             <span class="fd-stock is-in">In Stock ({{ product.stock_quantity }} available)</span>
+            {% if low_stock %}<span class="fd-low-stock">Only {{ low_stock }} left</span>{% endif %}
             {% else %}
             <span class="fd-stock is-out">Out of Stock</span>
             {% endif %}
+          </div>
+          <p class="fd-dispatch">
+            <svg width="16" height="16" aria-hidden="true"><use xlink:href="#truck"></use></svg>
+            <span><strong>{{ product.get_fulfilment_display }}</strong>{% if product.dispatch_note %} &middot; {{ product.dispatch_note }}{% endif %}</span>
           </p>
+          {% if occasions %}
+          <p class="fd-pdp-occasions">Perfect for {% for o in occasions %}<a href="{% url 'product_list' %}?occasion={{ o.slug }}">{{ o.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+          {% endif %}
 
           <!-- Ready-Made Measurements -->
           <div class="fd-pdp-block" id="ready-made-specs">
@@ -113,7 +122,7 @@
             {% endif %}
             {% if sizes %}
             <fieldset class="fd-pdp-block">
-              <legend class="fd-label">Size</legend>
+              <legend class="fd-label d-flex justify-content-between w-100"><span>Size</span>{% if size_chart %}<a href="#size-guide" class="fd-size-guide-link" data-open-dialog="size-guide-dialog">Size guide</a>{% endif %}</legend>
               <div class="fd-options">
                 {% for s in sizes %}
                 <input type="radio" name="size" value="{{ s }}" id="size-{{ forloop.counter }}"{% if forloop.first %} checked{% endif %}>
@@ -148,6 +157,15 @@
             {% endif %}
           </div>
           {% else %}
+          <form method="post" action="{% url 'stock_alert_subscribe' product.pk %}" class="fd-notify" id="notify">
+            {% csrf_token %}
+            <p class="fd-label mb-2">Notify me when it's back</p>
+            <div class="fd-underline-input">
+              <label for="notify-email" class="visually-hidden">Email address</label>
+              <input type="email" id="notify-email" name="email" class="form-control" placeholder="Your email address" required value="{{ user.email|default:'' }}">
+              <button type="submit">Notify Me</button>
+            </div>
+          </form>
           <div class="fd-pdp-actions">
             <a href="#customize-section" class="btn btn-dark">Customize this design</a>
             {% if site_settings.whatsapp_url %}
@@ -158,7 +176,23 @@
           </div>
           {% endif %}
 
-          {% include "store/partials/wishlist_button.html" with label=True extra_class="fd-pdp-wish" %}
+          <div class="fd-pdp-social">
+            {% include "store/partials/wishlist_button.html" with label=True extra_class="fd-pdp-wish" %}
+            <button type="button" class="fd-share" data-share data-share-title="{{ product.name }}" data-share-url="{{ request.build_absolute_uri }}">
+              <svg width="16" height="16" aria-hidden="true"><use xlink:href="#share"></use></svg><span>Share</span>
+            </button>
+            {% if site_settings.whatsapp_url %}
+            <a class="fd-share" href="{{ site_settings.whatsapp_url }}?text={{ 'Hi, I have a question about '|urlencode }}{{ product.name|urlencode }}%20-%20{{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#chat"></use></svg><span>Ask a question</span></a>
+            {% else %}
+            <a class="fd-share" href="{% url 'contact' %}?subject={{ 'Question about '|urlencode }}{{ product.name|urlencode }}"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#chat"></use></svg><span>Ask a question</span></a>
+            {% endif %}
+          </div>
+          <div class="fd-share-fallback" data-share-fallback hidden>
+            <a href="https://wa.me/?text={{ product.name|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener">WhatsApp</a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener">Facebook</a>
+            <a href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri|urlencode }}&amp;description={{ product.name|urlencode }}" target="_blank" rel="noopener">Pinterest</a>
+            <button type="button" data-copy-link="{{ request.build_absolute_uri }}">Copy link</button>
+          </div>
 
           <div class="fd-trust-row">
             <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#needle"></use></svg>Handcrafted</div>
@@ -183,9 +217,40 @@
                 {% endif %}
               </div>
             </details>
+            {% if product.fabric or product.care_instructions %}
             <details>
-              <summary>Payment &amp; Help</summary>
-              <div class="fd-details-body">Pay securely at checkout. Questions about fit or fabric? <a href="{% url 'contact' %}">Contact us</a> and we will help you choose.</div>
+              <summary>Fabric &amp; Care</summary>
+              <div class="fd-details-body">
+                {% if product.fabric %}<p><strong class="text-dark">Fabric:</strong> {{ product.fabric }}</p>{% endif %}
+                {% if product.care_instructions %}{{ product.care_instructions|linebreaks }}{% endif %}
+              </div>
+            </details>
+            {% endif %}
+            {% if size_chart %}
+            <details id="size-guide">
+              <summary>Size Guide</summary>
+              <div class="fd-details-body">{% include "store/partials/size_chart.html" with chart=size_chart %}</div>
+            </details>
+            {% endif %}
+            <details>
+              <summary>Shipping &amp; Returns</summary>
+              <div class="fd-details-body">
+                <p><strong class="text-dark">{{ product.get_fulfilment_display }}</strong>{% if product.dispatch_note %} &mdash; {{ product.dispatch_note }}{% endif %}</p>
+                {% if site_settings.shipping_fee > 0 %}<p>Shipping {{ currency }}{{ site_settings.shipping_fee }}{% if site_settings.free_shipping_threshold %}; free on orders over {{ currency }}{{ site_settings.free_shipping_threshold|floatformat:"-2" }}{% endif %}.</p>{% endif %}
+                {% if site_settings.returns_summary %}{{ site_settings.returns_summary|linebreaks }}{% else %}<p>Questions about delivery or exchanges? <a href="{% url 'contact' %}">Contact us</a>.</p>{% endif %}
+              </div>
+            </details>
+            <details>
+              <summary>Product Information</summary>
+              <div class="fd-details-body">
+                <dl class="fd-info-list">
+                  {% if product.sku %}<dt>SKU</dt><dd>{{ product.sku }}</dd>{% endif %}
+                  <dt>Country of origin</dt><dd>{{ product.country_of_origin|default:"India" }}</dd>
+                  {% if site_settings.legal_name %}<dt>Seller</dt><dd>{{ site_settings.legal_name }}{% if site_settings.address %}, {{ site_settings.address|linebreaksbr }}{% endif %}</dd>{% endif %}
+                  {% if site_settings.gstin %}<dt>GSTIN</dt><dd>{{ site_settings.gstin }}</dd>{% endif %}
+                  {% if site_settings.grievance_officer_name %}<dt>Grievance officer</dt><dd>{{ site_settings.grievance_officer_name }}{% if site_settings.grievance_officer_email %} &middot; <a href="mailto:{{ site_settings.grievance_officer_email }}">{{ site_settings.grievance_officer_email }}</a>{% endif %}{% if site_settings.grievance_officer_phone %} &middot; {{ site_settings.grievance_officer_phone }}{% endif %}</dd>{% endif %}
+                </dl>
+              </div>
             </details>
           </div>
         </div>
@@ -249,6 +314,32 @@
       </div>
     </div>
   </div>
+
+  {% if complete_the_look %}
+  <section class="fd-section pb-0" id="complete-the-look">
+    <div class="container-lg">
+      <div class="fd-section-head">
+        <div><span class="fd-eyebrow">Style it with</span><h3 class="mb-0">Complete the Look</h3></div>
+      </div>
+      <div class="row g-3 g-lg-4">
+        {% for product in complete_the_look|slice:":4" %}
+        <div class="col-6 col-lg-3">{% include "store/partials/product_card.html" %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if size_chart %}
+  <dialog class="fd-dialog" id="size-guide-dialog" aria-labelledby="size-guide-title">
+    <div class="fd-dialog-head">
+      <h3 id="size-guide-title" class="h4 mb-0">Size Guide</h3>
+      <button type="button" class="btn-close" data-close-dialog aria-label="Close size guide"></button>
+    </div>
+    {% include "store/partials/size_chart.html" with chart=size_chart %}
+    <p class="small text-muted mt-3 mb-0">Between sizes or need a perfect fit? <a href="#customize-section" data-close-dialog>Order it made to measure</a>.</p>
+  </dialog>
+  {% endif %}
 
   <!-- Related products -->
   {% if related_products %}

@@ -6,6 +6,10 @@ from store.models import (
     CustomizationRequest,
     Feedback,
     HomeBanner,
+    Occasion,
+    SizeChart,
+    SizeChartRow,
+    StockAlert,
     PhoneOTP,
     Discount,
     NewsletterSubscriber,
@@ -47,9 +51,11 @@ class ProductAdmin(admin.ModelAdmin):
         "is_best_seller",
         "is_recommended",
         "allow_discounts",
+        "fulfilment",
+        "occasions",
     )
-    search_fields = ("name", "sku", "short_description", "tags__name")
-    filter_horizontal = ("tags",)
+    search_fields = ("name", "sku", "short_description", "tags__name", "fabric")
+    filter_horizontal = ("tags", "occasions", "pairs_with")
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
     inlines = [ProductImageInline]
@@ -80,7 +86,14 @@ class ProductAdmin(admin.ModelAdmin):
             ),
         }),
         ("Options", {
-            "fields": ("color_options", "size_options"),
+            "description": "Comma- or line-separated values, e.g. S, M, L. Shown as selectable chips and shop filters.",
+            "fields": ("color_options", "size_options", "size_chart"),
+        }),
+        ("Details & delivery", {
+            "fields": (
+                "fulfilment", "dispatch_note", "fabric", "care_instructions",
+                "country_of_origin", "occasions", "pairs_with",
+            ),
         }),
         ("Timestamps", {
             "fields": ("created_at", "updated_at"),
@@ -346,3 +359,32 @@ class PhoneOTPAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+
+@admin.register(Occasion)
+class OccasionAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "is_active", "sort_order")
+    list_editable = ("is_active", "sort_order")
+    prepopulated_fields = {"slug": ("name",)}
+
+
+class SizeChartRowInline(admin.TabularInline):
+    model = SizeChartRow
+    extra = 3
+    fields = ("size_label", "bust", "under_bust", "waist", "shoulder", "armhole", "length", "sleeve_length", "sort_order")
+
+
+@admin.register(SizeChart)
+class SizeChartAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "is_default", "unit")
+    list_filter = ("is_default", "unit")
+    inlines = [SizeChartRowInline]
+
+
+@admin.register(StockAlert)
+class StockAlertAdmin(admin.ModelAdmin):
+    list_display = ("email", "product", "created_at", "notified_at")
+    list_filter = ("notified_at",)
+    search_fields = ("email", "product__name")
+    readonly_fields = ("created_at",)

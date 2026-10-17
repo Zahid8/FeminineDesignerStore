@@ -1,0 +1,15 @@
+{% load store_extras %}
+{% with columns=chart.columns rows=chart.rows.all %}
+<p class="fd-label mb-2">{{ chart.name }} &middot; {{ chart.get_unit_display }}</p>
+<div class="table-responsive">
+  <table class="table fd-size-table">
+    <thead><tr><th scope="col">Size</th>{% for field, label in columns %}<th scope="col">{{ label }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr><th scope="row">{{ row.size_label }}</th>{% for value in row|size_values:columns %}<td>{{ value|default_if_none:"–"|floatformat:"-1" }}</td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if chart.notes %}<div class="small text-muted">{{ chart.notes|linebreaks }}</div>{% endif %}
+{% endwith %}

@@ -49,33 +49,53 @@ def home(request):
     ctx = _base_context(request)
     ctx.update(selectors.get_homepage_products())
     ctx["banners"] = selectors.get_home_banners()
+    ctx["occasions"] = selectors.get_shop_occasions()
     return render(request, "store/home.html", ctx)
 
 
+PRODUCTS_PER_PAGE = 24
+
+
 def product_list(request):
+    from django.core.paginator import Paginator
+
     category_slug = request.GET.get("category", "")
     tag_slug = request.GET.get("tag", "")
     query = request.GET.get("q", "")
     sort = request.GET.get("sort", "")
     if sort not in selectors.PRODUCT_SORTS:
         sort = ""
-    products = selectors.sort_products(
-        selectors.filter_products(
-            category_slug=category_slug or None,
-            tag_slug=tag_slug or None,
-            query=query or None,
-        ),
-        sort,
+    scoped = selectors.filter_products(
+        category_slug=category_slug or None,
+        tag_slug=tag_slug or None,
+        query=query or None,
     )
+    facets = selectors.parse_facets(request.GET)
+    products = selectors.sort_products(selectors.apply_facets(scoped, facets), sort)
+    paginator = Paginator(products, PRODUCTS_PER_PAGE)
+    page = paginator.get_page(request.GET.get("page"))
+
+    options = selectors.facet_options(scoped)
+    occasion_names = {o.slug: o.name for o in options["occasions"]}
+    base_params = request.GET.copy()
+    base_params.pop("page", None)
+
     ctx = _base_context(request)
     ctx.update(
         {
-            "products": products,
+            "products": page,
+            "page_obj": page,
+            "product_count": paginator.count,
             "sort": sort,
             "selected_category": category_slug,
             "selected_tag": tag_slug,
             "query": query,
             "active_tags": selectors.get_active_tags(),
+            "facets": facets,
+            "facet_options": options,
+            "filter_chips": selectors.active_filter_chips(request.GET, facets, occasion_names),
+            "filter_count": len(selectors.active_filter_chips(request.GET, facets, occasion_names)),
+            "base_query": base_params.urlencode(),
         }
     )
     return render(request, "store/product_list.html", ctx)
@@ -87,10 +107,15 @@ def product_detail(request, slug):
     if product.category:
         related = selectors.filter_products(category_slug=product.category.slug)[:8]
     ctx = _base_context(request)
+    site = ctx["site_settings"]
     ctx.update(
         {
             "product": product,
-            "product_jsonld": product_jsonld(request, product, ctx["site_settings"]),
+            "size_chart": product.get_size_chart(),
+            "complete_the_look": selectors.get_active_products().filter(pk__in=product.pairs_with.values("pk")),
+            "low_stock": product.low_stock_count(getattr(site, "low_stock_threshold", 3)),
+            "occasions": product.occasions.filter(is_active=True),
+            "product_jsonld": product_jsonld(request, product, site),
             "related_products": related,
             "add_to_cart_form": AddToCartForm(),
             "customization_form": CustomizationForm(initial={
@@ -557,7 +582,10 @@ def contact_view(request):
             messages.success(request, "Thank you! Your message has been sent.")
             return redirect("home")
     else:
-        form = FeedbackForm()
+        initial = {"subject": request.GET.get("subject", "")[:255]}
+        if request.user.is_authenticated:
+            initial.update({"name": request.user.get_full_name() or request.user.username, "email": request.user.email})
+        form = FeedbackForm(initial=initial)
     ctx = _base_context(request)
     ctx["form"] = form
     return render(request, "store/contact.html", ctx)

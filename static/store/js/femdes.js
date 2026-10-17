@@ -382,6 +382,89 @@
     });
   }
 
+  // ---- Shop "Load more": fetch the next page and append its cards ----
+  function setupLoadMore() {
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('[data-load-more]');
+      if (!link || typeof window.fetch === 'undefined') return;
+      var grid = document.querySelector('[data-product-grid]');
+      var pager = document.querySelector('[data-pager]');
+      if (!grid || !pager) return;
+      e.preventDefault();
+      link.setAttribute('aria-busy', 'true');
+      link.textContent = 'Loading\u2026';
+      fetch(link.href, { headers: { 'X-Requested-With': 'fetch' } })
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var newGrid = doc.querySelector('[data-product-grid]');
+          var newPager = doc.querySelector('[data-pager]');
+          if (newGrid) {
+            Array.prototype.slice.call(newGrid.children).forEach(function (col) {
+              col.removeAttribute('data-reveal');
+              grid.appendChild(col);
+            });
+          }
+          if (newPager) {
+            var prev = newPager.querySelector('[rel="prev"]');
+            if (prev) prev.remove();
+            pager.replaceWith(newPager);
+          } else {
+            pager.remove();
+          }
+          if (window.history && window.history.replaceState) window.history.replaceState(null, '', link.href);
+        })
+        .catch(function () { window.location.href = link.href; });
+    });
+  }
+
+  // ---- Dialogs (size guide) + share ----
+  function setupDialogs() {
+    document.addEventListener('click', function (e) {
+      var opener = e.target.closest('[data-open-dialog]');
+      if (opener) {
+        var dlg = document.getElementById(opener.getAttribute('data-open-dialog'));
+        if (dlg && typeof dlg.showModal === 'function') {
+          e.preventDefault();
+          if (lenis) lenis.stop();
+          dlg.showModal();
+        }
+        return;
+      }
+      var closer = e.target.closest('[data-close-dialog]');
+      if (closer) {
+        var d = closer.closest('dialog');
+        if (d) d.close();
+      }
+    });
+    document.querySelectorAll('dialog.fd-dialog').forEach(function (d) {
+      d.addEventListener('close', function () { if (lenis) lenis.start(); });
+      d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
+    });
+  }
+
+  function setupShare() {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-share]');
+      if (btn) {
+        var data = { title: btn.getAttribute('data-share-title'), url: btn.getAttribute('data-share-url') };
+        if (navigator.share) {
+          navigator.share(data).catch(function () {});
+        } else {
+          var fb = document.querySelector('[data-share-fallback]');
+          if (fb) fb.hidden = !fb.hidden;
+        }
+        return;
+      }
+      var copy = e.target.closest('[data-copy-link]');
+      if (copy && navigator.clipboard) {
+        navigator.clipboard.writeText(copy.getAttribute('data-copy-link')).then(function () {
+          copy.textContent = 'Link copied';
+        });
+      }
+    });
+  }
+
   // ---- OTP resend countdown ----
   function setupResendCountdown() {
     var form = document.querySelector('[data-resend]');
@@ -405,6 +488,9 @@
   ready(function () {
     setupResendCountdown();
     setupWishlist();
+    setupLoadMore();
+    setupDialogs();
+    setupShare();
     document.addEventListener('click', handleStep);
     document.addEventListener('change', handleQtyChange);
     setupSearch();

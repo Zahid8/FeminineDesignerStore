@@ -109,6 +109,18 @@
 </section>
 {% endif %}
 
+{% if occasions %}
+<!-- Shop by occasion -->
+<section class="fd-section-sm pt-0">
+  <div class="container-lg text-center" data-reveal>
+    <span class="fd-eyebrow is-center">Shop by occasion</span>
+    <div class="fd-occasion-row">
+      {% for o in occasions %}<a href="{% url 'product_list' %}?occasion={{ o.slug }}" class="fd-occasion">{{ o.name }}</a>{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- New Arrivals -->
 {% if new_arrivals %}
 <section id="new-arrival" class="new-arrival product-carousel fd-section pt-0 position-relative overflow-hidden">

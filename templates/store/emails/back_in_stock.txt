@@ -1,0 +1,6 @@
+{% autoescape off %}Good news — {{ product.name }} is back in stock at {{ site_settings.store_name|default:"FemDes" }}.
+
+{% if product_url %}Shop it here: {{ product_url }}
+
+{% endif %}Quantities are limited, so we can't hold it for you. You asked us to let you know; we won't email you about this piece again.
+{% endautoescape %}

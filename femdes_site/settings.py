@@ -198,6 +198,8 @@ DEFAULT_FROM_EMAIL = os.getenv("DJANGO_DEFAULT_FROM_EMAIL", "FemDes <no-reply@lo
 STORE_NOTIFY_EMAIL = os.getenv("STORE_NOTIFY_EMAIL", "")
 
 LOGIN_URL = "account_login"
+# Public site origin used in emails sent outside a request (e.g. back-in-stock), no trailing slash.
+SITE_URL = os.getenv("SITE_URL", "").rstrip("/")
 
 # Phone OTP login. Countries are defined in store/phone.py; enable more by ISO code.
 PHONE_LOGIN_COUNTRIES = [c.strip() for c in os.getenv("PHONE_LOGIN_COUNTRIES", "IN").split(",") if c.strip()]

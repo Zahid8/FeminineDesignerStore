@@ -653,3 +653,43 @@ hr { border-color: var(--fd-line); opacity: 1; }
 .fd-pay-option input { margin-top: 0.3rem; accent-color: var(--fd-wine); }
 .fd-pay-option strong { display: block; font-weight: 500; color: var(--fd-ink); }
 .fd-pay-option small { display: block; color: var(--fd-muted); font-size: 0.82rem; margin-top: 0.15rem; }
+
+/* Shop filters + pagination */
+.fd-filter-drawer { width: min(400px, 92vw) !important; }
+.fd-filter-drawer .offcanvas-body { padding-top: 0; }
+.fd-check-list label { display: flex; align-items: center; gap: 0.6rem; text-transform: none; letter-spacing: 0; font-size: 0.92rem; font-weight: 400; margin-bottom: 0.55rem; cursor: pointer; }
+.fd-check-list input { accent-color: var(--fd-wine); width: 16px; height: 16px; }
+.fd-filter-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 0.6rem; padding-top: 1.25rem; border-top: 1px solid var(--fd-line); background: var(--fd-ivory); position: sticky; bottom: 0; }
+.fd-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: -0.75rem 0 1.75rem; }
+.fd-chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; border: 1px solid var(--fd-line); background: #fff; font-size: 0.78rem; }
+.fd-chip:hover { border-color: var(--fd-ink); }
+.fd-chip-clear { font-size: 0.66rem; letter-spacing: var(--fd-track); text-transform: uppercase; border-bottom: 1px solid currentColor; margin-left: 0.4rem; }
+.fd-pager { text-align: center; margin-top: 3.5rem; }
+
+/* Product page: status, dispatch, sharing, size guide */
+.fd-price-note { font-size: 0.78rem; color: var(--fd-muted); margin: -0.9rem 0 1.1rem; }
+.fd-pdp-status { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.fd-low-stock { font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fd-wine); font-weight: 500; }
+.fd-dispatch { display: flex; gap: 0.5rem; align-items: center; font-size: 0.88rem; color: var(--fd-ink-soft); margin-bottom: 0.5rem; }
+.fd-dispatch svg { color: var(--fd-wine); flex: none; }
+.fd-dispatch strong { font-weight: 500; color: var(--fd-ink); }
+.fd-pdp-occasions { font-size: 0.86rem; color: var(--fd-muted); }
+.fd-pdp-occasions a { color: var(--fd-ink); border-bottom: 1px solid var(--fd-line); }
+.fd-size-guide-link { font-size: 0.64rem; letter-spacing: var(--fd-track); border-bottom: 1px solid currentColor; text-transform: uppercase; }
+.fd-pdp-social { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; align-items: center; margin: 0.25rem 0 0.75rem; }
+.fd-share { border: 0; background: none; padding: 0; display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.66rem; letter-spacing: var(--fd-track); text-transform: uppercase; color: var(--fd-ink); }
+.fd-share:hover { color: var(--fd-wine); }
+.fd-share-fallback { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.fd-share-fallback a, .fd-share-fallback button { font-size: 0.78rem; padding: 0.35rem 0.75rem; border: 1px solid var(--fd-line); background: #fff; color: var(--fd-ink); }
+.fd-notify { margin: 1.4rem 0; }
+.fd-info-list { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1.25rem; margin: 0; font-size: 0.88rem; }
+.fd-info-list dt { font-weight: 500; color: var(--fd-ink); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; padding-top: 0.2rem; }
+.fd-info-list dd { margin: 0; }
+.fd-size-table th, .fd-size-table td { text-align: center; white-space: nowrap; }
+.fd-size-table tbody th { font-weight: 500; color: var(--fd-ink); }
+.fd-dialog { border: 0; padding: 1.75rem; width: min(680px, 94vw); background: var(--fd-ivory); color: var(--fd-ink-soft); box-shadow: 0 30px 80px -20px rgba(23, 20, 22, 0.45); }
+.fd-dialog::backdrop { background: rgba(23, 20, 22, 0.45); }
+.fd-dialog-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--fd-line); }
+.fd-occasion-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem 2rem; }
+.fd-occasion { font-family: var(--fd-font-display); font-size: clamp(1.3rem, 2.2vw, 1.8rem); font-style: italic; color: var(--fd-ink); border-bottom: 1px solid transparent; transition: border-color 0.3s, color 0.3s; }
+.fd-occasion:hover { color: var(--fd-wine); border-bottom-color: currentColor; }
