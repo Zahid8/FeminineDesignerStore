@@ -269,7 +269,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
     fieldsets = (
         (None, {
-            "fields": ("store_name", "logo", "tagline"),
+            "fields": ("store_name", "logo", "tagline", "announcement_text", "announcement_url"),
         }),
         ("Contact", {
             "fields": ("contact_email", "contact_phone", "address"),
@@ -337,12 +337,12 @@ class FeedbackAdmin(admin.ModelAdmin):
 
 @admin.register(HomeBanner)
 class HomeBannerAdmin(admin.ModelAdmin):
-    list_display = ("title", "eyebrow", "text_theme", "is_active", "sort_order")
+    list_display = ("title", "placement", "eyebrow", "text_theme", "is_active", "sort_order")
     list_editable = ("is_active", "sort_order")
-    list_filter = ("is_active", "text_theme")
+    list_filter = ("placement", "is_active", "text_theme")
     search_fields = ("title", "eyebrow", "subtitle")
     fieldsets = (
-        (None, {"fields": ("image", "mobile_image", "text_theme")}),
+        (None, {"fields": ("placement", "image", "mobile_image", "text_theme")}),
         ("Copy", {"fields": ("eyebrow", "title", "subtitle", "cta_label", "cta_url")}),
         ("Display", {"fields": ("is_active", "sort_order")}),
     )

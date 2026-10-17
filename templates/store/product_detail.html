@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static store_extras %}
 
 {% block title %} — {{ product.name }}{% endblock %}
 {% block meta_description %}{{ product.short_description|default:product.description|striptags|truncatechars:155 }}{% endblock %}
@@ -66,10 +66,10 @@
             {% for tag in product.tags.all %}{% if tag.is_active %}<a href="{% url 'product_list' %}?tag={{ tag.slug }}">#{{ tag.name }}</a>{% endif %}{% endfor %}
           </div>
           <div class="fd-pdp-price">
-            <span class="fd-price">{{ currency }}{{ product.get_effective_price }}</span>
+            <span class="fd-price{% if product.is_on_sale %} is-sale{% endif %}">{{ currency }}{{ product.get_effective_price }}</span>
             {% if product.compare_at_price and product.compare_at_price > product.price %}
             <span class="fd-compare">{{ currency }}{{ product.compare_at_price }}</span>
-            <span class="fd-badge is-sale">Sale</span>
+            <span class="fd-badge is-pct">&minus;{{ product|percent_off }}%</span>
             {% endif %}
           </div>
           {% if site_settings.price_note %}<p class="fd-price-note">{{ site_settings.price_note }}</p>{% endif %}
@@ -140,14 +140,14 @@
                   <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ product.stock_quantity }}" class="form-control qty-input">
                   <button type="button" class="btn btn-sm qty-inc" aria-label="Increase quantity" data-action="inc">+</button>
                 </div>
-                <button type="submit" class="btn btn-outline-dark">Add to Cart</button>
+                <button type="submit" class="btn btn-dark">Add to Cart</button>
               </div>
             </div>
           </form>
           <div class="fd-pdp-actions mt-0">
             <form method="post" action="{% url 'buy_now' product.pk %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-dark">Buy Now</button>
+              <button type="submit" class="btn btn-outline-dark">Buy Now</button>
             </form>
             <a href="#customize-section" class="btn btn-outline-dark">Customize</a>
             {% if site_settings.whatsapp_url %}

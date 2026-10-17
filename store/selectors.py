@@ -80,8 +80,8 @@ def sort_products(qs, sort_key):
     return qs.order_by(*ordering) if ordering else qs
 
 
-def get_home_banners():
-    return HomeBanner.objects.filter(is_active=True).order_by("sort_order", "id")
+def get_home_banners(placement="hero"):
+    return HomeBanner.objects.filter(is_active=True, placement=placement).order_by("sort_order", "id")
 
 
 # ── Shop facets ────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 # Current Task
 
+> **T31 — Concept A + B styling pass: DONE (2026-10-17)** (notes at end).
 > **T30 — Customer features + phone OTP login: DONE (2026-10-17)** (notes at end).
 > **T29 — Reference-driven redesign: DONE (2026-10-17)** (notes at end).
 > **T28 — Customer-facing UI revamp: DONE (2026-10-17).** See notes at the end
@@ -317,3 +318,27 @@ was never applied. Subtotal is now list price; Subtotal − Discount + Shipping 
 ### Still open
 - TASK-027-FIX item 5 dedicated tests.
 - Demo categories/products still use placeholder names and stock photos.
+
+
+---
+
+## T31 Notes — Concept A primary + Concept B supporting (completed 2026-10-17)
+
+Owner brief: combine a primary visual style with supporting elements; chose
+A (Luxury Boutique: ivory/charcoal, editorial hero, 4-column grid, discreet
+gold/brown accents, Swiss-style type) as primary with B (Modern Instagram
+Boutique: warm sections, highlighted new arrivals/bestsellers, clear sale
+prices, promo banners, mobile quick-add) supporting. Concept C not used.
+
+- Tokens: `--fd-accent` brown-gold replaces wine for eyebrows, links,
+  buttons, filters; wine is kept only for sale prices, −% badges and errors.
+  Body font Inter (Jost remains as fallback); announcement bar is charcoal.
+- Header: up to four category links beside Shop (desktop); Shop mega menu
+  unchanged.
+- Hero: split hero now has one primary CTA plus a text link.
+- `SiteSettings.announcement_text/url` drive the top bar (blank hides it).
+- `HomeBanner.placement` = hero | promo; promo banners render as image +
+  copy bands after New Arrivals (alternating sides). Migration 0022.
+- Cards/PDP: −N% badge (`percent_off` filter), Bestseller badge, sale price in
+  wine; Add to Cart is the filled primary button, Buy Now outlined; mobile
+  quick-add targets are 44px; Best Sellers section sits on a cream band.

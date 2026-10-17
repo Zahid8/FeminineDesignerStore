@@ -1,4 +1,4 @@
-{% load static %}
+{% load static store_extras %}
 <div class="product-item"{% if product.category %} data-category="{{ product.category.slug }}"{% endif %}>
   <div class="fd-card-media position-relative">
     <a href="{% url 'product_detail' product.slug %}" aria-label="{{ product.name }}">
@@ -13,8 +13,8 @@
       {% if not product.is_in_stock %}
       <span class="fd-badge is-out">Out of Stock</span>
       {% else %}
-      {% if product.compare_at_price and product.compare_at_price > product.price %}<span class="fd-badge is-sale">Sale</span>{% endif %}
-      {% if product.is_new_arrival %}<span class="fd-badge">New</span>{% endif %}
+      {% with pct=product|percent_off %}{% if pct %}<span class="fd-badge is-pct">&minus;{{ pct }}%</span>{% endif %}{% endwith %}
+      {% if product.is_best_seller %}<span class="fd-badge is-best">Bestseller</span>{% elif product.is_new_arrival %}<span class="fd-badge">New</span>{% endif %}
       {% if product.fulfilment == "made_to_order" %}<span class="fd-badge">Made to order</span>{% endif %}
       {% endif %}
     </div>
@@ -44,7 +44,7 @@
       {% endfor %}
     </div>
     <div class="product-price">
-      <span class="fd-price">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</span>
+      <span class="fd-price{% if product.is_on_sale %} is-sale{% endif %}">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</span>
       {% if product.compare_at_price and product.compare_at_price > product.price %}
       <span class="fd-compare">{{ site_settings.currency_symbol|default:"$" }}{{ product.compare_at_price }}</span>
       {% endif %}

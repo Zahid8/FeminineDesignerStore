@@ -51,6 +51,12 @@ class SiteSettings(models.Model):
         help_text="Orders at or above this amount ship free. Blank = no threshold.",
     )
 
+    # Announcement bar (top of every page); blank text hides it
+    announcement_text = models.CharField(
+        max_length=160, blank=True, default="Handcrafted designer blouses · made to your measurements",
+    )
+    announcement_url = models.CharField(max_length=255, blank=True, help_text="Optional link for the announcement.")
+
     # Product page copy
     price_note = models.CharField(
         max_length=120, blank=True,
@@ -569,7 +575,12 @@ class HomeBanner(models.Model):
         ("light", "Light text (for dark photos)"),
         ("dark", "Dark text (for light photos)"),
     ]
+    PLACEMENTS = [
+        ("hero", "Hero slideshow"),
+        ("promo", "Promotion band (mid page)"),
+    ]
 
+    placement = models.CharField(max_length=10, choices=PLACEMENTS, default="hero")
     image = models.ImageField(upload_to="banners/")
     mobile_image = models.ImageField(
         upload_to="banners/", blank=True, null=True,

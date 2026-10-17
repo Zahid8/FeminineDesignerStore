@@ -45,7 +45,7 @@
     integrity="sha384-gvLq/iOMNnPchdosgVym5huSVkKipHCQaqSw2Eg0V52Mzmlf169ZOsXcNc2cNu8x" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="{% static 'store/css/femdes-theme.css' %}">
 </head>
 <body data-fallback-img="{% static 'store/images/femdes-placeholder.svg' %}">
@@ -53,9 +53,11 @@
   {% include "store/partials/icons.html" %}
   {% include "store/partials/search_popup.html" %}
   {% include "store/partials/cart_offcanvas.html" %}
+  {% if site_settings.announcement_text or not site_settings %}
   <div class="fd-announce" role="note">
-    Handcrafted designer blouses<span class="d-sm-inline"> &middot; made to your measurements</span>{% if site_settings.whatsapp_url %} &middot; <a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">Chat with us on WhatsApp</a>{% endif %}
+    {% if site_settings.announcement_url %}<a href="{{ site_settings.announcement_url }}">{{ site_settings.announcement_text }}</a>{% else %}{{ site_settings.announcement_text|default:"Handcrafted designer blouses · made to your measurements" }}{% endif %}{% if site_settings.whatsapp_url and not site_settings.announcement_url %} &middot; <a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">Chat with us on WhatsApp</a>{% endif %}
   </div>
+  {% endif %}
   {% include "store/partials/navbar.html" %}
 
   <main id="main">

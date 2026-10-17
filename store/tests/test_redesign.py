@@ -172,3 +172,47 @@ class WhatsAppTests(TestCase):
         self.assertIn("Order on WhatsApp", content)
         self.assertIn("https://wa.me/919800000000?text=", content)
         self.assertIn("Chat%20Blouse", content)
+
+
+@override_settings(MEDIA_ROOT="/tmp/femdes-test-media-redesign")
+class ConceptBMerchandisingTests(TestCase):
+    def setUp(self):
+        self.cat = Category.objects.create(name="Silk", slug="silk-b", is_active=True)
+        self.p = Product.objects.create(category=self.cat, name="Sale Blouse", slug="sale-b", sku="SB-1",
+                                        price=Decimal("800"), compare_at_price=Decimal("1000"),
+                                        stock_quantity=3, is_active=True, is_best_seller=True)
+
+    def test_percent_off_badge_and_sale_price_class(self):
+        content = self.client.get(reverse("product_list")).content.decode()
+        self.assertIn("&minus;20%", content)
+        self.assertIn('class="fd-price is-sale"', content)
+        self.assertIn("Bestseller", content)
+        detail = self.client.get(reverse("product_detail", args=[self.p.slug])).content.decode()
+        self.assertIn("&minus;20%", detail)
+
+    def test_percent_off_filter_edge_cases(self):
+        from store.templatetags.store_extras import percent_off
+        self.assertEqual(percent_off(Product(price=Decimal("100"), compare_at_price=None)), 0)
+        self.assertEqual(percent_off(Product(price=Decimal("100"), compare_at_price=Decimal("100"))), 0)
+        self.assertEqual(percent_off(Product(price=Decimal("90"), compare_at_price=Decimal("120"))), 25)
+
+    def test_announcement_bar_from_settings(self):
+        SiteSettings.objects.create(store_name="FemDes", announcement_text="Festive sale: 20% off", announcement_url="/shop/?sale=1")
+        content = self.client.get(reverse("home")).content.decode()
+        self.assertIn('<a href="/shop/?sale=1">Festive sale: 20% off</a>', content)
+        SiteSettings.objects.update(announcement_text="")
+        self.assertNotIn('class="fd-announce"', self.client.get(reverse("home")).content.decode())
+
+    def test_promo_banner_renders_in_band_not_hero(self):
+        HomeBanner.objects.create(title="Wedding Edit", placement="promo", eyebrow="Limited",
+                                  image=SimpleUploadedFile("p.gif", GIF, "image/gif"))
+        content = self.client.get(reverse("home")).content.decode()
+        self.assertIn("fd-promo", content)
+        self.assertIn("Wedding Edit", content)
+        self.assertNotIn("fd-hero-banner", content)
+
+    def test_nav_shows_category_links_and_add_to_cart_is_primary(self):
+        content = self.client.get(reverse("product_detail", args=[self.p.slug])).content.decode()
+        self.assertIn('class="nav-link is-category" href="/shop/?category=silk-b"', content)
+        self.assertIn('<button type="submit" class="btn btn-dark">Add to Cart</button>', content)
+        self.assertIn('<button type="submit" class="btn btn-outline-dark">Buy Now</button>', content)

@@ -45,7 +45,7 @@
             <p class="fd-hero-split-price"><small>From</small>{{ currency }}{{ product.get_effective_price }}</p>
             <div class="d-flex gap-3 flex-wrap">
               <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark rounded-pill">Shop Now</a>
-              <a href="{% url 'product_list' %}" class="btn btn-outline-dark rounded-pill">Browse Collection</a>
+              <a href="{% url 'product_list' %}" class="fd-link-underline align-self-center">Browse the collection</a>
             </div>
             <div class="fd-hero-trust">
               <span><svg width="14" height="14" aria-hidden="true"><use xlink:href="#needle"></use></svg>Handcrafted</span>
@@ -149,6 +149,24 @@
 </section>
 {% endif %}
 
+{% for promo in promo_banners %}
+<!-- Promotion band -->
+<section class="fd-promo{% if forloop.counter|divisibleby:2 %} is-flipped{% endif %}" data-reveal="fade">
+  <div class="fd-promo-media">
+    <picture>
+      {% if promo.mobile_image %}<source media="(max-width: 767px)" srcset="{{ promo.mobile_image.url }}">{% endif %}
+      <img src="{{ promo.image.url }}" alt="{{ promo.title }}" loading="lazy">
+    </picture>
+  </div>
+  <div class="fd-promo-copy">
+    {% if promo.eyebrow %}<span class="fd-eyebrow">{{ promo.eyebrow }}</span>{% endif %}
+    <h2>{{ promo.title }}</h2>
+    {% if promo.subtitle %}<p>{{ promo.subtitle }}</p>{% endif %}
+    <div><a href="{% if promo.cta_url %}{{ promo.cta_url }}{% else %}{% url 'product_list' %}{% endif %}" class="btn btn-dark">{{ promo.cta_label|default:"Shop Now" }}</a></div>
+  </div>
+</section>
+{% endfor %}
+
 <!-- Editorial: atelier -->
 <section class="fd-editorial" data-reveal="fade">
   <div class="fd-editorial-media is-product">
@@ -175,7 +193,7 @@
 
 <!-- Best Sellers -->
 {% if best_sellers %}
-<section id="best-sellers" class="best-sellers product-carousel fd-section position-relative overflow-hidden">
+<section id="best-sellers" class="best-sellers product-carousel fd-section fd-bg-paper position-relative overflow-hidden">
   <div class="container">
     <div class="fd-section-head" data-reveal>
       <div>

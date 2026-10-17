@@ -57,6 +57,9 @@
               </ul>
               {% endif %}
             </li>
+            {% for cat in categories|slice:":4" %}
+            <li class="nav-item d-none d-lg-block"><a class="nav-link is-category" href="{% url 'product_list' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
+            {% endfor %}
             <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}?sort=newest">New In</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#made-to-measure">Made to Measure</a></li>
             <li class="nav-item"><a class="nav-link{% if url_name == 'contact' %} active{% endif %}" href="{% url 'contact' %}">Contact</a></li>

@@ -2,14 +2,24 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T25 complete. 330 tests. PDF deferred. T25-FIX (strengthened search/filter tests) complete. T28/T29 redesign and T30 customer features complete (443 tests). TASK-027-FIX item 5 (dedicated stepper/search/status tests) is still unwritten.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T25 complete. 330 tests. PDF deferred. T25-FIX (strengthened search/filter tests) complete. T28/T29 redesign and T30 customer features complete (448 tests). TASK-027-FIX item 5 (dedicated stepper/search/status tests) is still unwritten.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (443 tests)
+conda run -n femdes python manage.py test       # PASS (448 tests)
 ```
+
+## T31 Verification — Concept A + B styling (2026-10-17)
+
+```bash
+conda run -n femdes python manage.py test   # PASS (448 tests)
+```
+`test_redesign.ConceptBMerchandisingTests` (5): −% badge and sale price
+class, `percent_off` edge cases, announcement bar from settings (hidden when
+blank), promo banner renders as a band not a hero, nav category links and
+primary Add to Cart. Screenshots in `docs/agent/screenshots/t31/`.
 
 ## T30 Verification — Customer features + phone OTP (2026-10-17)
 

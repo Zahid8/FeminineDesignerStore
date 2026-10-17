@@ -50,7 +50,8 @@ def _base_context(request):
 def home(request):
     ctx = _base_context(request)
     ctx.update(selectors.get_homepage_products())
-    ctx["banners"] = selectors.get_home_banners()
+    ctx["banners"] = selectors.get_home_banners("hero")
+    ctx["promo_banners"] = selectors.get_home_banners("promo")
     ctx["occasions"] = selectors.get_shop_occasions()
     ctx["client_diaries"] = selectors.get_client_diaries()
     return render(request, "store/home.html", ctx)
