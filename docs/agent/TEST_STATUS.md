@@ -443,6 +443,6 @@ conda run -n femdes python manage.py runserver
 
 ## T37 — Delivered stage + order type (2026-10-17)
 
-- `python manage.py test` — all OK; `makemigrations --check` — no changes (0025 committed)
+- `python manage.py test` — 486 tests OK (timeline test updated for Delivered); `makemigrations --check` — no changes
 - Billing app: `vitest` 226 OK, `tsc --noEmit` OK, `eslint .` OK
 - `node docs/agent/browser-checks/billing_stages.js` against a production build — 18/18 PASS, no JS errors

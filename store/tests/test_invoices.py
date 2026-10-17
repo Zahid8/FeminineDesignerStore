@@ -86,6 +86,7 @@ class TimelineActiveStatusTests(TestCase):
         "confirmed": "Confirmed",
         "processing": "Processing",
         "shipped": "Shipped",
+        "delivered": "Delivered",
         "completed": "Completed",
         "cancelled": "Cancelled",
     }
