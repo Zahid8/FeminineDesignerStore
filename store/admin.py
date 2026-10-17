@@ -1,5 +1,9 @@
 from django.contrib import admin
 
+admin.site.site_header = "FemDes Admin"
+admin.site.site_title = "FemDes Admin"
+admin.site.index_title = "Store management"
+
 from store.models import (
     Category,
     CustomerProfile,

@@ -114,3 +114,8 @@ Do not start these until T8 is done:
 - Blog CMS.
 - Instagram API integration.
 - Custom admin dashboard.
+
+## T35 — Neumorphic admin theme — DONE (2026-10-17)
+
+Owner request: "make the admin panel a little better, using neumorphism".
+Template override + additive stylesheet; no model or admin behaviour changes.

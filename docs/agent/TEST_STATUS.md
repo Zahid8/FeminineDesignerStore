@@ -420,3 +420,10 @@ conda run -n femdes python manage.py runserver
 - Cart add/update/remove works.
 - Checkout creates order and decrements stock.
 - Order appears in admin with line-item snapshots.
+
+## T35 — Neumorphic admin theme (2026-10-17)
+
+- `python manage.py check` — no issues
+- `python manage.py test` — 474 tests OK (2 new AdminThemeTests)
+- `python manage.py makemigrations --check --dry-run` — no changes
+- `python manage.py collectstatic --noinput` — OK

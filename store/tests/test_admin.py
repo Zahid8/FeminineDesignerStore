@@ -372,3 +372,22 @@ class AdminAccessTests(TestCase):
         self.client.force_login(staff)
         response = self.client.get(self.product_url)
         self.assertEqual(response.status_code, 200)
+
+
+class AdminThemeTests(TestCase):
+    """T35: the admin is branded and loads the neumorphic stylesheet."""
+
+    def test_login_page_loads_theme_and_branding(self):
+        response = Client().get(reverse("admin:login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "store/css/admin-neu.css")
+        self.assertContains(response, "FemDes Admin")
+
+    def test_index_uses_store_titles(self):
+        user = User.objects.create_superuser("themeadmin", "t@example.com", "pw-12345!")
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse("admin:index"))
+        self.assertContains(response, "admin-neu.css")
+        self.assertContains(response, "Store management")
+        self.assertContains(response, 'class="fd-admin-mark"')

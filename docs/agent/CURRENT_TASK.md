@@ -1,5 +1,6 @@
 # Current Task
 
+> **T35 — Neumorphic admin theme: DONE (2026-10-17)** (notes at end).
 > **T34 — Online Orders in the billing app: DONE (2026-10-17)** (notes at end).
 > **T33 — Made-to-measure redesign: DONE (2026-10-17)** (notes at end).
 > **T32 — Component polish pass: DONE (2026-10-17)** (notes at end).
@@ -439,3 +440,18 @@ Billing app (changes left **uncommitted** there pending owner approval):
 
 Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 `WEBSTORE_API_URL` on Vercel, then redeploy the billing app.
+
+## T35 notes — Neumorphic admin theme (2026-10-17)
+
+- `templates/admin/base_site.html` overrides Django's admin base: FD monogram
+  brand, Cormorant/Inter fonts, loads `static/store/css/admin-neu.css`.
+- `admin-neu.css` remaps Django admin CSS variables to the store palette
+  (ivory / ink / brown-gold) and adds soft raised/pressed shadows on cards,
+  sidebar, filters, inputs, buttons, paginator and the login card. Tables
+  stay flat inside raised containers for readability. Dark and auto themes
+  (Django's theme toggle) have their own palette.
+- `admin.site.site_header/site_title` = "FemDes Admin", `index_title` =
+  "Store management" (store/admin.py).
+- Login rules use `body.login` so they beat Django's later-loaded login.css.
+- Verified by Playwright screenshots (login, index, changelist, change form;
+  light + dark + mobile login) — script in /tmp/fdshot/admin.js.
