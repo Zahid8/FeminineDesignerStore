@@ -1143,3 +1143,24 @@ input[type=checkbox], input[type=radio] { accent-color: var(--fd-wine); }
 .fd-guide-list li::marker { color: var(--fd-wine); font-weight: 600; }
 @media (min-width: 992px) { .fd-measure-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 767.98px) { .fd-guide-dialog-body { grid-template-columns: 1fr; } .fd-guide-dialog .fd-guide svg { max-width: 260px; } }
+/* Gallery slides carry their own cream background so photos never flash white mid-transition */
+.product-gallery .carousel-item { background: var(--fd-product-bg); isolation: isolate; }
+.product-gallery .carousel-item img { background: var(--fd-product-bg); }
+.product-gallery .carousel-inner:hover .carousel-item.active img { transition-delay: 0.15s; }
+/* Mobile tap targets: nothing interactive shorter than ~40px on touch screens */
+.fd-announce a { display: inline-block; padding: 0.3rem 0; }
+.fd-text-btn, .fd-link-underline, .btn-link, .fd-size-guide-link, .fd-share, .fd-pdp-wish .fd-wish, .fd-chip-clear, .fd-share-request summary { display: inline-flex; align-items: center; min-height: 40px; }
+.fd-underline-input button { min-height: 44px; }
+.fd-sort .form-select { min-height: 40px; }
+.fd-builder-steps button { min-height: 40px; }
+.fd-unit-toggle button { min-height: 40px; }
+.fd-details summary { min-height: 48px; }
+@media (hover: none), (max-width: 767.98px) {
+  .fd-cart-line [data-quantity-stepper] .qty-dec, .fd-cart-line [data-quantity-stepper] .qty-inc, .fd-mini-cart-row .qty-dec, .fd-mini-cart-row .qty-inc { width: 36px; height: 36px; }
+  .fd-cart-links { gap: 1.4rem; }
+  .fd-social a { width: 44px; height: 44px; }
+  .fd-nav-icon, .fd-hamburger { width: 44px; height: 44px; }
+  .fd-util-left a, .fd-util-right a.fd-text-link { min-height: 44px; display: inline-flex; align-items: center; }
+  .filter-pill { min-height: 44px; }
+  .fd-crumbs a { display: inline-block; padding: 0.3rem 0; }
+}

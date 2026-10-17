@@ -571,3 +571,9 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   in `#measure-guide-dialog`, opened by the "How to measure" button next to
   the unit toggle; the builder form is a single column (3 fields per row on
   desktop). Check: `browser-checks/guide_dialog.js`.
+- Gallery: slides carry their own cream background + isolation so the next
+  photo no longer flashes white mid-transition (verified: 0 pure-white
+  samples across 6 frames of a slide).
+- Mobile pass: no sideways scroll at 360px or 390px; tap targets ≥ 40px for
+  text buttons, links, steppers, header icons, filter pills, footer socials
+  (`browser-checks/taps.js`). Fresh mobile captures reviewed for every page.
