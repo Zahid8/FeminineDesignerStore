@@ -169,3 +169,31 @@ class TrackPageTests(_Base):
         r = c.post(reverse("order_track"), {"order_number": self.order.order_number, "contact": "asha@example.com"})
         self.assertContains(r, "Manage this order")
         self.assertEqual(c.get(reverse("order_success", kwargs={"order_number": self.order.order_number})).status_code, 200)
+
+
+@override_settings(WEBSTORE_API_TOKEN="t")
+class ApiTrackingTests(_Base):
+    def post(self, url, body):
+        return Client().post(url, json.dumps(body), content_type="application/json", HTTP_AUTHORIZATION="Bearer t")
+
+    def test_set_tracking_and_read_back(self):
+        url = reverse("api_online_order_detail", args=[self.order.order_number])
+        r = self.post(url, {"status": "shipped", "courier": "Delhivery", "tracking_number": "AWB9", "tracking_url": "https://t.example/AWB9", "expected_delivery": "2026-10-21"})
+        t = r.json()["order"]["tracking"]
+        self.assertEqual((t["courier"], t["number"], t["url"], t["expected_delivery"]), ("Delhivery", "AWB9", "https://t.example/AWB9", "2026-10-21"))
+        self.assertIsNotNone(t["shipped_at"])
+        self.assertEqual([e["status"] for e in r.json()["order"]["timeline"]], ["pending", "shipped"])
+        self.assertEqual(self.post(url, {"tracking_url": "javascript:alert(1)"}).status_code, 400)
+        self.assertEqual(self.post(url, {"expected_delivery": "soon"}).status_code, 400)
+
+    def test_update_request(self):
+        self.order.status = "delivered"; self.order.save()
+        from store.orders import create_request
+        req = create_request(self.order, "exchange", "size", [self.item.pk], preferred_size="L")
+        url = reverse("api_online_order_request", args=[self.order.order_number, req.pk])
+        r = self.post(url, {"status": "approved", "staff_note": "Pickup tomorrow"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["order"]["requests"][0]["status"], "approved")
+        self.assertContains(self.detail(), "Pickup tomorrow")
+        self.assertEqual(self.post(url, {"status": "bogus"}).status_code, 400)
+        self.assertEqual(Client().post(url, "{}", content_type="application/json").status_code, 401)

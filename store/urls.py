@@ -99,6 +99,7 @@ urlpatterns = [
     # Billing-app API
     path("api/online-orders/", views_api.online_orders, name="api_online_orders"),
     path("api/online-orders/<str:order_number>/", views_api.online_order_detail, name="api_online_order_detail"),
+    path("api/online-orders/<str:order_number>/requests/<int:request_id>/", views_api.online_order_request_update, name="api_online_order_request"),
     # Public
     path("contact/", views.contact_view, name="contact"),
     path("wishlist/", views_extra.wishlist_page, name="wishlist"),

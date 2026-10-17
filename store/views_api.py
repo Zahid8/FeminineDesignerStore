@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from store import measurements as mspec
-from store.models import Order, SiteSettings
+from store.models import Order, SiteSettings, OrderRequest
 
 MAX_LIMIT = 200
 
@@ -229,6 +229,7 @@ def online_orders(request):
         "statuses": [{"value": v, "label": l} for v, l in Order.STATUS_CHOICES],
         "payment_statuses": [{"value": v, "label": l} for v, l in Order._meta.get_field("payment_status").choices],
         "order_types": [{"value": v, "label": l} for v, l in ORDER_TYPES],
+        "request_statuses": [{"value": v, "label": l} for v, l in OrderRequest.STATUSES],
         "generated_at": timezone.now().isoformat(),
     })
 
@@ -291,4 +292,37 @@ def online_order_detail(request, order_number):
         with transaction.atomic():
             order.save()
         order = _orders_queryset().get(pk=order.pk)
+    return JsonResponse({"order": serialize_order(request, order, SiteSettings.objects.first())})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@api_token_required
+def online_order_request_update(request, order_number, request_id):
+    """Billing app: move an exchange/alteration/problem request along and reply to the customer."""
+    from store.models import OrderRequest
+
+    order = _orders_queryset().filter(order_number__iexact=order_number).first()
+    if order is None:
+        return _error("Order not found.", 404)
+    req = OrderRequest.objects.filter(order=order, pk=request_id).first()
+    if req is None:
+        return _error("Request not found.", 404)
+    try:
+        payload = json.loads(request.body or b"{}")
+    except json.JSONDecodeError:
+        return _error("Body must be JSON.", 400)
+    fields = []
+    if "status" in payload:
+        if payload["status"] not in dict(OrderRequest.STATUSES):
+            return _error(f"Unknown request status '{payload['status']}'.", 400)
+        req.status = payload["status"]
+        fields.append("status")
+    if "staff_note" in payload:
+        req.staff_note = str(payload["staff_note"] or "")[:2000]
+        fields.append("staff_note")
+    if not fields:
+        return _error("Nothing to update.", 400)
+    req.save(update_fields=fields + ["updated_at"])
+    order = _orders_queryset().get(pk=order.pk)
     return JsonResponse({"order": serialize_order(request, order, SiteSettings.objects.first())})
