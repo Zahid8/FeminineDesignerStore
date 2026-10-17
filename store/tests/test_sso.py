@@ -47,5 +47,5 @@ class AdminHandoffTests(TestCase):
         # Produced by the billing app's TypeScript (src/lib/webstore/storefront-admin.ts) with the same inputs.
         token = ("eyJleHAiOjQxMDI0NDQ4MDAsIm4iOiJmaXhlZC1ub25jZSIsIm5leHQiOiIvYWRtaW4vIiwidSI6Im1hbmFnZXIifQ"
                  ".NEUKhIz_0hZ-AT481aJs0Cjh4QBWwxAXuNgL0jnuubQ")
-        ours = make_token("manager", secret="test-token", nonce="fixed-nonce", now=4102444800 - 120)
+        ours = make_token("manager", secret="test-token", nonce="fixed-nonce", ttl=120, now=4102444800 - 120)
         self.assertEqual(ours, token)

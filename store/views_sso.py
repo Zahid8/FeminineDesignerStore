@@ -24,7 +24,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 
 CONTEXT = b"feminine-designer/storefront-admin/v1"
-MAX_AGE = 300  # seconds a token stays valid
+MAX_AGE = 1800  # seconds a token stays valid (30 minutes)
 
 
 def _key(secret):
@@ -39,7 +39,7 @@ def _unb64(text: str) -> bytes:
     return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
 
 
-def make_token(username, secret=None, next_path="/admin/", ttl=120, nonce=None, now=None):
+def make_token(username, secret=None, next_path="/admin/", ttl=1800, nonce=None, now=None):
     """Build a handoff token (used by tests; the billing app does the same in TypeScript)."""
     secret = secret if secret is not None else settings.WEBSTORE_API_TOKEN
     payload = {"u": username, "exp": int((now or time.time()) + ttl), "n": nonce or _b64(hashlib.sha256(str(time.time_ns()).encode()).digest()[:12]), "next": next_path}

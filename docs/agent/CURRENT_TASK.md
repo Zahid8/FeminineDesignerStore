@@ -631,7 +631,7 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 ## T44 — "Edit storefront" handoff from the billing app (2026-10-18)
 
 - `store/views_sso.py` + `/admin/handoff/?t=…` (before admin urls): verifies a
-  short-lived (≤5 min), single-use token signed with the shared
+  short-lived (≤30 min), single-use token signed with the shared
   WEBSTORE_API_TOKEN (context "feminine-designer/storefront-admin/v1"),
   signs in the `STOREFRONT_MANAGER_USERNAME` superuser (default "manager",
   created on first use with an unusable password) and opens the admin.
