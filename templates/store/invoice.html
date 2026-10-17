@@ -164,13 +164,10 @@
         <div class="box">{{ order.shipping_address }}</div>
         {% if order.location_url %}<a class="map" href="{{ order.location_url }}" target="_blank" rel="noopener noreferrer">Google Maps location</a>{% endif %}
         {% if order.notes %}<div class="box wine">Customer notes: {{ order.notes }}</div>{% endif %}
-        {% if site_settings.returns_summary or has_custom %}
         <div class="terms">
           <h3>Terms</h3>
-          {% if site_settings.returns_summary %}{{ site_settings.returns_summary|linebreaks }}{% endif %}
-          {% if has_custom and site_settings.customization_terms %}<p>{{ site_settings.customization_terms }}</p>{% endif %}
+          {% for term in bill_terms %}<p>{{ term }}</p>{% endfor %}
         </div>
-        {% endif %}
       </div>
       <aside class="pay">
         <h3>Payment summary</h3>

@@ -312,7 +312,7 @@ class InvoicePageTests(TestCase):
         for text in ("Online Order Bill", self.order.order_number, "Feminine Designer by Sajida", "GSTIN 06AYWPB8525D1ZB",
                      "Item summary", "Zari Blouse", "Custom size", "Chest 36 in", "Elbow length", "deep back",
                      "Delivery address", "12 MG Road", "Google Maps location", "Customer notes: Ring the bell",
-                     "Payment summary", "₹2400.00", "Balance", "Delivery date is approximate.", "Authorized Signatory",
+                     "Payment summary", "₹2400.00", "Balance", "This bill is for an order placed on our online store.", "within 48 hours", "Authorized Signatory",
                      "Thank you for choosing Feminine Designer by Sajida", "Save as PDF"):
             self.assertIn(text, content, text)
 

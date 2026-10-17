@@ -641,8 +641,11 @@ def account_order_invoice(request, order_number):
     order = get_object_or_404(Order, order_number=order_number, customer_user=request.user)
     ctx = _base_context(request)
     ctx["order"] = order
+    from store.terms import ONLINE_ORDER_TERMS
+
     ctx["has_custom"] = any(i.customization for i in order.items.all())
     ctx["bill_pdf_url"] = online_bill_url(order.order_number)
+    ctx["bill_terms"] = ONLINE_ORDER_TERMS
     return render(request, "store/invoice.html", ctx)
 
 
