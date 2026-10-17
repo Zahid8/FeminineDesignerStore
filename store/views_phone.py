@@ -95,7 +95,7 @@ def phone_verify(request):
                     messages.success(request, "Your mobile number is verified.")
                     return redirect(next_url or "account_profile")
                 messages.success(request, "You are signed in.")
-                return redirect(next_url or "account_profile")
+                return redirect(next_url or "home")
     else:
         form = OTPVerifyForm()
     ctx = _base_context(request)

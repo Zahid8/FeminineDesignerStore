@@ -24,7 +24,7 @@ class RegistrationTests(TestCase):
             "password1": "TestPass123!",
             "password2": "TestPass123!",
         })
-        self.assertRedirects(response, reverse("account_profile"))
+        self.assertRedirects(response, reverse("home"))
         self.assertTrue(User.objects.filter(username="newuser").exists())
 
     def test_register_duplicate_email_rejected(self):
@@ -61,7 +61,7 @@ class LoginLogoutTests(TestCase):
             "username": "testuser",
             "password": "TestPass123!",
         })
-        self.assertRedirects(response, reverse("account_profile"))
+        self.assertRedirects(response, reverse("home"))
 
     def test_login_with_invalid_credentials(self):
         response = self.client.post(reverse("account_login"), {
@@ -95,13 +95,13 @@ class LoginLogoutTests(TestCase):
             reverse("account_login") + "?next=https://evil.example/path",
             {"username": "testuser", "password": "TestPass123!"},
         )
-        self.assertRedirects(response, reverse("account_profile"))
+        self.assertRedirects(response, reverse("home"))
 
-    def test_login_no_next_redirects_to_profile(self):
+    def test_login_no_next_redirects_to_home(self):
         response = self.client.post(reverse("account_login"), {
             "username": "testuser", "password": "TestPass123!",
         })
-        self.assertRedirects(response, reverse("account_profile"))
+        self.assertRedirects(response, reverse("home"))
 
 
 class NavbarAuthStateTests(TestCase):

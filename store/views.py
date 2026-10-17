@@ -505,7 +505,8 @@ def account_register(request):
             from store.models import CustomerProfile
             CustomerProfile.objects.get_or_create(user=user)
             auth_login(request, user)
-            return redirect("account_profile")
+            messages.success(request, "Welcome! Your account is ready.")
+            return redirect("home")
     else:
         form = RegistrationForm()
     ctx = _base_context(request)
@@ -526,7 +527,7 @@ def account_login(request):
                 next_url, allowed_hosts=None, require_https=request.is_secure()
             ):
                 return redirect(next_url)
-            return redirect("account_profile")
+            return redirect("home")
     else:
         form = LoginForm()
     ctx = _base_context(request)
