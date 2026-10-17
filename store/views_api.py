@@ -59,7 +59,23 @@ def serialize_item(item):
     }
 
 
+ORDER_TYPES = [
+    ("ready_made", "Ready-made"),
+    ("made_to_measure", "Custom size"),
+    ("mixed", "Ready-made + custom size"),
+]
+
+
+def order_type(order):
+    """ready_made, made_to_measure (every piece custom) or mixed."""
+    custom = [bool(i.customization) for i in order.items.all()]
+    if custom and all(custom):
+        return "made_to_measure"
+    return "mixed" if any(custom) else "ready_made"
+
+
 def serialize_order(request, order, site=None):
+    kind = order_type(order)
     return {
         "order_number": order.order_number,
         "status": order.status,
@@ -86,7 +102,9 @@ def serialize_order(request, order, site=None):
         "shipping_total": str(order.shipping_total),
         "total": str(order.total),
         "item_count": sum(i.quantity for i in order.items.all()),
-        "has_made_to_measure": any(i.customization for i in order.items.all()),
+        "has_made_to_measure": kind != "ready_made",
+        "order_type": kind,
+        "order_type_label": dict(ORDER_TYPES)[kind],
         "items": [serialize_item(i) for i in order.items.all()],
         "links": {
             "admin": request.build_absolute_uri(reverse("admin:store_order_change", args=[order.pk])),
@@ -109,6 +127,13 @@ def online_orders(request):
         valid = {s for s, _ in Order.STATUS_CHOICES}
         wanted = [s for s in status.split(",") if s in valid]
         qs = qs.filter(status__in=wanted) if wanted else qs.none()
+    kind = request.GET.get("type")
+    if kind == "ready_made":
+        qs = qs.exclude(items__customization__isnull=False)
+    elif kind == "made_to_measure":  # any custom piece, including mixed orders
+        qs = qs.filter(items__customization__isnull=False).distinct()
+    elif kind:
+        return _error("Unknown type; use ready_made or made_to_measure.", 400)
     payment = request.GET.get("payment_status")
     if payment:
         qs = qs.filter(payment_status=payment)
@@ -138,6 +163,7 @@ def online_orders(request):
         "has_more": has_more,
         "statuses": [{"value": v, "label": l} for v, l in Order.STATUS_CHOICES],
         "payment_statuses": [{"value": v, "label": l} for v, l in Order._meta.get_field("payment_status").choices],
+        "order_types": [{"value": v, "label": l} for v, l in ORDER_TYPES],
         "generated_at": timezone.now().isoformat(),
     })
 

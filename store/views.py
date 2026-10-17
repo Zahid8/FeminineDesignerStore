@@ -596,6 +596,7 @@ def account_order_detail(request, order_number):
         ("confirmed", "Confirmed"),
         ("processing", "Processing"),
         ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
         ("completed", "Completed"),
         ("cancelled", "Cancelled"),
     ]

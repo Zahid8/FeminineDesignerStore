@@ -81,3 +81,50 @@ class OnlineOrdersApiTests(TestCase):
 
     def test_robots_blocks_api(self):
         self.assertIn("Disallow: /api/", self.client.get("/robots.txt").content.decode())
+
+
+@override_settings(WEBSTORE_API_TOKEN="test-token")
+class OrderTypeAndDeliveredTests(TestCase):
+    """Billing app: ready-made vs custom-size orders, and the Delivered stage."""
+
+    def setUp(self):
+        cat = Category.objects.create(name="Silk", slug="silk-ot", is_active=True)
+        p = Product.objects.create(category=cat, name="Rose", slug="rose-ot", sku="OT-1", price=Decimal("1000"),
+                                   stock_quantity=5, is_active=True)
+        custom = {"measurements": {"chest": "36.00"}, "sleeve_style": "", "notes": ""}
+
+        def order(name, kinds):
+            o = Order.objects.create(customer_name=name, customer_email=f"{name}@example.com", shipping_address="x",
+                                     total=Decimal("1000"))
+            for k in kinds:
+                OrderItem.objects.create(order=o, product=p, product_name="Rose", unit_price=Decimal("1000"), quantity=1,
+                                         line_total=Decimal("1000"), customization=custom if k == "c" else None)
+            return o
+
+        self.ready, self.custom, self.mixed = order("ready", "r"), order("custom", "cc"), order("mixed", "rc")
+
+    def types(self, **params):
+        data = self.client.get(reverse("api_online_orders"), params, **AUTH).json()
+        return {o["customer"]["name"]: o["order_type"] for o in data["orders"]}, data
+
+    def test_order_type_and_labels(self):
+        types, data = self.types()
+        self.assertEqual(types, {"ready": "ready_made", "custom": "made_to_measure", "mixed": "mixed"})
+        self.assertEqual([t["value"] for t in data["order_types"]], ["ready_made", "made_to_measure", "mixed"])
+        labels = {o["customer"]["name"]: o["order_type_label"] for o in data["orders"]}
+        self.assertEqual(labels["custom"], "Custom size")
+        self.assertFalse(next(o for o in data["orders"] if o["customer"]["name"] == "ready")["has_made_to_measure"])
+
+    def test_type_filter(self):
+        self.assertEqual(set(self.types(type="ready_made")[0]), {"ready"})
+        self.assertEqual(set(self.types(type="made_to_measure")[0]), {"custom", "mixed"})
+        self.assertEqual(self.client.get(reverse("api_online_orders"), {"type": "bogus"}, **AUTH).status_code, 400)
+
+    def test_delivered_stage(self):
+        _, data = self.types()
+        self.assertEqual([s["value"] for s in data["statuses"]],
+                         ["pending", "confirmed", "processing", "shipped", "delivered", "completed", "cancelled"])
+        url = reverse("api_online_order_detail", args=[self.ready.order_number])
+        response = self.client.post(url, json.dumps({"status": "delivered"}), content_type="application/json", **AUTH)
+        self.assertEqual(response.json()["order"]["status_label"], "Delivered")
+        self.assertEqual(len(self.client.get(reverse("api_online_orders"), {"status": "delivered"}, **AUTH).json()["orders"]), 1)

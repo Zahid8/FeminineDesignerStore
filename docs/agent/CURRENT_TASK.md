@@ -493,3 +493,14 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - Sidebar keeps Django's `#nav-sidebar` / `#nav-filter` / `th[scope=row] a`
   structure so the built-in menu filter still works.
 - Browser check: `docs/agent/browser-checks/admin_theme.js` (no JS errors).
+
+## T37 — Delivered stage + order type for the billing app (2026-10-17)
+
+- `Order.STATUS_CHOICES` gains "delivered" (migration 0025, choices only);
+  customer timelines include it.
+- API: `order_type` (ready_made / made_to_measure / mixed) + label on every
+  order, `order_types` in list responses, `?type=ready_made|made_to_measure`
+  filter (made_to_measure includes mixed). Tests: `OrderTypeAndDeliveredTests`.
+- Billing app (Feminine_Designer, same day): stage tracker, one-tap next
+  stage, Shipped/Delivered/Fulfilled tabs, type badges and filter.
+  Browser check: `docs/agent/browser-checks/billing_stages.js` (18/18).

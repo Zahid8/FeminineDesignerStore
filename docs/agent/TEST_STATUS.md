@@ -440,3 +440,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py check` — no issues; `makemigrations --check` — no changes
 - `python manage.py test` — 483 tests OK (AdminThemeTests updated + sidebar grouping test)
 - `node docs/agent/browser-checks/admin_theme.js` — login, dashboard, change lists, change forms, mobile drawer; no JS errors
+
+## T37 — Delivered stage + order type (2026-10-17)
+
+- `python manage.py test` — all OK; `makemigrations --check` — no changes (0025 committed)
+- Billing app: `vitest` 226 OK, `tsc --noEmit` OK, `eslint .` OK
+- `node docs/agent/browser-checks/billing_stages.js` against a production build — 18/18 PASS, no JS errors

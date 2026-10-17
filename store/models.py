@@ -663,6 +663,7 @@ class Order(models.Model):
         ("confirmed", "Confirmed"),
         ("processing", "Processing"),
         ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
         ("completed", "Completed"),
         ("cancelled", "Cancelled"),
     ]
