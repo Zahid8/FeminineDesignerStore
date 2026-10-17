@@ -86,7 +86,7 @@ function audit() {
     const box = nearestBox(el); const label = n.textContent.trim().replace(/\s+/g, ' ').slice(0, 40);
     for (const r of rects) {
       texts.push({ r, el, fixed: isFixed(el), label });
-      if (box) {
+      if (box && !(["auto", "scroll"].includes(getComputedStyle(box).overflowX))) { // scrollers (category bar) clip by design
         const b = box.getBoundingClientRect(); const bcs = getComputedStyle(box);
         const out = Math.max(b.left - r.left, r.right - b.right, b.top - r.top, r.bottom - b.bottom);
         if (out > 1.5) issues.push({ type: 'text-escapes-box', where: path(box), text: label, by: Math.round(out) + 'px' });

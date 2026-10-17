@@ -652,3 +652,16 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   no muddy overlay); stat boxes; card badges single-line; underline links
   and breadcrumbs alignment; button labels on phones; tap targets ≥ 36px.
 - Final run: 0 design issues (only demo-only missing images remain).
+
+## T46 — Surface polish (2026-10-18)
+
+- `femdes-theme.css` T46 layer: category bar as a pressed track with a raised
+  active pill (edge fade on phones), sort/density and sign-in tabs as
+  segmented controls, newsletter and search as pressed pill fields,
+  product-detail/FAQ accordions as one raised panel with +/− chips,
+  frosted-glass buttons over hero/editorial photos, dashed "stitch" seam on
+  the made-to-measure builder and review price, cart lines on a raised panel.
+- Fixed while checking: "Optional details" label spacing in the builder;
+  hero scroll cue crossing the button on short desktop screens; cart line
+  grid spilling past the panel at 360px and 1024px.
+- Layout and flow unchanged (surface treatment only).

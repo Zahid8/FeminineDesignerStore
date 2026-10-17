@@ -474,3 +474,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 514 OK (test_sso.py: valid/expired/replayed/tampered/other-user/disabled)
 - Billing: vitest 235 OK, tsc OK, eslint OK
 - `browser-checks/handoff.js` — 6/6: login required, big button, new tab opens /admin/ signed in as manager, superuser pages open, link single-use
+
+## T46 — Surface polish (2026-10-18)
+
+- `python manage.py test` — 514 OK
+- `browser-checks/qa_design.js` (5 widths) — 0 design issues; only demo-DB missing images and a labelled 13px radio remain (scrollers like the category bar now exempt from clip checks)
+- `browser-checks/btnwrap.js` — 2 known wraps at 360px ("Add to Bag with These Measurements", full-width button)
