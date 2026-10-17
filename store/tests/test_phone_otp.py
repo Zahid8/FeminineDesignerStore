@@ -319,3 +319,12 @@ class TwilioBackendTests(TestCase):
         from store.sms import SmsDeliveryError, TwilioSmsBackend
         with self.assertRaises(SmsDeliveryError):
             TwilioSmsBackend().send("+919876543210", "hi")
+
+
+@override_settings(DEBUG=False, ALLOWED_HOSTS=["testserver"])
+class ErrorPageTests(TestCase):
+    def test_404_page_renders_with_store_chrome(self):
+        response = self.client.get("/no-such-page/")
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "This page has wandered off", status_code=404)
+        self.assertContains(response, 'action="/shop/"', status_code=404)

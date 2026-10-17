@@ -288,7 +288,7 @@ was never applied. Subtotal is now list price; Subtotal − Discount + Shipping 
 
 ### Deploy checklist
 
-1. `python manage.py migrate` (applies 0015–0020).
+1. `python manage.py migrate` (applies 0015–0021; 0021 restates pre-T30 discounted order subtotals so invoices add up — totals unchanged).
 2. Set env vars (all listed in `.env.example`):
    - Email: `DJANGO_EMAIL_HOST`, `DJANGO_EMAIL_PORT`, `DJANGO_EMAIL_HOST_USER`,
      `DJANGO_EMAIL_HOST_PASSWORD`, `DJANGO_DEFAULT_FROM_EMAIL`, optional
@@ -307,6 +307,12 @@ was never applied. Subtotal is now list price; Subtotal − Discount + Shipping 
    WhatsApp URL; Occasions; Size charts; Pages (shipping, returns, privacy,
    terms); FAQs; Client diaries; product fabric/care/dispatch/sizes/colours.
    Nothing was seeded — features stay hidden until content exists.
+
+### Known limitations
+- Price filter and "On sale" use list price / compare-at price, not
+  Discount-model sale prices.
+- Cancelling an order does not restore stock, so it will not trigger
+  back-in-stock alerts.
 
 ### Still open
 - TASK-027-FIX item 5 dedicated tests.

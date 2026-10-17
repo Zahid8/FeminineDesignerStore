@@ -6,7 +6,7 @@
     <thead><tr><th scope="col">Size</th>{% for field, label in columns %}<th scope="col">{{ label }}</th>{% endfor %}</tr></thead>
     <tbody>
       {% for row in rows %}
-      <tr><th scope="row">{{ row.size_label }}</th>{% for value in row|size_values:columns %}<td>{{ value|default_if_none:"–"|floatformat:"-1" }}</td>{% endfor %}</tr>
+      <tr><th scope="row">{{ row.size_label }}</th>{% for value in row|size_values:columns %}<td>{% if value is None %}&ndash;{% else %}{{ value|floatformat:"-1" }}{% endif %}</td>{% endfor %}</tr>
       {% endfor %}
     </tbody>
   </table>

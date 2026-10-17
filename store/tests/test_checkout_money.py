@@ -149,3 +149,27 @@ class CheckoutFlowTests(TestCase):
         self.site.save()
         content = self.client.get(reverse("product_detail", args=[self.product.slug])).content.decode()
         self.assertIn("₹750 advance payment to UPI shop@okicici", content)
+
+
+class LegacyOrderMigrationTests(TestCase):
+    def test_forwards_restates_only_legacy_rows(self):
+        import importlib
+
+        from django.apps import apps as global_apps
+        mig = importlib.import_module("store.migrations.0021_fix_legacy_order_subtotals")
+        legacy = Order.objects.create(customer_name="A", customer_email="a@x.com", shipping_address="x",
+                                      subtotal=Decimal("90"), discount_total=Decimal("10"), total=Decimal("90"))
+        modern = Order.objects.create(customer_name="B", customer_email="b@x.com", shipping_address="x",
+                                      subtotal=Decimal("100"), discount_total=Decimal("10"),
+                                      shipping_total=Decimal("10"), total=Decimal("100"))
+        plain = Order.objects.create(customer_name="C", customer_email="c@x.com", shipping_address="x",
+                                     subtotal=Decimal("50"), total=Decimal("50"))
+        mig.forwards(global_apps, None)
+        for o in (legacy, modern, plain):
+            o.refresh_from_db()
+        self.assertEqual((legacy.subtotal, legacy.total), (Decimal("100.00"), Decimal("90.00")))
+        self.assertEqual(modern.subtotal, Decimal("100.00"))
+        self.assertEqual(plain.subtotal, Decimal("50.00"))
+        mig.backwards(global_apps, None)
+        legacy.refresh_from_db()
+        self.assertEqual(legacy.subtotal, Decimal("90.00"))

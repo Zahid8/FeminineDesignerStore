@@ -13,6 +13,8 @@ Shipping: {{ currency }}{{ order.shipping_total }}{% endif %}
 Total: {{ currency }}{{ order.total }}
 {% if order.payment_method == "manual_upi" %}
 To confirm your order, pay {{ currency }}{{ order.total }} by UPI to {{ site_settings.upi_id|default:"+919898989898" }} and share the payment screenshot on WhatsApp with your order number.
+{% elif order.payment_method == "razorpay" and order.payment_status != "paid" %}
+If you did not finish paying online, you can complete payment from your order page{% if order_url %} ({{ order_url }}){% endif %} or reply to this email for help.
 {% elif order.payment_method == "cash_on_delivery" %}
 Please keep {{ currency }}{{ order.total }} ready to pay when your order is delivered.
 {% endif %}
