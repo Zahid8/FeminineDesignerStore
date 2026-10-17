@@ -404,3 +404,36 @@ class AdminThemeTests(TestCase):
             self.assertIn(f"<caption>{label}</caption>", content)
         self.assertIn('class="model-order current-model"', content)
         self.assertIn('th scope="row"', content)  # keeps Django's sidebar filter working
+
+
+class SuperuserCanDeleteOrderTests(TestCase):
+    """Deleting an order (and its protected line items) works for a superuser."""
+
+    def test_delete_order_with_items(self):
+        from decimal import Decimal
+
+        from store.models import Category, Order, OrderItem, Product
+
+        admin_user = User.objects.create_superuser("boss", "boss@example.com", "pw-12345!")
+        cat = Category.objects.create(name="Silk", slug="silk-del", is_active=True)
+        product = Product.objects.create(category=cat, name="Rose", slug="rose-del", sku="DEL-1", price=Decimal("500"), stock_quantity=5, is_active=True)
+        order = Order.objects.create(customer_name="A", customer_email="a@example.com", shipping_address="x", total=Decimal("500"))
+        OrderItem.objects.create(order=order, product=product, product_name="Rose", unit_price=Decimal("500"), quantity=1, line_total=Decimal("500"))
+        client = Client()
+        client.force_login(admin_user)
+        url = reverse("admin:store_order_delete", args=[order.pk])
+        self.assertNotContains(client.get(url), "Cannot delete order")
+        response = client.post(url, {"post": "yes"})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Order.objects.filter(pk=order.pk).exists())
+        self.assertFalse(OrderItem.objects.exists())
+
+    def test_regular_staff_still_cannot_delete_items(self):
+        from django.test import RequestFactory
+
+        from store.admin import OrderItemAdmin
+        from store.models import OrderItem
+
+        staff = User.objects.create_user("clerk", "c@example.com", "pw-12345!", is_staff=True)
+        request = RequestFactory().get("/"); request.user = staff
+        self.assertFalse(OrderItemAdmin(OrderItem, site).has_delete_permission(request))

@@ -266,7 +266,9 @@ class OrderItemAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        # Line items are the order's price snapshot: staff can't delete them one
+        # by one, but a superuser deleting a whole order takes its items with it.
+        return bool(request is not None and request.user.is_superuser)
 
 
 @admin.register(SiteSettings)
