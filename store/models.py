@@ -892,3 +892,96 @@ class StockAlert(models.Model):
 
     def __str__(self):
         return f"{self.email} → {self.product}"
+
+
+class Page(models.Model):
+    """Admin-managed content page (shipping, returns, privacy, terms, about...)."""
+
+    title = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=140, unique=True)
+    body = models.TextField(help_text="Plain text. Blank lines start new paragraphs.")
+    show_in_footer = models.BooleanField(default=True)
+    is_published = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "title"]
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("page_detail", kwargs={"slug": self.slug})
+
+
+class FAQ(models.Model):
+    group = models.CharField(max_length=80, blank=True, help_text='e.g. "Orders", "Sizing", "Shipping"')
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    is_published = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["group", "sort_order", "id"]
+        verbose_name = "FAQ"
+        verbose_name_plural = "FAQs"
+
+    def __str__(self):
+        return self.question
+
+
+class ClientDiary(models.Model):
+    """A customer (or celebrity) photographed in a FemDes piece."""
+
+    name = models.CharField(max_length=120)
+    image = models.ImageField(upload_to="client-diaries/")
+    caption = models.CharField(max_length=255, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, blank=True, null=True, related_name="client_diaries")
+    is_published = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sort_order", "-created_at"]
+        verbose_name_plural = "client diaries"
+
+    def __str__(self):
+        return self.name
+
+
+class Appointment(models.Model):
+    """Styling / fitting consultation request."""
+
+    TOPICS = [
+        ("size_fit", "Size & fit consultation"),
+        ("made_to_measure", "Made-to-measure order"),
+        ("styling", "Occasion styling"),
+        ("product", "Product guidance"),
+    ]
+    MODES = [
+        ("video", "Video call"),
+        ("whatsapp", "WhatsApp call"),
+        ("in_store", "Visit the studio"),
+    ]
+    SLOTS = [("morning", "Morning (10–1)"), ("afternoon", "Afternoon (1–4)"), ("evening", "Evening (4–7)")]
+    STATUSES = [("new", "New"), ("confirmed", "Confirmed"), ("completed", "Completed"), ("cancelled", "Cancelled")]
+
+    name = models.CharField(max_length=160)
+    phone = models.CharField(max_length=40)
+    email = models.EmailField(blank=True)
+    topic = models.CharField(max_length=20, choices=TOPICS, default="size_fit")
+    mode = models.CharField(max_length=20, choices=MODES, default="video")
+    preferred_date = models.DateField()
+    preferred_slot = models.CharField(max_length=20, choices=SLOTS, default="morning")
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, blank=True, null=True, related_name="appointments")
+    notes = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUSES, default="new")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} — {self.get_topic_display()} on {self.preferred_date}"

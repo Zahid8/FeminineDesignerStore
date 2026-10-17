@@ -40,6 +40,8 @@ def _base_context(request):
         "categories": selectors.get_active_categories(),
         "wishlist_ids": wishlist_ids,
         "wishlist_count": len(wishlist_ids),
+        "footer_pages": selectors.get_footer_pages(),
+        "has_faq": selectors.has_faq(),
     }
     ctx.update(_cart_context(request))
     return ctx
@@ -50,6 +52,7 @@ def home(request):
     ctx.update(selectors.get_homepage_products())
     ctx["banners"] = selectors.get_home_banners()
     ctx["occasions"] = selectors.get_shop_occasions()
+    ctx["client_diaries"] = selectors.get_client_diaries()
     return render(request, "store/home.html", ctx)
 
 

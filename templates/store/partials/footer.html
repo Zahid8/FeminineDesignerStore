@@ -43,9 +43,11 @@
           <details open>
             <summary><h6>Help</h6></summary>
             <ul>
-              <li><a href="{% url 'cart_detail' %}">Cart</a></li>
+              <li><a href="{% url 'order_track' %}">Track Your Order</a></li>
+              <li><a href="{% url 'appointment_book' %}">Book an Appointment</a></li>
               <li><a href="{% url 'contact' %}">Contact Us</a></li>
-              <li><a href="{% url 'home' %}#made-to-measure">Made to Measure</a></li>
+              {% if has_faq %}<li><a href="{% url 'faq' %}">FAQ</a></li>{% endif %}
+              {% for p in footer_pages %}<li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>{% endfor %}
               {% if user.is_authenticated %}
               <li><a href="{% url 'account_orders' %}">Track Orders</a></li>
               <li><a href="{% url 'account_profile' %}">My Account</a></li>
@@ -62,6 +64,7 @@
               {% if site_settings.address %}<li>{{ site_settings.address|linebreaksbr }}</li>{% endif %}
               {% if site_settings.contact_email %}<li><a href="mailto:{{ site_settings.contact_email }}">{{ site_settings.contact_email }}</a></li>{% endif %}
               {% if site_settings.contact_phone %}<li><a href="tel:{{ site_settings.contact_phone }}">{{ site_settings.contact_phone }}</a></li>{% endif %}
+              {% if site_settings.grievance_officer_name %}<li class="small">Grievance officer: {{ site_settings.grievance_officer_name }}{% if site_settings.grievance_officer_email %} &middot; <a href="mailto:{{ site_settings.grievance_officer_email }}">{{ site_settings.grievance_officer_email }}</a>{% endif %}</li>{% endif %}
             </ul>
           </details>
           <div class="fd-pay-icons d-flex gap-2 mt-3">
@@ -73,7 +76,7 @@
       </div>
     </div>
     <div class="fd-footer-bottom d-flex flex-column flex-md-row justify-content-between gap-2">
-      <p class="mb-0">&copy; {% now "Y" %} {{ store_name }}. All rights reserved.</p>
+      <p class="mb-0">&copy; {% now "Y" %} {{ site_settings.legal_name|default:store_name }}. All rights reserved.{% if site_settings.gstin %} GSTIN {{ site_settings.gstin }}{% endif %}</p>
       <p class="mb-0">Free template by <a href="https://templatesjungle.com/" target="_blank" rel="noopener">TemplatesJungle</a>. Distributed by <a href="https://themewagon.com/" target="_blank" rel="noopener">ThemeWagon</a>.</p>
     </div>
   </div>

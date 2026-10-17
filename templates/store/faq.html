@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %} — FAQ{% endblock %}
+{% block structured_data %}{% if faqs %}<script type="application/ld+json">{{ faq_jsonld }}</script>{% endif %}{% endblock %}
+{% block content %}
+<header class="fd-page-header">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{% url 'home' %}">Home</a></li><li aria-current="page">FAQ</li></ol>
+    <h1>Frequently Asked Questions</h1>
+    <p>Can't find your answer? <a href="{% url 'contact' %}">Write to us</a>{% if site_settings.whatsapp_url %} or <a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">chat on WhatsApp</a>{% endif %}.</p>
+  </div>
+</header>
+<section class="pb-5">
+  <div class="container-lg page-shell">
+    {% for group, items in faq_groups %}
+    <h2 class="h4 mt-4 mb-2">{{ group }}</h2>
+    <div class="fd-details">
+      {% for faq in items %}
+      <details>
+        <summary>{{ faq.question }}</summary>
+        <div class="fd-details-body">{{ faq.answer|linebreaks }}</div>
+      </details>
+      {% endfor %}
+    </div>
+    {% empty %}
+    <div class="empty-state"><h4>No questions yet</h4><p class="text-muted"><a href="{% url 'contact' %}">Ask us anything</a>.</p></div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

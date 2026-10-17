@@ -95,4 +95,9 @@ urlpatterns = [
     path("wishlist/", views_extra.wishlist_page, name="wishlist"),
     path("wishlist/toggle/<int:product_id>/", views_extra.wishlist_toggle, name="wishlist_toggle"),
     path("products/<int:product_id>/notify/", views_extra.stock_alert_subscribe, name="stock_alert_subscribe"),
+    path("pages/<slug:slug>/", views_extra.page_detail, name="page_detail"),
+    path("faq/", views_extra.faq_page, name="faq"),
+    path("client-diaries/", views_extra.client_diaries, name="client_diaries"),
+    path("book-appointment/", views_extra.appointment_book, name="appointment_book"),
+    path("track-order/", views_extra.order_track, name="order_track"),
 ]

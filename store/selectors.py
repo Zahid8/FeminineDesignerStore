@@ -211,3 +211,21 @@ def active_filter_chips(params, facets, occasion_names):
 def get_shop_occasions():
     """Active occasions that have at least one product for sale."""
     return Occasion.objects.filter(is_active=True, products__in=get_active_products()).distinct()
+
+
+def get_footer_pages():
+    from store.models import Page
+
+    return list(Page.objects.filter(is_published=True, show_in_footer=True).only("title", "slug"))
+
+
+def has_faq():
+    from store.models import FAQ
+
+    return FAQ.objects.filter(is_published=True).exists()
+
+
+def get_client_diaries(limit=8):
+    from store.models import ClientDiary
+
+    return ClientDiary.objects.filter(is_published=True).select_related("product")[:limit]

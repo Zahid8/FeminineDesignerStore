@@ -4,8 +4,12 @@ from store.models import (
     Category,
     CustomerProfile,
     CustomizationRequest,
+    FAQ,
+    Appointment,
+    ClientDiary,
     Feedback,
     HomeBanner,
+    Page,
     Occasion,
     SizeChart,
     SizeChartRow,
@@ -388,3 +392,37 @@ class StockAlertAdmin(admin.ModelAdmin):
     list_filter = ("notified_at",)
     search_fields = ("email", "product__name")
     readonly_fields = ("created_at",)
+
+
+
+@admin.register(Page)
+class PageAdmin(admin.ModelAdmin):
+    list_display = ("title", "slug", "is_published", "show_in_footer", "sort_order", "updated_at")
+    list_editable = ("is_published", "show_in_footer", "sort_order")
+    prepopulated_fields = {"slug": ("title",)}
+    search_fields = ("title", "body")
+
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ("question", "group", "is_published", "sort_order")
+    list_editable = ("is_published", "sort_order")
+    list_filter = ("group", "is_published")
+    search_fields = ("question", "answer")
+
+
+@admin.register(ClientDiary)
+class ClientDiaryAdmin(admin.ModelAdmin):
+    list_display = ("name", "product", "is_published", "sort_order", "created_at")
+    list_editable = ("is_published", "sort_order")
+    autocomplete_fields = ("product",)
+
+
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ("name", "phone", "topic", "mode", "preferred_date", "preferred_slot", "status", "created_at")
+    list_editable = ("status",)
+    list_filter = ("status", "topic", "mode", "preferred_date")
+    search_fields = ("name", "phone", "email", "notes")
+    date_hierarchy = "preferred_date"
+    readonly_fields = ("created_at", "user")

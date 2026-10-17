@@ -152,3 +152,51 @@ class OTPVerifyForm(forms.Form):
             "pattern": r"\d*",
         }),
     )
+
+
+from datetime import timedelta as _timedelta
+
+from django.utils import timezone as _tz
+
+from store.models import Appointment
+
+
+class AppointmentForm(forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ["name", "phone", "email", "topic", "mode", "preferred_date", "preferred_slot", "notes"]
+        widgets = {
+            "preferred_date": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.Textarea(attrs={"rows": 3, "placeholder": "Occasion, the blouse you have in mind, measurements questions…"}),
+            "phone": forms.TextInput(attrs={"inputmode": "tel", "autocomplete": "tel"}),
+            "name": forms.TextInput(attrs={"autocomplete": "name"}),
+            "email": forms.EmailInput(attrs={"autocomplete": "email"}),
+        }
+        labels = {"preferred_slot": "Preferred time", "mode": "How should we meet?", "topic": "What can we help with?"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        today = _tz.localdate()
+        self.fields["preferred_date"].widget.attrs.update({
+            "min": (today + _timedelta(days=1)).isoformat(),
+            "max": (today + _timedelta(days=90)).isoformat(),
+        })
+        for name, field in self.fields.items():
+            css = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
+            field.widget.attrs.setdefault("class", css)
+
+    def clean_preferred_date(self):
+        value = self.cleaned_data["preferred_date"]
+        today = _tz.localdate()
+        if value <= today:
+            raise forms.ValidationError("Please choose a date from tomorrow onwards.")
+        if value > today + _timedelta(days=90):
+            raise forms.ValidationError("We take bookings up to 90 days ahead.")
+        return value
+
+
+class OrderTrackForm(forms.Form):
+    order_number = forms.CharField(max_length=32, label="Order number",
+                                   widget=forms.TextInput(attrs={"placeholder": "FD-20261017-123456", "class": "form-control"}))
+    contact = forms.CharField(max_length=160, label="Email or phone used at checkout",
+                              widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "email"}))

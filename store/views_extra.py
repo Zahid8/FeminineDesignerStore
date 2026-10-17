@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from store import stock_alerts, wishlist
-from store.models import Product
+from store.models import FAQ, Appointment, ClientDiary, Order, Page, Product
 from store.views import _base_context
 
 
@@ -57,3 +57,127 @@ def stock_alert_subscribe(request, product_id):
     else:
         messages.info(request, "You're already on the list for this piece.")
     return redirect(product.get_absolute_url())
+
+
+# ── Content pages ──────────────────────────────────────────────
+
+def page_detail(request, slug):
+    page = get_object_or_404(Page, slug=slug, is_published=True)
+    ctx = _base_context(request)
+    ctx["page"] = page
+    return render(request, "store/page.html", ctx)
+
+
+def faq_page(request):
+    from itertools import groupby
+
+    faqs = list(FAQ.objects.filter(is_published=True))
+    groups = [(group or "General", list(items)) for group, items in groupby(faqs, key=lambda f: f.group)]
+    from store.seo import to_jsonld
+
+    ctx = _base_context(request)
+    ctx.update({
+        "faq_groups": groups,
+        "faqs": faqs,
+        "faq_jsonld": to_jsonld({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {"@type": "Question", "name": f.question,
+                 "acceptedAnswer": {"@type": "Answer", "text": f.answer}}
+                for f in faqs
+            ],
+        }),
+    })
+    return render(request, "store/faq.html", ctx)
+
+
+def client_diaries(request):
+    ctx = _base_context(request)
+    ctx["diaries"] = ClientDiary.objects.filter(is_published=True).select_related("product")
+    return render(request, "store/client_diaries.html", ctx)
+
+
+# ── Appointments ───────────────────────────────────────────────
+
+def appointment_book(request):
+    from django.conf import settings
+    from django.core.mail import send_mail
+
+    from store.forms import AppointmentForm
+
+    product = None
+    product_id = request.GET.get("product") or request.POST.get("product")
+    if product_id and str(product_id).isdigit():
+        product = Product.objects.filter(pk=product_id, is_active=True).first()
+    if request.method == "POST":
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appt = form.save(commit=False)
+            appt.product = product
+            if request.user.is_authenticated:
+                appt.user = request.user
+            appt.save()
+            if settings.STORE_NOTIFY_EMAIL:
+                try:
+                    send_mail(
+                        f"Appointment request: {appt.name} ({appt.get_topic_display()})",
+                        f"{appt.name} · {appt.phone} · {appt.email or '-'}\n"
+                        f"{appt.get_topic_display()} via {appt.get_mode_display()}\n"
+                        f"{appt.preferred_date:%d %b %Y}, {appt.get_preferred_slot_display()}\n"
+                        f"Product: {product.name if product else '-'}\n\n{appt.notes}",
+                        settings.DEFAULT_FROM_EMAIL, [settings.STORE_NOTIFY_EMAIL],
+                    )
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).exception("Appointment email failed")
+            messages.success(request, "Thank you — we'll call or message you to confirm your appointment.")
+            return redirect("appointment_book")
+    else:
+        initial = {}
+        if request.user.is_authenticated:
+            initial = {"name": request.user.get_full_name(), "email": request.user.email}
+            profile = getattr(request.user, "profile", None)
+            if profile is not None and profile.phone:
+                initial["phone"] = profile.phone
+        if product:
+            initial["topic"] = "made_to_measure"
+        form = AppointmentForm(initial=initial)
+    ctx = _base_context(request)
+    ctx.update({"form": form, "product": product})
+    return render(request, "store/appointment.html", ctx)
+
+
+# ── Guest order tracking ───────────────────────────────────────
+
+def _digits(value):
+    return "".join(ch for ch in value or "" if ch.isdigit())
+
+
+def order_track(request):
+    """Look up an order by number + the email or phone used at checkout."""
+    from store.forms import OrderTrackForm
+
+    order = None
+    if request.method == "POST":
+        form = OrderTrackForm(request.POST)
+        if form.is_valid():
+            number = form.cleaned_data["order_number"].strip().upper()
+            contact = form.cleaned_data["contact"].strip()
+            candidate = Order.objects.filter(order_number__iexact=number).first()
+            matched = False
+            if candidate:
+                if "@" in contact:
+                    matched = candidate.customer_email.lower() == contact.lower()
+                else:
+                    want = _digits(contact)[-10:]
+                    matched = len(want) >= 8 and _digits(candidate.customer_phone)[-10:] == want
+            if matched:
+                order = candidate
+            else:
+                form.add_error(None, "We couldn't find an order with those details. Check the order number and the email or phone you used at checkout.")
+    else:
+        form = OrderTrackForm(initial={"order_number": request.GET.get("order", "")})
+    ctx = _base_context(request)
+    ctx.update({"form": form, "order": order, "status_timeline": Order.STATUS_CHOICES})
+    return render(request, "store/order_track.html", ctx)

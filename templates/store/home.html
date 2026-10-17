@@ -247,6 +247,23 @@
 </section>
 {% endif %}
 
+{% if client_diaries %}
+<!-- Client diaries -->
+<section class="fd-section pt-0">
+  <div class="container-lg">
+    <div class="fd-section-head" data-reveal>
+      <div><span class="fd-eyebrow">Worn &amp; loved</span><h2>Client Diaries</h2></div>
+      <a href="{% url 'client_diaries' %}" class="btn-link fd-link-underline">View All</a>
+    </div>
+    <div class="row g-3 g-lg-4">
+      {% for d in client_diaries|slice:":4" %}
+      <div class="col-6 col-lg-3" data-reveal>{% include "store/partials/diary_card.html" %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- Instagram -->
 <section class="newsletter fd-section-sm pb-5">
   <div class="container-lg">

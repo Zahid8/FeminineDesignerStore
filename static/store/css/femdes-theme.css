@@ -693,3 +693,15 @@ hr { border-color: var(--fd-line); opacity: 1; }
 .fd-occasion-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem 2rem; }
 .fd-occasion { font-family: var(--fd-font-display); font-size: clamp(1.3rem, 2.2vw, 1.8rem); font-style: italic; color: var(--fd-ink); border-bottom: 1px solid transparent; transition: border-color 0.3s, color 0.3s; }
 .fd-occasion:hover { color: var(--fd-wine); border-bottom-color: currentColor; }
+
+/* Content pages, diaries */
+.fd-prose { font-size: 1rem; line-height: 1.85; }
+.fd-prose p { margin-bottom: 1.1rem; }
+.fd-diary { margin: 0; }
+.fd-diary-media { aspect-ratio: 3 / 4; overflow: hidden; background: var(--fd-sand); }
+.fd-diary-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s var(--fd-ease); }
+.fd-diary:hover .fd-diary-media img { transform: scale(1.04); }
+.fd-diary figcaption { padding-top: 0.8rem; text-align: center; display: grid; gap: 0.2rem; }
+.fd-diary figcaption strong { font-family: var(--fd-font-display); font-size: 1.2rem; font-weight: 500; color: var(--fd-ink); }
+.fd-diary figcaption span { font-size: 0.86rem; color: var(--fd-muted); }
+.fd-diary figcaption a { font-size: 0.64rem; letter-spacing: var(--fd-track); text-transform: uppercase; }

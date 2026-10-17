@@ -20,10 +20,23 @@ class StaticViewSitemap(Sitemap):
     priority = 0.6
 
     def items(self):
-        return ["home", "product_list", "contact"]
+        return ["home", "product_list", "contact", "faq", "appointment_book", "track_order_url"]
 
     def location(self, item):
-        return reverse(item)
+        return reverse("order_track" if item == "track_order_url" else item)
 
 
-SITEMAPS = {"products": ProductSitemap, "static": StaticViewSitemap}
+class PageSitemap(Sitemap):
+    changefreq = "monthly"
+    priority = 0.4
+
+    def items(self):
+        from store.models import Page
+
+        return Page.objects.filter(is_published=True)
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+
+SITEMAPS = {"products": ProductSitemap, "static": StaticViewSitemap, "pages": PageSitemap}

@@ -1,0 +1,8 @@
+<figure class="fd-diary">
+  <div class="fd-diary-media"><img src="{{ d.image.url }}" alt="{{ d.name }}{% if d.product %} wearing {{ d.product.name }}{% endif %}" loading="lazy"></div>
+  <figcaption>
+    <strong>{{ d.name }}</strong>
+    {% if d.caption %}<span>{{ d.caption }}</span>{% endif %}
+    {% if d.product %}<a href="{{ d.product.get_absolute_url }}">Shop the look: {{ d.product.name }}</a>{% endif %}
+  </figcaption>
+</figure>

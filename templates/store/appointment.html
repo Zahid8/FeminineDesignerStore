@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %} — Book an Appointment{% endblock %}
+{% block content %}
+<header class="fd-page-header">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{% url 'home' %}">Home</a></li><li aria-current="page">Book an Appointment</li></ol>
+    <h1>Book an Appointment</h1>
+    <p>A one-to-one consultation for sizing, made-to-measure orders or styling for your occasion.</p>
+  </div>
+</header>
+<section class="pb-5">
+  <div class="container-lg">
+    <div class="row g-4 justify-content-center">
+      <div class="col-lg-7">
+        <form method="post" class="indichic-card p-4 p-md-5" novalidate>
+          {% csrf_token %}
+          {% if product %}
+          <input type="hidden" name="product" value="{{ product.pk }}">
+          <p class="fd-note mb-4"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#info"></use></svg><span>About: <a href="{{ product.get_absolute_url }}">{{ product.name }}</a></span></p>
+          {% endif %}
+          <div class="row g-3">
+            {% for field in form %}
+            <div class="{% if field.name == 'notes' or field.name == 'topic' or field.name == 'mode' %}col-12{% else %}col-md-6{% endif %}">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+              {{ field }}
+              {% for e in field.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <div class="col-12 mt-4"><button type="submit" class="btn btn-dark btn-lg w-100">Request Appointment</button></div>
+          </div>
+        </form>
+      </div>
+      <div class="col-lg-4">
+        <div class="indichic-card p-4">
+          <h5 class="fd-card-title">What to expect</h5>
+          <ol class="fd-steps mt-0">
+            <li><div><h6>We confirm</h6><p>We'll call or message you to confirm the time.</p></div></li>
+            <li><div><h6>We meet</h6><p>On video, a WhatsApp call or at the studio.</p></div></li>
+            <li><div><h6>We advise</h6><p>Sizing, fabric and design help for your occasion.</p></div></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
