@@ -373,11 +373,41 @@
               wheelToZoom: true,
               secondaryZoomLevel: 2,
               maxZoomLevel: 4,
-              padding: { top: 56, bottom: 56, left: 12, right: 12 },
+              padding: { top: 56, bottom: imgs.length > 1 ? 104 : 56, left: 12, right: 12 },
               closeTitle: 'Close', zoomTitle: 'Zoom in or out',
               arrowPrevTitle: 'Previous photo', arrowNextTitle: 'Next photo',
               errorMsg: 'This photo could not be loaded.'
             });
+            if (imgs.length > 1) {
+              // Thumbnail strip along the bottom of the viewer.
+              lightbox.on('uiRegister', function () {
+                lightbox.pswp.ui.registerElement({
+                  name: 'fd-thumbs', appendTo: 'root', order: 20,
+                  onInit: function (el, pswp) {
+                    el.className = 'pswp__fd-thumbs';
+                    el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Photos');
+                    var buttons = imgs.map(function (img, i) {
+                      var b = document.createElement('button');
+                      b.type = 'button'; b.className = 'pswp__fd-thumb';
+                      b.setAttribute('aria-label', 'Photo ' + (i + 1));
+                      var t = document.createElement('img'); t.src = img.currentSrc || img.src; t.alt = ''; t.loading = 'lazy';
+                      b.appendChild(t);
+                      b.addEventListener('click', function () { pswp.goTo(i); });
+                      el.appendChild(b);
+                      return b;
+                    });
+                    function mark() {
+                      buttons.forEach(function (b, i) {
+                        var on = i === pswp.currIndex;
+                        b.classList.toggle('is-active', on);
+                        if (on) { b.setAttribute('aria-current', 'true'); b.scrollIntoView({ block: 'nearest', inline: 'center' }); } else b.removeAttribute('aria-current');
+                      });
+                    }
+                    pswp.on('change', mark); mark();
+                  }
+                });
+              });
+            }
             lightbox.on('close', function () {
               var idx = lightbox.pswp ? lightbox.pswp.currIndex : start;
               if (window.bootstrap && idx !== start) window.bootstrap.Carousel.getOrCreateInstance(gallery).to(idx);
