@@ -56,6 +56,7 @@
         <div class="col-6 text-end">
           <p><span>Subtotal:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.subtotal }}</strong></p>
           {% if order.discount_total > 0 %}<p class="text-success"><span>Discount:</span> <strong>-{{ site_settings.currency_symbol|default:"$" }}{{ order.discount_total }}</strong></p>{% endif %}
+          {% if order.shipping_total > 0 %}<p><span>Shipping:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.shipping_total }}</strong></p>{% endif %}
           <p class="fs-5"><span>Total:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</strong></p>
         </div>
       </div>

@@ -28,7 +28,7 @@
         <a href="{% url 'account_register' %}" class="fd-text-link d-none d-lg-inline">Register</a>
         <a href="{% url 'account_login' %}" class="fd-nav-icon d-lg-none" aria-label="Sign in"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#user"></use></svg></a>
         {% endif %}
-        <a href="{% url 'wishlist' %}" class="fd-nav-icon d-none d-sm-inline-flex" aria-label="Wishlist ({{ wishlist_count }} items)"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#heart"></use></svg>{% if wishlist_count %}<span class="cart-count-badge" data-wishlist-count>{{ wishlist_count }}</span>{% else %}<span class="cart-count-badge d-none" data-wishlist-count>0</span>{% endif %}</a>
+        <a href="{% url 'wishlist' %}" class="fd-nav-icon d-none d-sm-inline-flex" aria-label="Wishlist ({{ wishlist_count }} item{{ wishlist_count|pluralize }})"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#heart"></use></svg>{% if wishlist_count %}<span class="cart-count-badge" data-wishlist-count>{{ wishlist_count }}</span>{% else %}<span class="cart-count-badge d-none" data-wishlist-count>0</span>{% endif %}</a>
         <a href="#search" class="search-button" aria-label="Search"><span class="fd-nav-icon"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#search"></use></svg></span></a>
         <a href="{% url 'cart_detail' %}" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="fd-nav-icon" aria-label="Open cart ({{ cart.item_count }} items)">
           <svg width="20" height="20" aria-hidden="true"><use xlink:href="#shopping-bag"></use></svg>

@@ -14,6 +14,20 @@ SESSION_NEXT = "otp_next"
 
 
 def _client_ip(request):
+    """Customer IP for throttling.
+
+    Uses settings.CLIENT_IP_HEADER (e.g. HTTP_X_FORWARDED_FOR) when the site runs
+    behind trusted proxies, taking the address appended by the outermost trusted
+    proxy (entries further left can be forged by the client).
+    """
+    from django.conf import settings
+
+    header = getattr(settings, "CLIENT_IP_HEADER", "")
+    if header and request.META.get(header):
+        hops = [h.strip() for h in request.META[header].split(",") if h.strip()]
+        trusted = max(getattr(settings, "CLIENT_IP_TRUSTED_PROXIES", 1), 1)
+        if len(hops) >= trusted:
+            return hops[-trusted]
     return request.META.get("REMOTE_ADDR") or None
 
 

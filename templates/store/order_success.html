@@ -17,14 +17,22 @@
   <div class="container-lg">
     <div class="row justify-content-center">
       <div class="col-lg-8">
-        <div class="fd-note mb-4 p-4" style="background:var(--fd-cream);border:1px solid rgba(176,141,87,.35)">
+        <div class="fd-note mb-4 p-4" style="background:var(--fd-paper);border:1px solid var(--fd-line)">
           <svg width="22" height="22" aria-hidden="true"><use xlink:href="#info"></use></svg>
           <div>
             <h5 class="mb-2">Payment Instructions</h5>
+            {% if order.payment_status == "paid" %}
+            <p class="mb-0">Payment received &mdash; thank you. We will email you when your order ships.</p>
+            {% elif order.payment_method == "cash_on_delivery" %}
+            <p class="mb-1">You chose cash on delivery.</p>
+            <p class="mb-0">Please keep <strong>{{ currency }}{{ order.total }}</strong> ready when your order arrives.</p>
+            {% else %}
             <p class="mb-2">Please complete your payment to confirm this order.</p>
-            <p class="mb-1"><strong>UPI:</strong> +919898989898</p>
+            <p class="mb-1"><strong>UPI:</strong> {{ site_settings.upi_id|default:"+919898989898" }}</p>
+            <p class="mb-1"><strong>Amount:</strong> {{ currency }}{{ order.total }}</p>
             <p class="mb-2"><strong>Order #:</strong> {{ order.order_number }}</p>
             <p class="mb-0 text-muted">Send the payment screenshot via WhatsApp with your order number for verification.</p>
+            {% endif %}
           </div>
         </div>
 
@@ -54,6 +62,9 @@
             <div class="fd-summary-row"><span>Subtotal</span><span>{{ currency }}{{order.subtotal }}</span></div>
             {% if order.discount_total > 0 %}
             <div class="fd-summary-row text-success"><span>Discount</span><span>-{{ currency }}{{order.discount_total }}</span></div>
+            {% endif %}
+            {% if order.shipping_total > 0 %}
+            <div class="fd-summary-row"><span>Shipping</span><span>{{ currency }}{{ order.shipping_total }}</span></div>
             {% endif %}
             <div class="fd-summary-row is-total"><span>Total</span><strong>{{ currency }}{{order.total }}</strong></div>
           </div>

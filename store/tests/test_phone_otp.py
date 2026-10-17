@@ -224,3 +224,98 @@ class SeoTests(TestCase):
         self.assertIn('"@type": "Product"', content)
         self.assertIn("Rose \\u003CSilk\\u003E Blouse", content)
         self.assertIn('property="og:type" content="product"', content)
+
+
+class ClientIPTests(TestCase):
+    def _request(self, **meta):
+        from django.test import RequestFactory
+        return RequestFactory().get("/", **meta)
+
+    def test_defaults_to_remote_addr(self):
+        from store.views_phone import _client_ip
+        req = self._request(REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="1.1.1.1")
+        self.assertEqual(_client_ip(req), "10.0.0.1")
+
+    @override_settings(CLIENT_IP_HEADER="HTTP_X_FORWARDED_FOR", CLIENT_IP_TRUSTED_PROXIES=1)
+    def test_uses_rightmost_trusted_hop(self):
+        from store.views_phone import _client_ip
+        req = self._request(REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="6.6.6.6, 203.0.113.9")
+        self.assertEqual(_client_ip(req), "203.0.113.9")
+
+    @override_settings(CLIENT_IP_HEADER="HTTP_X_FORWARDED_FOR", CLIENT_IP_TRUSTED_PROXIES=2)
+    def test_falls_back_when_header_has_too_few_hops(self):
+        from store.views_phone import _client_ip
+        req = self._request(REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="203.0.113.9")
+        self.assertEqual(_client_ip(req), "10.0.0.1")
+
+
+class PhoneFormRenderingTests(TestCase):
+    def test_single_country_shows_its_dial_code(self):
+        self.assertContains(self.client.get(reverse("phone_login")), '<span class="fd-dial" title="India">+91</span>', html=True)
+
+    @override_settings(PHONE_LOGIN_COUNTRIES=["AE"])
+    def test_other_single_country_dial_code(self):
+        self.assertContains(self.client.get(reverse("phone_login")), "+971")
+
+    @override_settings(PHONE_LOGIN_COUNTRIES=["IN", "GB"])
+    def test_multiple_countries_render_a_select(self):
+        content = self.client.get(reverse("phone_login")).content.decode()
+        self.assertIn('<select name="country"', content)
+        self.assertIn("United Kingdom (+44)", content)
+
+
+@override_settings(TWILIO_ACCOUNT_SID="AC123", TWILIO_AUTH_TOKEN="tok", TWILIO_FROM_NUMBER="+15550001111")
+class TwilioBackendTests(TestCase):
+    def _fake_urlopen(self, body=b'{"sid": "SM1"}'):
+        import io
+        from unittest import mock
+        captured = {}
+
+        def fake(req, timeout=None):
+            captured["req"] = req
+            resp = mock.MagicMock()
+            resp.__enter__.return_value = io.BytesIO(body)
+            resp.__exit__.return_value = False
+            return resp
+        return fake, captured
+
+    def test_posts_to_account_with_basic_auth_and_from(self):
+        import base64
+        import urllib.parse
+        from unittest import mock
+        from store.sms import TwilioSmsBackend
+        fake, captured = self._fake_urlopen()
+        with mock.patch("store.sms.urllib.request.urlopen", fake):
+            TwilioSmsBackend().send("+919876543210", "123456 is your code")
+        req = captured["req"]
+        self.assertIn("/Accounts/AC123/Messages.json", req.full_url)
+        self.assertEqual(req.get_header("Authorization"), "Basic " + base64.b64encode(b"AC123:tok").decode())
+        body = urllib.parse.parse_qs(req.data.decode())
+        self.assertEqual(body["To"], ["+919876543210"])
+        self.assertEqual(body["From"], ["+15550001111"])
+
+    @override_settings(TWILIO_FROM_NUMBER="MG999")
+    def test_messaging_service_sid(self):
+        import urllib.parse
+        from unittest import mock
+        from store.sms import TwilioSmsBackend
+        fake, captured = self._fake_urlopen()
+        with mock.patch("store.sms.urllib.request.urlopen", fake):
+            TwilioSmsBackend().send("+919876543210", "hi")
+        body = urllib.parse.parse_qs(captured["req"].data.decode())
+        self.assertEqual(body["MessagingServiceSid"], ["MG999"])
+        self.assertNotIn("From", body)
+
+    def test_provider_error_raises(self):
+        from unittest import mock
+        from store.sms import SmsDeliveryError, TwilioSmsBackend
+        fake, _ = self._fake_urlopen(b'{"error_code": 21211, "message": "Invalid To"}')
+        with mock.patch("store.sms.urllib.request.urlopen", fake):
+            with self.assertRaisesMessage(SmsDeliveryError, "Invalid To"):
+                TwilioSmsBackend().send("+919876543210", "hi")
+
+    @override_settings(TWILIO_ACCOUNT_SID="")
+    def test_unconfigured_raises(self):
+        from store.sms import SmsDeliveryError, TwilioSmsBackend
+        with self.assertRaises(SmsDeliveryError):
+            TwilioSmsBackend().send("+919876543210", "hi")

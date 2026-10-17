@@ -263,6 +263,19 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ("Social", {
             "fields": ("instagram_url", "facebook_url", "whatsapp_url"),
         }),
+        ("Payments", {
+            "fields": ("upi_id", "customization_advance_amount", "cod_enabled"),
+        }),
+        ("Shipping", {
+            "fields": ("shipping_fee", "free_shipping_threshold", "returns_summary"),
+        }),
+        ("Product pages", {
+            "fields": ("price_note", "low_stock_threshold"),
+        }),
+        ("Legal & grievance officer", {
+            "description": "Shown on product pages and in the footer, as required for Indian online sellers.",
+            "fields": ("legal_name", "gstin", "grievance_officer_name", "grievance_officer_email", "grievance_officer_phone"),
+        }),
         ("Timestamps", {
             "fields": ("created_at", "updated_at"),
         }),

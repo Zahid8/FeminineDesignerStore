@@ -1,0 +1,23 @@
+{% autoescape off %}{% with currency=site_settings.currency_symbol|default:"$" %}Hello {{ order.customer_name }},
+
+Thank you for your order with {{ site_settings.store_name|default:"FemDes" }}.
+
+Order number: {{ order.order_number }}
+Payment method: {{ order.get_payment_method_display }}
+
+{% for item in order.items.all %}- {{ item.product_name }}{% if item.color or item.size %} ({{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}){% endif %} x {{ item.quantity }}: {{ currency }}{{ item.line_total }}
+{% endfor %}
+Subtotal: {{ currency }}{{ order.subtotal }}{% if order.discount_total > 0 %}
+Discount: -{{ currency }}{{ order.discount_total }}{% endif %}{% if order.shipping_total > 0 %}
+Shipping: {{ currency }}{{ order.shipping_total }}{% endif %}
+Total: {{ currency }}{{ order.total }}
+{% if order.payment_method == "manual_upi" %}
+To confirm your order, pay {{ currency }}{{ order.total }} by UPI to {{ site_settings.upi_id|default:"+919898989898" }} and share the payment screenshot on WhatsApp with your order number.
+{% elif order.payment_method == "cash_on_delivery" %}
+Please keep {{ currency }}{{ order.total }} ready to pay when your order is delivered.
+{% endif %}
+Shipping to:
+{{ order.shipping_address }}
+{% if order_url %}
+View your order: {{ order_url }}{% endif %}
+{% endwith %}{% endautoescape %}

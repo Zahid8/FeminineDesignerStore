@@ -25,6 +25,51 @@ class SiteSettings(models.Model):
     whatsapp_url = models.URLField(blank=True)
     currency_code = models.CharField(max_length=3, default="USD")
     currency_symbol = models.CharField(max_length=8, default="$")
+
+    # Payments
+    upi_id = models.CharField(
+        "UPI ID / number", max_length=80, default="+919898989898",
+        help_text="Shown in manual UPI payment instructions.",
+    )
+    customization_advance_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("500.00"),
+        help_text="Advance payment required for a customization request.",
+    )
+    cod_enabled = models.BooleanField(
+        "Cash on delivery available", default=False,
+    )
+
+    # Shipping
+    shipping_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Flat shipping charge per order. 0 = free shipping.",
+    )
+    free_shipping_threshold = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Orders at or above this amount ship free. Blank = no threshold.",
+    )
+
+    # Product page copy
+    price_note = models.CharField(
+        max_length=120, blank=True,
+        help_text='Shown under prices, e.g. "Inclusive of all taxes". Leave blank to hide.',
+    )
+    low_stock_threshold = models.PositiveSmallIntegerField(
+        default=3, help_text='Show "Only N left" at or below this stock. 0 = off.',
+    )
+    returns_summary = models.TextField(
+        blank=True, help_text="Short shipping & returns text for the product page tab.",
+    )
+
+    # Legal / compliance (Consumer Protection (E-Commerce) Rules, India)
+    legal_name = models.CharField(max_length=160, blank=True)
+    gstin = models.CharField("GSTIN", max_length=20, blank=True)
+    grievance_officer_name = models.CharField(max_length=120, blank=True)
+    grievance_officer_email = models.EmailField(blank=True)
+    grievance_officer_phone = models.CharField(max_length=40, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -506,6 +551,9 @@ class Order(models.Model):
         max_digits=10, decimal_places=2, default=Decimal("0.00")
     )
     discount_total = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
+    shipping_total = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0.00")
     )
     total = models.DecimalField(

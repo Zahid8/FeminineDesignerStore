@@ -17,6 +17,21 @@ class CheckoutForm(forms.Form):
     customer_phone = forms.CharField(max_length=40, required=False)
     shipping_address = forms.CharField(widget=forms.Textarea)
     notes = forms.CharField(widget=forms.Textarea, required=False)
+    payment_method = forms.ChoiceField(required=False)
+
+    def __init__(self, *args, payment_methods=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payment_methods = payment_methods or []
+        self.fields["payment_method"].choices = [(m["value"], m["label"]) for m in self.payment_methods]
+
+    def clean_payment_method(self):
+        value = self.cleaned_data.get("payment_method")
+        allowed = [m["value"] for m in self.payment_methods]
+        if not value:
+            return allowed[0] if allowed else "manual_upi"
+        if value not in allowed:
+            raise forms.ValidationError("Please choose an available payment method.")
+        return value
 
 
 class NewsletterSignupForm(forms.Form):
@@ -104,6 +119,8 @@ class PhoneLoginForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         countries = phone_numbers.enabled_countries()
+        self.countries = countries
+        self.single_country = countries[0] if len(countries) == 1 else None
         self.fields["country"].choices = [(c.code, f"{c.name} (+{c.dial_code})") for c in countries]
         if countries:
             self.fields["country"].initial = countries[0].code

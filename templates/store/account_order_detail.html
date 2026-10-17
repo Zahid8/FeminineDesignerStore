@@ -47,6 +47,7 @@
       <hr>
       <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ currency }}{{ order.subtotal }}</strong></div>
       {% if order.discount_total > 0 %}<div class="d-flex justify-content-between text-success"><span>Discount</span><strong>-{{ currency }}{{ order.discount_total }}</strong></div>{% endif %}
+      {% if order.shipping_total > 0 %}<div class="d-flex justify-content-between"><span>Shipping</span><strong>{{ currency }}{{ order.shipping_total }}</strong></div>{% endif %}
       <div class="d-flex justify-content-between fs-5 mt-2"><span>Total</span><strong>{{ currency }}{{ order.total }}</strong></div>
     </div>
 

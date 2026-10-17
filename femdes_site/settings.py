@@ -211,6 +211,11 @@ OTP_MAX_ATTEMPTS = 5
 OTP_RESEND_COOLDOWN_SECONDS = 30
 OTP_MAX_SENDS_PER_PHONE_PER_HOUR = 5
 OTP_MAX_SENDS_PER_IP_PER_HOUR = 20
+# Behind a reverse proxy (Render, Railway, Fly.io, nginx) every request arrives
+# from the proxy's IP. Set CLIENT_IP_HEADER=HTTP_X_FORWARDED_FOR and the number
+# of trusted proxy hops so per-IP throttling sees real customer addresses.
+CLIENT_IP_HEADER = os.getenv("CLIENT_IP_HEADER", "")
+CLIENT_IP_TRUSTED_PROXIES = int(os.getenv("CLIENT_IP_TRUSTED_PROXIES", "1"))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -640,3 +640,16 @@ hr { border-color: var(--fd-line); opacity: 1; }
 .fd-card-wish .fd-wish { width: 36px; height: 36px; justify-content: center; background: rgba(255, 255, 255, 0.9); border-radius: 50%; }
 .fd-pdp-wish .fd-wish { font-size: 0.66rem; letter-spacing: var(--fd-track); text-transform: uppercase; }
 .fd-search-results .fd-card-wish { display: none; }
+
+/* Free-shipping progress + payment options */
+.fd-ship-progress { margin: 0.25rem 0 1rem; }
+.fd-ship-progress p { font-size: 0.82rem; margin: 0 0 0.45rem; color: var(--fd-ink); }
+.fd-ship-progress svg { color: #2f8f5b; vertical-align: -2px; }
+.fd-ship-bar { height: 3px; background: var(--fd-line); overflow: hidden; }
+.fd-ship-bar span { display: block; height: 100%; background: var(--fd-wine); transition: width 0.6s var(--fd-ease); }
+.fd-pay-options { display: grid; gap: 0.6rem; }
+.fd-pay-option { display: flex; gap: 0.85rem; align-items: flex-start; padding: 1rem 1.1rem; border: 1px solid var(--fd-line); background: #fff; cursor: pointer; text-transform: none; letter-spacing: 0; font-size: 0.92rem; margin: 0; transition: border-color 0.25s; }
+.fd-pay-option:has(input:checked) { border-color: var(--fd-ink); }
+.fd-pay-option input { margin-top: 0.3rem; accent-color: var(--fd-wine); }
+.fd-pay-option strong { display: block; font-weight: 500; color: var(--fd-ink); }
+.fd-pay-option small { display: block; color: var(--fd-muted); font-size: 0.82rem; margin-top: 0.15rem; }

@@ -52,7 +52,7 @@ class WishlistTests(TestCase):
         content = self.client.get(reverse("product_list")).content.decode()
         self.assertIn('aria-label="Remove Ruby Blouse from wishlist"', content)
         self.assertIn('aria-label="Save Ivory Blouse to wishlist"', content)
-        self.assertIn('Wishlist (1 items)', content)
+        self.assertIn('Wishlist (1 item)', content)
 
     def test_inactive_products_hidden_and_get_redirects(self):
         self.toggle(self.p1, HTTP_X_REQUESTED_WITH="fetch")

@@ -201,7 +201,7 @@
           <p class="text-muted">Enter your measurements below to create a customization request.</p>
           <div class="fd-note alert alert-info small">
             <svg width="20" height="20" aria-hidden="true"><use xlink:href="#info"></use></svg>
-            <div><strong>Disclaimer:</strong> Customization requires a 500 advance payment to UPI +919898989898. Please send the UPI payment screenshot through WhatsApp along with your customization link.</div>
+            <div><strong>Disclaimer:</strong> Customization requires a {{ site_settings.currency_symbol|default:"₹" }}{{ site_settings.customization_advance_amount|default:"500"|floatformat:"-2" }} advance payment to UPI {{ site_settings.upi_id|default:"+919898989898" }}. Please send the UPI payment screenshot through WhatsApp along with your customization link.</div>
           </div>
         </div>
         <div class="col-lg-8">

@@ -156,20 +156,23 @@ def checkout(request):
         messages.info(request, "Your cart is empty.")
         return redirect("cart_detail")
 
+    site_settings = _get_site_settings()
+    methods = services.payment_methods(site_settings)
     if request.method == "POST":
-        form = CheckoutForm(request.POST)
+        form = CheckoutForm(request.POST, payment_methods=methods)
         if form.is_valid():
             try:
                 order = services.create_order_from_cart(
                     request, form.cleaned_data
                 )
-                from django.conf import settings
-                if (settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET):
-                    return redirect("razorpay_payment", order_number=order.order_number)
-                return redirect("order_success", order_number=order.order_number)
             except ValueError as e:
                 messages.error(request, str(e))
                 # Fall through to re-render with error.
+            else:
+                services.send_order_emails(order, request)
+                if order.payment_method == "razorpay":
+                    return redirect("razorpay_payment", order_number=order.order_number)
+                return redirect("order_success", order_number=order.order_number)
     else:
         initial = {}
         if request.user.is_authenticated:
@@ -184,10 +187,10 @@ def checkout(request):
                 initial["shipping_address"] = profile.shipping_address or ""
             except CustomerProfile.DoesNotExist:
                 pass
-        form = CheckoutForm(initial=initial)
+        form = CheckoutForm(initial=initial, payment_methods=methods)
 
     ctx = _base_context(request)
-    ctx.update({"form": form, "cart": summary})
+    ctx.update({"form": form, "cart": summary, "payment_methods": methods})
     return render(request, "store/checkout.html", ctx)
 
 

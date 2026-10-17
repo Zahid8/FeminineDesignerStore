@@ -26,11 +26,12 @@
           {% for e in form.non_field_errors %}<div class="alert alert-danger small">{{ e }}</div>{% endfor %}
           <label for="{{ form.phone.id_for_label }}">Mobile number</label>
           <div class="fd-phone-field">
-            {% if form.fields.country.choices|length > 1 %}
+            {% if form.single_country %}
+            <input type="hidden" name="country" value="{{ form.single_country.code }}">
+            <span class="fd-dial" title="{{ form.single_country.name }}">+{{ form.single_country.dial_code }}</span>
+            {% else %}
             <label for="{{ form.country.id_for_label }}" class="visually-hidden">Country</label>
             {{ form.country }}
-            {% else %}
-            {% for value, label in form.fields.country.choices %}<input type="hidden" name="country" value="{{ value }}"><span class="fd-dial">{{ label|cut:"India "|cut:"("|cut:")" }}</span>{% endfor %}
             {% endif %}
             {{ form.phone }}
           </div>

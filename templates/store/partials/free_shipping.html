@@ -1,0 +1,10 @@
+{% if cart.free_shipping_threshold %}
+<div class="fd-ship-progress" role="status">
+  {% if cart.free_shipping_remaining %}
+  <p>Add <strong>{{ site_settings.currency_symbol|default:"$" }}{{ cart.free_shipping_remaining }}</strong> more for free shipping</p>
+  {% else %}
+  <p><svg width="14" height="14" aria-hidden="true"><use xlink:href="#check"></use></svg> You have unlocked free shipping</p>
+  {% endif %}
+  <div class="fd-ship-bar" aria-hidden="true"><span style="width: {{ cart.free_shipping_progress|default:0 }}%"></span></div>
+</div>
+{% endif %}

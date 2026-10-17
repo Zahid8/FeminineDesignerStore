@@ -21,3 +21,35 @@ Frameworks used to implement these patterns: Bootstrap 5.3.8 (layout and
 offcanvas), Swiper 11 (hero and product carousels), GSAP 3.15 + ScrollTrigger
 (reveals, parallax, hero text), Lenis (smooth scrolling) and Alpine.js 3
 (mega menu, sort/density toolbar state). All loaded from jsDelivr with SRI.
+
+## Feature survey (T30, 2026-10-17)
+
+Captured with Playwright (desktop UA, non-Indian IP) from homepage, listing,
+product and cart pages. ✓ seen · ✗ page reached, feature absent · ? not reachable.
+Sabyasachi is editorial (no shoppable listings). Masaba's checkout redirected the
+crawler to an unrelated domain, so its checkout data was discarded.
+
+| Feature | Torani | Masaba | RawMango | Anita | Zimm | Toteme | Jaypore | FemDes T30 |
+|---|---|---|---|---|---|---|---|---|
+| Size chart / guide | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Built (SizeChart modal) |
+| Size chips | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Built (T29) |
+| Price / size / colour filters | ✓ | ✓ | ? | ✓ | ✓ | ~ | ✓ | Built |
+| Occasion filter | ✓ | ✓ | ? | ✗ | ✗ | ✗ | ✓ | Built (Occasion) |
+| Fabric filter | ✗ | ✓ | ? | ✗ | ✓ | ✓ | ✓ | Built |
+| Ready-to-ship vs made-to-order | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ | ✓ | Built |
+| Dispatch time on product page | ✓ | ✓ | ? | ? | ✓ | ? | ✓ | Built |
+| Details / care / returns tabs | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Built |
+| Complete the look | ✓ | ✗ | ✗ | ? | ✓ | ✓ | ✓ | Built (pairs_with) |
+| Wishlist | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | Built |
+| WhatsApp ordering / chat | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | Built (T29) |
+| Notify when back in stock | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ | Built |
+| Appointment booking | ✗ | ✓ | ✓ | ✓ | ? | ✗ | ✗ | Built |
+| Order-tracking link | ✗ | ✓ | ✓ | ✓ | ? | ✓ | ✓ | Built (guest tracking) |
+| Client diaries / celebrity closet | ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ | Built |
+| Policy pages + FAQ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | Built (admin-managed) |
+| Tax-inclusive price note | ? | ✓ | ✓ | ✓ | ? | ? | ? | Built (optional setting) |
+| Country of origin / grievance officer (India) | ? | ✓ | ? | ? | n/a | n/a | ? | Built |
+| Cash on delivery | ? | ? | ? | ? | n/a | n/a | ✓ | Built (optional) |
+| Currency / country switch | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✗ | Not built (INR only) |
+| Gift cards | ✓ | ✗ | ✓ | ✓ | ✓ | ✗ | ✗ | Not built (needs balance ledger) |
+| Customer reviews | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | Not built (no reference site uses them) |

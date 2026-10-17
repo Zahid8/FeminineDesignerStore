@@ -30,10 +30,13 @@
           </div>
           {% endfor %}
           <div class="pt-3">
+            <p class="fd-summary-row"><span>Subtotal</span><span>{{ currency }}{{ cart.subtotal }}</span></p>
             {% if cart.discount_total > 0 %}
             <p class="fd-summary-row text-success"><span>Discount</span><span>-{{ currency }}{{ cart.discount_total }}</span></p>
             {% endif %}
+            <p class="fd-summary-row"><span>Shipping</span><span>{% if cart.shipping > 0 %}{{ currency }}{{ cart.shipping }}{% else %}Free{% endif %}</span></p>
             <p class="fd-summary-row is-total"><span>Total:</span> <strong>{{ currency }}{{cart.total }}</strong></p>
+            {% if site_settings.price_note %}<p class="small text-muted mb-0">{{ site_settings.price_note }}</p>{% endif %}
           </div>
         </div>
       </div>
@@ -70,11 +73,18 @@
               <label for="id_notes" class="form-label">Order Notes</label>
               <textarea name="notes" id="id_notes" class="form-control" rows="2" placeholder="Anything we should know?"></textarea>
             </div>
-            <div class="col-12 mt-3">
-              <div class="fd-note alert alert-info small">
-                <svg width="20" height="20" aria-hidden="true"><use xlink:href="#info"></use></svg>
-                <div><strong>Payment:</strong> After placing your order, send the payment via UPI to <strong>+919898989898</strong>. Share the screenshot on WhatsApp with your order number.</div>
-              </div>
+            <div class="col-12 mt-4"><span class="fd-eyebrow mb-0">Step 3</span><h5>Payment</h5></div>
+            <div class="col-12">
+              <fieldset class="fd-pay-options">
+                <legend class="visually-hidden">Payment method</legend>
+                {% for m in payment_methods %}
+                <label class="fd-pay-option">
+                  <input type="radio" name="payment_method" value="{{ m.value }}"{% if form.payment_method.value == m.value or not form.payment_method.value and forloop.first %} checked{% endif %}>
+                  <span><strong>{{ m.label }}</strong><small>{{ m.help }}</small></span>
+                </label>
+                {% endfor %}
+              </fieldset>
+              {% for e in form.payment_method.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-12 mt-2">
               <button type="submit" class="btn btn-dark btn-lg w-100">Place Order</button>

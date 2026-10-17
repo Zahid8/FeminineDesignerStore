@@ -2,9 +2,51 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
 
-from store.models import NewsletterSubscriber, Order, OrderItem, Product
+from store.models import NewsletterSubscriber, Order, OrderItem, Product, SiteSettings
 
 CART_SESSION_KEY = "femdes_cart"
+CENT = Decimal("0.01")
+
+
+def _q(value):
+    return value.quantize(CENT, rounding=ROUND_HALF_UP)
+
+
+def compute_totals(gross_subtotal, discount_total, site_settings=None):
+    """Order money maths shared by the cart and order creation.
+
+    subtotal (list prices) - discount (per-item sale prices) + shipping = total.
+    Shipping is SiteSettings.shipping_fee unless the discounted merchandise
+    value reaches free_shipping_threshold.
+    """
+    if site_settings is None:
+        site_settings = SiteSettings.objects.first()
+    gross_subtotal = _q(gross_subtotal)
+    discount_total = _q(discount_total)
+    merchandise = gross_subtotal - discount_total
+    fee = getattr(site_settings, "shipping_fee", None) or Decimal("0.00")
+    threshold = getattr(site_settings, "free_shipping_threshold", None)
+    shipping = Decimal("0.00")
+    remaining = None
+    if fee > 0 and merchandise > 0:
+        if threshold is not None and merchandise >= threshold:
+            shipping = Decimal("0.00")
+        else:
+            shipping = _q(fee)
+    if threshold is not None and threshold > 0:
+        remaining = _q(max(threshold - merchandise, Decimal("0.00")))
+    progress = None
+    if threshold:
+        progress = int(min(merchandise / threshold, Decimal("1")) * 100)
+    return {
+        "subtotal": gross_subtotal,
+        "discount_total": discount_total,
+        "shipping": shipping,
+        "total": _q(merchandise + shipping),
+        "free_shipping_threshold": threshold,
+        "free_shipping_remaining": remaining,
+        "free_shipping_progress": progress,
+    }
 
 
 def _cart_key(product_id, color="", size=""):
@@ -84,7 +126,8 @@ def get_cart_summary(request):
     cart = get_cart(request)
     lines = []
     item_count = 0
-    subtotal = Decimal("0.00")
+    gross = Decimal("0.00")
+    discount = Decimal("0.00")
 
     for key, item in list(cart.items()):
         try:
@@ -97,8 +140,7 @@ def get_cart_summary(request):
 
         qty = item["quantity"]
         unit_price = product.get_effective_price()
-        line_total = unit_price * qty
-        line_total = line_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        line_total = _q(unit_price * qty)
 
         lines.append(
             {
@@ -115,20 +157,12 @@ def get_cart_summary(request):
             }
         )
         item_count += qty
-        subtotal += line_total
+        gross += product.price * qty
+        discount += (product.price - unit_price) * qty
 
-    subtotal = subtotal.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    total = subtotal  # Discounts applied per-item; overall discount total is 0 for now.
-    # discount_total can be computed later if needed.
-    discount_total = Decimal("0.00")
-
-    return {
-        "lines": lines,
-        "item_count": item_count,
-        "subtotal": subtotal,
-        "discount_total": discount_total,
-        "total": total,
-    }
+    summary = {"lines": lines, "item_count": item_count}
+    summary.update(compute_totals(gross, discount))
+    return summary
 
 
 def create_order_from_cart(request, checkout_data):
@@ -165,7 +199,7 @@ def create_order_from_cart(request, checkout_data):
                     f"(requested {aggr}, available {product.stock_quantity})."
                 )
 
-        subtotal = Decimal("0.00")
+        gross_subtotal = Decimal("0.00")
         discount_total = Decimal("0.00")
         order_items_data = []
 
@@ -184,7 +218,7 @@ def create_order_from_cart(request, checkout_data):
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
 
-            subtotal += line_total
+            gross_subtotal += unit_price * qty
             discount_total += line_discount
             order_items_data.append(
                 {
@@ -200,10 +234,8 @@ def create_order_from_cart(request, checkout_data):
                 }
             )
 
-        discount_total = discount_total.quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-        total = subtotal.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        totals = compute_totals(gross_subtotal, discount_total)
+        payment_method = checkout_data.get("payment_method") or "manual_upi"
 
         order = Order.objects.create(
             customer_name=checkout_data["customer_name"],
@@ -215,9 +247,11 @@ def create_order_from_cart(request, checkout_data):
                 request.user if getattr(request, "user", None) and request.user.is_authenticated
                 else None
             ),
-            subtotal=subtotal,
-            discount_total=discount_total,
-            total=total,
+            subtotal=totals["subtotal"],
+            discount_total=totals["discount_total"],
+            shipping_total=totals["shipping"],
+            total=totals["total"],
+            payment_method=payment_method,
         )
 
         for item_data in order_items_data:
@@ -252,3 +286,56 @@ def subscribe_newsletter(email):
         sub.is_active = True
         sub.save(update_fields=["is_active"])
     return sub
+
+
+def payment_methods(site_settings=None):
+    """Payment options offered at checkout, in display order."""
+    from django.conf import settings
+
+    if site_settings is None:
+        site_settings = SiteSettings.objects.first()
+    methods = []
+    if settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET:
+        methods.append({"value": "razorpay", "label": "Pay online",
+                        "help": "UPI, cards, net banking and wallets via Razorpay."})
+    upi = getattr(site_settings, "upi_id", "") or "+919898989898"
+    methods.append({"value": "manual_upi", "label": "UPI transfer",
+                    "help": f"Pay to {upi} after placing the order and share the screenshot on WhatsApp."})
+    if getattr(site_settings, "cod_enabled", False):
+        methods.append({"value": "cash_on_delivery", "label": "Cash on delivery",
+                        "help": "Pay in cash when your order arrives."})
+    return methods
+
+
+def send_order_emails(order, request=None):
+    """Confirmation to the customer and a notification to the store inbox.
+
+    Called after the order transaction has committed; failures are logged and
+    never block the customer.
+    """
+    import logging
+
+    from django.conf import settings
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+
+    site = SiteSettings.objects.first()
+    ctx = {"order": order, "site_settings": site,
+           "order_url": request.build_absolute_uri(f"/orders/{order.order_number}/success/") if request else ""}
+    store_name = getattr(site, "store_name", "FemDes")
+    try:
+        send_mail(
+            f"{store_name}: order {order.order_number} received",
+            render_to_string("store/emails/order_confirmation.txt", ctx),
+            settings.DEFAULT_FROM_EMAIL,
+            [order.customer_email],
+        )
+        if settings.STORE_NOTIFY_EMAIL:
+            send_mail(
+                f"New order {order.order_number} — {order.customer_name}",
+                render_to_string("store/emails/order_notify_staff.txt", ctx),
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.STORE_NOTIFY_EMAIL],
+            )
+    except Exception:
+        logging.getLogger(__name__).exception("Order email failed for %s", order.order_number)

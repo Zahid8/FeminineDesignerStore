@@ -28,7 +28,10 @@
         {% endfor %}
       </ul>
       <div class="pt-4">
+        {% include "store/partials/free_shipping.html" %}
         <div class="fd-summary-row"><span class="text-muted">Subtotal</span><span>{{ site_settings.currency_symbol|default:"$" }}{{cart.subtotal }}</span></div>
+        {% if cart.discount_total > 0 %}<div class="fd-summary-row text-success"><span>Discount</span><span>-{{ site_settings.currency_symbol|default:"$" }}{{ cart.discount_total }}</span></div>{% endif %}
+        <div class="fd-summary-row"><span class="text-muted">Shipping</span><span>{% if cart.shipping > 0 %}{{ site_settings.currency_symbol|default:"$" }}{{ cart.shipping }}{% else %}Free{% endif %}</span></div>
         <div class="fd-summary-row is-total"><span>Total</span><strong>{{ site_settings.currency_symbol|default:"$" }}{{cart.total }}</strong></div>
         <a href="{% url 'checkout' %}" class="btn btn-dark w-100 mt-3">Checkout</a>
         <a href="{% url 'cart_detail' %}" class="btn btn-outline-dark w-100 mt-2">View Bag</a>
