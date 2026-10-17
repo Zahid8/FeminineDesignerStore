@@ -25,14 +25,17 @@
         {% with images=product.images.all|dictsort:"sort_order" %}
         <div class="fd-gallery{% if images|length > 1 %} has-thumbs{% endif %}">
         {% if images %}
-        <div id="productCarousel{{ product.pk }}" class="carousel slide product-gallery" data-bs-touch="true">
+        <div id="productCarousel{{ product.pk }}" class="carousel slide product-gallery" data-bs-touch="true" data-pswp="{% static 'store/vendor/photoswipe/' %}">
           <div class="carousel-inner overflow-hidden">
             {% for img in images %}
             <div class="carousel-item{% if forloop.first %} active{% endif %}">
-              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="d-block w-100 h-100" style="object-fit: cover;"{% if not forloop.first %} loading="lazy"{% endif %}>
+              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="d-block w-100 h-100 fd-gallery-img"{% if not forloop.first %} loading="lazy"{% endif %}>
             </div>
             {% endfor %}
           </div>
+          <button type="button" class="fd-gallery-zoom" data-gallery-open aria-label="View photos full screen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>
+          </button>
           {% if images|length > 1 %}
           <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide="prev" aria-label="Previous image">
             <span class="fd-gallery-arrow" aria-hidden="true"><svg width="18" height="18"><use xlink:href="#arrow-left"></use></svg></span>

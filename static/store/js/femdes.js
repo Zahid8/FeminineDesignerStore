@@ -311,16 +311,85 @@
     window.addEventListener('load', function () { ST.refresh(); });
   }
 
-  // ---- Product gallery: zoom origin + thumbnail sync ----
+  // ---- Product gallery: whole-photo frame, full-screen viewer, thumbnail sync ----
+  var pswpLoading = null;
+  function loadPhotoSwipe(base) {
+    if (pswpLoading) return pswpLoading;
+    pswpLoading = new Promise(function (resolve, reject) {
+      var css = document.createElement('link');
+      css.rel = 'stylesheet'; css.href = base + 'photoswipe.css';
+      document.head.appendChild(css);
+      var files = ['photoswipe.umd.min.js', 'photoswipe-lightbox.umd.min.js'], done = 0;
+      files.forEach(function (f) {
+        var s = document.createElement('script');
+        s.src = base + f;
+        s.onload = function () { if (++done === files.length) resolve(); };
+        s.onerror = function () { pswpLoading = null; reject(); };
+        document.head.appendChild(s);
+      });
+    });
+    return pswpLoading;
+  }
+  function photoSize(img) {
+    return new Promise(function (resolve) {
+      if (img.complete && img.naturalWidth) return resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      var probe = new Image();
+      probe.onload = function () { resolve({ w: probe.naturalWidth, h: probe.naturalHeight }); };
+      probe.onerror = function () { resolve(null); };
+      probe.src = img.currentSrc || img.src;
+    });
+  }
   function setupGallery() {
     document.querySelectorAll('.product-gallery').forEach(function (gallery) {
       var inner = gallery.querySelector('.carousel-inner');
-      if (inner) {
-        inner.addEventListener('mousemove', function (e) {
-          var r = inner.getBoundingClientRect();
-          inner.style.setProperty('--zoom-x', ((e.clientX - r.left) / r.width * 100) + '%');
-          inner.style.setProperty('--zoom-y', ((e.clientY - r.top) / r.height * 100) + '%');
-        });
+      var imgs = [].slice.call(gallery.querySelectorAll('.carousel-item img'));
+      // Frame follows the photos' shape (square to 3:4) so nothing is cropped.
+      if (inner && imgs[0]) {
+        var fit = function () {
+          if (!imgs[0].naturalWidth) return;
+          var r = Math.min(1, Math.max(0.75, imgs[0].naturalWidth / imgs[0].naturalHeight));
+          inner.style.setProperty('aspect-ratio', String(r), 'important');
+        };
+        if (imgs[0].complete) fit(); else imgs[0].addEventListener('load', fit);
+      }
+      var base = gallery.getAttribute('data-pswp');
+      if (base && inner && imgs.length) {
+        var opening = false;
+        var open = function () {
+          if (opening) return;
+          opening = true;
+          var items = [].slice.call(gallery.querySelectorAll('.carousel-item'));
+          var start = Math.max(0, items.findIndex(function (it) { return it.classList.contains('active'); }));
+          Promise.all([loadPhotoSwipe(base)].concat(imgs.map(photoSize))).then(function (res) {
+            var sizes = res.slice(1);
+            var lightbox = new window.PhotoSwipeLightbox({
+              dataSource: imgs.map(function (img, i) {
+                var s = sizes[i] || { w: 1200, h: 1500 };
+                return { src: img.currentSrc || img.src, width: s.w, height: s.h, alt: img.alt };
+              }),
+              pswpModule: window.PhotoSwipe,
+              showHideAnimationType: 'fade',
+              bgOpacity: 1,
+              wheelToZoom: true,
+              secondaryZoomLevel: 2,
+              maxZoomLevel: 4,
+              padding: { top: 56, bottom: 56, left: 12, right: 12 },
+              closeTitle: 'Close', zoomTitle: 'Zoom in or out',
+              arrowPrevTitle: 'Previous photo', arrowNextTitle: 'Next photo',
+              errorMsg: 'This photo could not be loaded.'
+            });
+            lightbox.on('close', function () {
+              var idx = lightbox.pswp ? lightbox.pswp.currIndex : start;
+              if (window.bootstrap && idx !== start) window.bootstrap.Carousel.getOrCreateInstance(gallery).to(idx);
+            });
+            lightbox.on('destroy', function () { opening = false; });
+            lightbox.init();
+            lightbox.loadAndOpen(start);
+          }).catch(function () { opening = false; });
+        };
+        inner.addEventListener('click', open);
+        var btn = gallery.querySelector('[data-gallery-open]');
+        if (btn) btn.addEventListener('click', open);
       }
       gallery.addEventListener('slid.bs.carousel', function (e) {
         gallery.parentNode.querySelectorAll('[data-bs-slide-to]').forEach(function (t, i) {

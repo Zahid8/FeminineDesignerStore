@@ -480,3 +480,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 514 OK
 - `browser-checks/qa_design.js` (5 widths) — 0 design issues; only demo-DB missing images and a labelled 13px radio remain (scrollers like the category bar now exempt from clip checks)
 - `browser-checks/btnwrap.js` — 2 known wraps at 360px ("Add to Bag with These Measurements", full-width button)
+
+## T47 — Product photos (2026-10-18)
+
+- `python manage.py test` — 514 OK
+- `browser-checks/gallery_pswp.js` (phone + desktop, DEBUG on and off) — viewer opens from tap and from the expand button, next works, closes, carousel follows; no JS errors
+- `browser-checks/qa_design.js` — unchanged baseline (demo-DB missing images, labelled 13px radio)

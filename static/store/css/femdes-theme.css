@@ -1300,3 +1300,22 @@ a.fd-link-underline, a.btn-link.fd-link-underline, .fd-link-underline { border-b
 .fd-cart-qty .fd-qty-form { flex-direction: column; align-items: flex-start; }
 .fd-cart-actions .fd-qty-form { flex-wrap: wrap; }
 @media (min-width: 768px) and (max-width: 1199.98px) { .fd-cart-line { gap: 1rem; } }
+/* ===== T47 product photos: whole garment in frame, full-screen viewer (PhotoSwipe) ===== */
+.product-gallery .carousel-inner { aspect-ratio: 1 / 1 !important; cursor: zoom-in; transition: aspect-ratio 0.3s; }
+.product-gallery .carousel-item img.fd-gallery-img { object-fit: contain; transform: none !important; }
+.product-gallery { position: relative; }
+.fd-gallery-zoom { position: absolute; top: 0.75rem; right: 0.75rem; z-index: 3; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; color: var(--fd-ink); background: rgba(250, 247, 242, 0.88); box-shadow: var(--fd-raised-sm); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: color 0.25s, background 0.25s, transform 0.25s; }
+.fd-gallery-zoom:hover { color: #fff; background: linear-gradient(135deg, var(--fd-wine), var(--fd-rose)); transform: scale(1.05); }
+.fd-thumb img { object-fit: contain; }
+/* Product cards: show the whole piece, not a crop */
+.fd-card-media { aspect-ratio: 4 / 5; }
+.product-item .product-image, .fd-card-hover { object-fit: contain; }
+/* Full-screen viewer in the studio palette */
+.pswp.pswp { --pswp-bg: #f5efe8; --pswp-placeholder-bg: #ece2d9; --pswp-icon-color: #2b1b20; --pswp-icon-color-secondary: #f5efe8; --pswp-icon-stroke-color: #f5efe8; --pswp-icon-stroke-width: 0; --pswp-error-text-color: var(--fd-ink); }
+.pswp .pswp__img { mix-blend-mode: multiply; }
+.pswp .pswp__counter { color: var(--fd-ink); text-shadow: none; opacity: 0.75; font-size: 0.78rem; letter-spacing: 0.18em; margin-top: 18px; }
+.pswp .pswp__button--close, .pswp .pswp__button--zoom { margin-top: 6px; }
+.pswp .pswp__button--arrow .pswp__icn { width: 44px; height: 44px; padding: 10px; border-radius: 50%; margin-top: -22px; background: rgba(250, 247, 242, 0.9); box-shadow: var(--fd-raised-sm); }
+.pswp .pswp__button--arrow--prev .pswp__icn { left: 16px; }
+.pswp .pswp__button--arrow--next .pswp__icn { right: 16px; }
+@media (min-width: 992px) { .product-gallery .carousel-inner { max-height: calc(100svh - var(--fd-header-h, 160px) - 3rem); } }

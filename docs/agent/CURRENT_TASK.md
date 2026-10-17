@@ -665,3 +665,15 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   hero scroll cue crossing the button on short desktop screens; cart line
   grid spilling past the panel at 360px and 1024px.
 - Layout and flow unchanged (surface treatment only).
+
+## T47 — Product photos (2026-10-18)
+
+- Product page gallery shows the whole photo (`object-fit: contain`); the
+  frame takes the first photo's shape (square to 3:4) and is capped to the
+  screen height on desktop. Hover zoom removed.
+- Tap/click the photo or the expand button: full-screen PhotoSwipe 5.4.4
+  viewer (MIT, vendored in `static/store/vendor/photoswipe/`, loaded only
+  when first opened) with pinch/double-tap/wheel zoom, swipe, keyboard and
+  counter, in the studio cream palette. Closing returns the gallery to the
+  photo the customer was on.
+- Product cards: 4:5 frame, whole photo shown instead of a crop.
