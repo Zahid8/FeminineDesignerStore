@@ -202,6 +202,10 @@ LOGIN_URL = "account_login"
 # Token for the Feminine Designer billing app to read/update online orders.
 # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
 WEBSTORE_API_TOKEN = os.getenv("WEBSTORE_API_TOKEN", "")
+# Billing app (Feminine Designer): lets the shop link to the same PDF bill the
+# staff app produces. Set both to the billing app's values, or leave empty.
+BILLING_APP_URL = os.getenv("BILLING_APP_URL", "")
+BILL_LINK_SECRET = os.getenv("BILL_LINK_SECRET", "")
 # Public site origin used in emails sent outside a request (e.g. back-in-stock), no trailing slash.
 SITE_URL = os.getenv("SITE_URL", "").rstrip("/")
 

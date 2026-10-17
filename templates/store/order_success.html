@@ -81,7 +81,8 @@
           </div>
         </div>
 
-        <div class="text-center mt-4">
+        <div class="text-center mt-4 d-flex flex-wrap justify-content-center gap-2">
+          {% if bill_pdf_url %}<a href="{{ bill_pdf_url }}" class="btn btn-outline-dark btn-lg" target="_blank" rel="noopener">Download Bill (PDF)</a>{% endif %}
           <a href="{% url 'product_list' %}" class="btn btn-dark btn-lg">Continue Shopping</a>
         </div>
       </div>

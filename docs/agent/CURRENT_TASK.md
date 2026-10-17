@@ -577,3 +577,18 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - Mobile pass: no sideways scroll at 360px or 390px; tap targets ≥ 40px for
   text buttons, links, steppers, header icons, filter pills, footer socials
   (`browser-checks/taps.js`). Fresh mobile captures reviewed for every page.
+
+## T41 — Customer bill matches the billing app (2026-10-18)
+
+- `templates/store/invoice.html` is now a standalone sheet in the billing
+  app's receipt design (Fraunces + Plus Jakarta Sans, wine band with logo,
+  info strip, item summary with measurements, delivery address + terms,
+  payment summary, signatures, thank-you). Responsive: 2-column strip and
+  stacked columns on phones; print styles for A4.
+- `store/billing_links.py` signs `/bill/online/{ORDER}/{sig}` exactly like
+  the billing app (shared HMAC context + test vector), so with
+  `BILLING_APP_URL` + `BILL_LINK_SECRET` set the shop's "Download PDF" (bill
+  page, order success page) serves the identical PDF the staff app produces.
+  Without them the page offers "Save as PDF" (print).
+- Checks: `browser-checks/invoice_check.js` (no sideways scroll on phone,
+  PDF link present; PDF fetched from the billing app = 200 application/pdf).

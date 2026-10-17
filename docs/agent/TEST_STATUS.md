@@ -458,3 +458,8 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 495 OK; `check` — no issues; `collectstatic` — OK
 - `node docs/agent/browser-checks/overflow.js` — no page scrolls sideways (desktop + mobile)
 - `node docs/agent/browser-checks/e2e_mtm.js` — 28/28; `mtm_guard.js` — 24/24 (DEBUG=False server)
+
+## T41 — Customer bill (2026-10-18)
+
+- `python manage.py test` — 499 OK (InvoicePageTests, BillingLinkTests; older invoice tests updated to the new layout)
+- `node docs/agent/browser-checks/invoice_check.js` — phone + desktop OK; billing PDF link returns 200 application/pdf

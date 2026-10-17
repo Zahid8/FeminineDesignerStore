@@ -439,3 +439,17 @@ PythonAnywhere free hosting is enough to put the site online, but it has limits:
   `https://help.pythonanywhere.com/pages/EnvironmentVariables/`
 - PythonAnywhere Django static/media files:
   `https://help.pythonanywhere.com/pages/DjangoStaticFiles/`
+
+
+## Bill PDFs from the billing app (optional)
+
+Customers' "Download PDF" on the shop can serve the very same bill the billing
+app produces. Add to `~/femdes/.env` (same values as on Vercel):
+
+```
+BILLING_APP_URL=https://your-billing-app.vercel.app
+BILL_LINK_SECRET=<the billing app's BILL_LINK_SECRET>
+```
+
+Then Reload the web app. Leave them empty to offer "Save as PDF" (browser
+print) instead.

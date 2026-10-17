@@ -185,7 +185,7 @@ class InvoiceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.order.order_number)
         self.assertContains(response, "PAY-REF-789")
-        self.assertContains(response, "Invoice")
+        self.assertContains(response, "Online Order Bill")
 
     def test_customer_cannot_view_others_invoice(self):
         self.client.login(username="other", password="pass")
@@ -195,11 +195,12 @@ class InvoiceTests(TestCase):
     def test_invoice_has_store_identity_and_totals_section(self):
         """Invoice renders the header, Bill To area, totals section, and order number."""
         content = self._get_invoice_content()
-        self.assertIn("Invoice", content)
+        self.assertIn("Online Order Bill", content)
         self.assertIn(self.order.order_number, content)
-        self.assertIn("Bill To", content)
-        self.assertIn("Total", content)
-        self.assertIn("Order Status", content)
+        self.assertIn("Customer", content)
+        self.assertIn("Delivery address", content)
+        self.assertIn("Payment summary", content)
+        self.assertIn("Status", content)
 
     def test_invoice_renders_order_item_snapshots(self):
         """Invoice renders product name, SKU, qty, unit price, line total, variants as table cells."""
@@ -210,10 +211,10 @@ class InvoiceTests(TestCase):
         self.assertContains(response, "SKU-INV")
         self.assertContains(response, "Red")
         self.assertContains(response, "M")
-        # Table-cell specific assertions — failing if cells are dropped
-        self.assertContains(response, "<td>2</td>", html=True)
-        self.assertContains(response, "<td>$123.45</td>", html=True)
-        self.assertContains(response, "<td>$246.90</td>", html=True)
+        # Quantity, unit price and line total, in the item row
+        self.assertContains(response, "2 × Test Blouse")
+        self.assertContains(response, "Qty 2 | Size M | Red | SKU SKU-INV | ₹123.45 each")
+        self.assertContains(response, '<span class="amount">₹246.90</span>', html=True)
 
     def test_invoice_renders_customer_and_payment_details(self):
         """Invoice renders phone, address, payment method, status, reference, notes."""
@@ -232,11 +233,9 @@ class InvoiceTests(TestCase):
         """
         content = self._get_invoice_content()
         # Subtotal row
-        self.assertIn("Subtotal:</span> <strong>$246.90</strong>", content)
-        # Discount row (with leading minus sign)
-        self.assertIn("Discount:</span> <strong>-$10.00</strong>", content)
-        # Total row (fs-5 class distinguishes it)
-        self.assertIn("Total:</span> <strong>$236.90</strong>", content)
+        self.assertIn('<span>Items</span><span>₹246.90</span>', content)
+        self.assertIn('<span>− Discount</span><span>₹10.00</span>', content)
+        self.assertIn('<b>Total</b><strong>₹236.90</strong>', content)
 
     def test_invoice_item_variants_render(self):
         """Invoice renders color and size variant details when present."""
@@ -263,3 +262,72 @@ class InvoiceTests(TestCase):
         )
         content = self._get_invoice_content()
         self.assertIn("L", content)
+
+
+class BillingLinkTests(TestCase):
+    """The shop signs bill links exactly like the billing app (shared test vector)."""
+
+    def test_matches_billing_app_signature(self):
+        from django.test import override_settings
+
+        from store.billing_links import online_bill_signature, online_bill_url
+
+        self.assertEqual(online_bill_signature("FD-20261017-ABC123", secret="test-secret"), "fLHSYKgw00GrNOvRClHfhL")
+        self.assertEqual(online_bill_signature("fd-20261017-abc123", secret="test-secret"), "fLHSYKgw00GrNOvRClHfhL")
+        with override_settings(BILLING_APP_URL="https://billing.example.com/", BILL_LINK_SECRET="test-secret"):
+            self.assertEqual(online_bill_url("FD-20261017-ABC123"),
+                             "https://billing.example.com/bill/online/FD-20261017-ABC123/fLHSYKgw00GrNOvRClHfhL")
+        with override_settings(BILLING_APP_URL="", BILL_LINK_SECRET="test-secret"):
+            self.assertEqual(online_bill_url("FD-20261017-ABC123"), "")
+        self.assertEqual(online_bill_signature("FD-1", secret=""), "")
+
+
+class InvoicePageTests(TestCase):
+    """The customer bill mirrors the billing app's receipt and works on phones."""
+
+    def setUp(self):
+        from decimal import Decimal
+
+        from store.models import Category, OrderItem, Product, SiteSettings
+
+        SiteSettings.objects.create(store_name="Feminine Designer by Sajida", gstin="06AYWPB8525D1ZB", contact_phone="9718926185",
+                                    address="Shop 222, Gurugram", returns_summary="Delivery date is approximate.", currency_symbol="₹")
+        self.user = User.objects.create_user(username="asha", email="asha@example.com", password="pw-12345!")
+        cat = Category.objects.create(name="Silk", slug="silk-inv", is_active=True)
+        product = Product.objects.create(category=cat, name="Zari Blouse", slug="zari-inv", sku="INV-1", price=Decimal("2000"), stock_quantity=5, is_active=True)
+        self.order = Order.objects.create(customer_name="Asha Rao", customer_email="asha@example.com", customer_phone="9876543210",
+                                          shipping_address="12 MG Road\nPune", location_url="https://maps.app.goo.gl/AbC123", notes="Ring the bell",
+                                          subtotal=Decimal("2400"), total=Decimal("2400"), customer_user=self.user, payment_status="paid")
+        OrderItem.objects.create(order=self.order, product=product, product_name="Zari Blouse", sku="INV-1", unit_price=Decimal("2400"), quantity=1,
+                                 line_total=Decimal("2400"), size="Made to measure",
+                                 customization={"measurements": {"chest": "36.00"}, "sleeve_style": "elbow", "notes": "deep back"})
+        self.client.login(username="asha", password="pw-12345!")
+
+    def test_bill_layout_matches_billing_receipt(self):
+        response = self.client.get(reverse("account_order_invoice", args=[self.order.order_number]))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertNotIn("fd-header", content)  # standalone sheet, no store chrome
+        self.assertIn('name="viewport"', content)
+        for text in ("Online Order Bill", self.order.order_number, "Feminine Designer by Sajida", "GSTIN 06AYWPB8525D1ZB",
+                     "Item summary", "Zari Blouse", "Custom size", "Chest 36 in", "Elbow length", "deep back",
+                     "Delivery address", "12 MG Road", "Google Maps location", "Customer notes: Ring the bell",
+                     "Payment summary", "₹2400.00", "Balance", "Delivery date is approximate.", "Authorized Signatory",
+                     "Thank you for choosing Feminine Designer by Sajida", "Save as PDF"):
+            self.assertIn(text, content, text)
+
+    def test_download_pdf_links_to_billing_app_when_configured(self):
+        from django.test import override_settings
+
+        with override_settings(BILLING_APP_URL="https://billing.example.com", BILL_LINK_SECRET="test-secret"):
+            content = self.client.get(reverse("account_order_invoice", args=[self.order.order_number])).content.decode()
+            self.assertIn(f"https://billing.example.com/bill/online/{self.order.order_number}/", content)
+            self.assertIn("Download PDF", content)
+            self.assertNotIn("Save as PDF", content)
+            success = self.client.get(reverse("order_success", args=[self.order.order_number])).content.decode()
+            self.assertIn("Download Bill (PDF)", success)
+
+    def test_other_customers_cannot_open_it(self):
+        User.objects.create_user(username="other", password="pw-12345!")
+        self.client.logout(); self.client.login(username="other", password="pw-12345!")
+        self.assertEqual(self.client.get(reverse("account_order_invoice", args=[self.order.order_number])).status_code, 404)

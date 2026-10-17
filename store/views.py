@@ -306,9 +306,12 @@ def checkout(request):
 
 
 def order_success(request, order_number):
+    from store.billing_links import online_bill_url
+
     order = get_object_or_404(Order, order_number=order_number)
     ctx = _base_context(request)
     ctx["order"] = order
+    ctx["bill_pdf_url"] = online_bill_url(order.order_number)
     return render(request, "store/order_success.html", ctx)
 
 
@@ -618,9 +621,13 @@ def account_order_detail(request, order_number):
 
 @login_required
 def account_order_invoice(request, order_number):
+    from store.billing_links import online_bill_url
+
     order = get_object_or_404(Order, order_number=order_number, customer_user=request.user)
     ctx = _base_context(request)
     ctx["order"] = order
+    ctx["has_custom"] = any(i.customization for i in order.items.all())
+    ctx["bill_pdf_url"] = online_bill_url(order.order_number)
     return render(request, "store/invoice.html", ctx)
 
 

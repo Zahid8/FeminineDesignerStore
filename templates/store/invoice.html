@@ -1,75 +1,195 @@
-{% extends "base.html" %}
-{% load store_extras %}
-{% block title %} — Invoice {{ order.order_number }}{% endblock %}
-{% block content %}
-<section class="py-5">
-  <div class="container-lg page-shell" id="printable-invoice">
-    <div class="indichic-card p-4 mb-4">
-      <div class="d-flex justify-content-between align-items-start mb-4">
-        <div>
-          <h4>Invoice</h4>
-          <p class="text-muted mb-0">{{ site_settings.store_name|default:"FemDes" }}</p>
-          {% if site_settings.contact_email %}<small class="text-muted">{{ site_settings.contact_email }}</small>{% endif %}
-        </div>
-        <div class="text-end">
-          <h5>Order #{{ order.order_number }}</h5>
-          <p class="text-muted mb-0">Date: {{ order.created_at|date:"F j, Y" }}</p>
-          <small class="text-muted">Order Status: {{ order.get_status_display }}</small><br>
-          <small class="text-muted">Payment: {{ order.get_payment_status_display }}</small>
-        </div>
-      </div>
+{% load static store_extras %}<!DOCTYPE html>
+{# Customer bill: same layout, colours and type as the Feminine Designer billing app's customer receipt. #}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Bill {{ order.order_number }} — {{ site_settings.store_name|default:"FemDes" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #f5edf0; --surface: #fcf7f8; --paper: #fffcfd; --cream: #fcf3f5; --peach: #fbe9ee; --line: #ead7de; --line-soft: #efe2e7;
+      --ink: #271917; --ink-soft: #3a2e33; --muted: #6f5f65; --wine: #7d1f36; --wine-deep: #3f0f20; --wine-ink: #4c1525; --rose: #b84862; --gold: #d99a62; --gold-soft: #ecc7d2; --on-wine: #f8dccb; --success: #12633d;
+      --neu-dark: rgba(125, 72, 95, 0.18); --neu-light: rgba(255, 255, 255, 0.92);
+      --raised: 6px 6px 16px var(--neu-dark), -6px -6px 16px var(--neu-light); --raised-sm: 3px 3px 8px var(--neu-dark), -3px -3px 8px var(--neu-light); --pressed: inset 2px 2px 6px var(--neu-dark), inset -2px -2px 6px var(--neu-light);
+      --serif: "Fraunces", Georgia, serif; --sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body { margin: 0; min-height: 100vh; color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+      background: radial-gradient(circle at 0% 0%, rgba(184, 72, 98, 0.12), transparent 32rem), radial-gradient(circle at 100% 0%, rgba(79, 70, 229, 0.06), transparent 30rem), radial-gradient(circle at 100% 100%, rgba(217, 154, 98, 0.08), transparent 28rem), var(--bg); }
+    a { color: var(--wine); text-decoration: none; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 12px 12px 40px; }
+    @media (min-width: 640px) { .wrap { padding: 24px 24px 56px; } }
 
-      <hr>
-      <div class="row mb-4">
-        <div class="col-6">
-          <strong>Bill To:</strong><br>
-          {{ order.customer_name }}<br>
-          {{ order.customer_email }}<br>
-          {% if order.customer_phone %}{{ order.customer_phone }}<br>{% endif %}
-          {{ order.shipping_address|linebreaksbr }}
-          {% if order.location_url %}<br><a href="{{ order.location_url }}" target="_blank" rel="noopener noreferrer">Google Maps location</a>{% endif %}
-        </div>
-        <div class="col-6 text-end">
-          <strong>Payment:</strong> {{ order.get_payment_method_display }}<br>
-          {% if order.payment_reference %}<strong>Ref:</strong> {{ order.payment_reference }}<br>{% endif %}
-          <strong>Status:</strong> {{ order.get_payment_status_display }}
-        </div>
-      </div>
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.7); background: var(--surface); color: var(--ink); font: 600 0.875rem var(--sans); box-shadow: var(--raised-sm); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; white-space: nowrap; }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--raised); color: var(--wine); }
+    .btn:active { transform: none; box-shadow: var(--pressed); }
+    .btn-primary { border: 0; color: #fff; background: linear-gradient(135deg, var(--wine), var(--rose)); box-shadow: 0 8px 20px rgba(125, 31, 54, 0.28), 0 2px 4px rgba(125, 31, 54, 0.18); }
+    .btn-primary:hover { color: #fff; background: linear-gradient(135deg, var(--wine-deep), var(--wine)); }
+    .btn svg { width: 16px; height: 16px; flex: none; }
+    .spacer { flex: 1 1 auto; }
 
-      <table class="table indichic-table">
-        <thead><tr><th>#</th><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
-        <tbody>
-          {% for item in order.items.all %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ item.product_name }}{% if item.color or item.size %}<br><small class="text-muted">{{ item.color }}{% if item.size %} / {{ item.size }}{% endif %}</small>{% endif %}</td>
-            <td>{{ item.sku }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ site_settings.currency_symbol|default:"$" }}{{ item.unit_price }}</td>
-            <td>{{ site_settings.currency_symbol|default:"$" }}{{ item.line_total }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    .sheet { background: #fff; border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 20px; box-shadow: var(--raised); padding: 14px; }
+    @media (min-width: 640px) { .sheet { padding: 26px 28px 30px; } }
 
-      <hr>
-      <div class="row">
-        <div class="col-6">{% if order.notes %}<strong>Notes:</strong> {{ order.notes }}{% endif %}</div>
-        <div class="col-6 text-end">
-          <p><span>Subtotal:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.subtotal }}</strong></p>
-          {% if order.discount_total > 0 %}<p class="text-success"><span>Discount:</span> <strong>-{{ site_settings.currency_symbol|default:"$" }}{{ order.discount_total }}</strong></p>{% endif %}
-          {% if order.shipping_total > 0 %}<p><span>Shipping:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.shipping_total }}</strong></p>{% endif %}
-          <p class="fs-5"><span>Total:</span> <strong>{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</strong></p>
-        </div>
-      </div>
-    </div>
+    .band { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; background: var(--wine); color: #fff; }
+    @media (min-width: 640px) { .band { flex-wrap: nowrap; padding: 16px 18px; } }
+    .logo { flex: none; width: 60px; height: 60px; padding: 4px; border-radius: 8px; background: #fff; }
+    .logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; display: block; }
+    .band-text { min-width: 0; flex: 1 1 200px; }
+    .store { margin: 0; font: 500 1.5rem/1.15 var(--serif); }
+    .band-muted { margin: 4px 0 0; font-size: 11px; line-height: 1.4; color: var(--on-wine); }
+    .band-right { flex: 1 0 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    @media (min-width: 640px) { .band-right { flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 4px; } }
+    .pill { display: inline-block; padding: 3px 9px; border-radius: 999px; background: var(--cream); color: var(--wine); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+    .number { font-weight: 700; font-size: 1rem; text-align: right; }
+    .number small { display: block; font-weight: 400; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-wine); }
 
-    <div class="d-flex gap-3 no-print">
-      <button onclick="window.print()" class="btn btn-dark rounded-pill">Print Invoice</button>
-      <a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-outline-dark rounded-pill">Back to Order</a>
-    </div>
+    .strip { display: grid; grid-template-columns: 1fr 1fr; margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); overflow: hidden; }
+    @media (min-width: 640px) { .strip { grid-template-columns: repeat(4, 1fr); } }
+    .cell { padding: 9px 12px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); min-width: 0; }
+    .cell:nth-child(2n) { border-right: 0; }
+    @media (min-width: 640px) { .cell { border-bottom: 0; } .cell:nth-child(2n) { border-right: 1px solid var(--line-soft); } .cell:last-child { border-right: 0; } }
+    .cell.hl { background: var(--peach); }
+    .label { display: block; margin-bottom: 2px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .value { font-weight: 700; color: var(--wine-ink); overflow-wrap: anywhere; }
+
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin: 20px 0 6px; }
+    .section-head h2 { margin: 0; font: 600 1.15rem var(--serif); color: var(--wine-ink); }
+    .section-head span { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-align: right; }
+    .rule { height: 2px; border-radius: 1px; background: var(--gold); margin-bottom: 4px; }
+
+    .item { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px 10px; align-items: start; padding: 10px 6px; border-bottom: 1px solid var(--line-soft); }
+    .item:nth-child(even) { background: #fdf6f8; }
+    .idx { width: 22px; height: 22px; border-radius: 50%; background: var(--peach); color: var(--wine); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+    .name { margin: 0; font-weight: 700; color: var(--wine-ink); }
+    .meta { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+    .measure { margin: 4px 0 0; font-size: 12px; color: var(--ink-soft); }
+    .measure b { font-weight: 600; color: var(--wine); }
+    .note { margin: 4px 0 0; font-size: 12px; font-style: italic; color: var(--ink-soft); }
+    .amount { font-weight: 700; color: var(--wine-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    .lower { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+    @media (min-width: 640px) { .lower { grid-template-columns: minmax(0, 1fr) 240px; } }
+    .box { margin-top: 8px; padding: 10px 12px; border-left: 3px solid var(--gold); border-radius: 8px; background: var(--cream); font-size: 13px; white-space: pre-line; }
+    .box.wine { border-left-color: var(--rose); }
+    .terms { margin-top: 14px; font-size: 11.5px; color: var(--muted); }
+    .terms h3 { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--wine-ink); }
+    .terms p { margin: 0 0 4px; }
+    .pay { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); align-self: start; }
+    .pay h3 { margin: 0 0 6px; font: 600 1.05rem var(--serif); color: var(--wine-ink); }
+    .row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-variant-numeric: tabular-nums; }
+    .row span:first-child { color: var(--muted); }
+    .row.strong { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--line); font-weight: 700; color: var(--wine-ink); }
+    .row.strong span:first-child { color: var(--wine-ink); }
+    .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; padding-top: 8px; border-top: 2px solid var(--wine); }
+    .total b { font-size: 1.05rem; color: var(--wine-ink); }
+    .total strong { font-size: 1.35rem; color: var(--wine); }
+    .pay-note { margin: 8px 0 0; font-size: 11px; color: var(--muted); }
+    .pay-note.paid { color: var(--success); font-weight: 600; }
+    .map { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; border-bottom: 1px solid currentColor; }
+
+    .foot { margin-top: 22px; padding-top: 12px; border-top: 2px solid var(--gold-soft); color: var(--muted); font-size: 11.5px; }
+    .signs { display: flex; justify-content: space-between; gap: 20px; margin-top: 28px; }
+    .signs span { flex: 0 1 150px; border-top: 1px solid var(--muted); padding-top: 4px; text-align: center; }
+    .thanks { margin: 12px 0 0; text-align: center; font: italic 500 1rem var(--serif); color: var(--wine); }
+
+    @media print {
+      html, body { background: #fff; }
+      .wrap { max-width: none; padding: 0; }
+      .toolbar { display: none !important; }
+      .sheet { border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+      .band, .cell.hl, .idx, .pill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      @page { size: A4 portrait; margin: 12mm; }
+    }
+  </style>
+</head>
+<body>
+{% with currency=site_settings.currency_symbol|default:"₹" store_name=site_settings.store_name|default:"FemDes" %}
+<div class="wrap">
+  <div class="toolbar">
+    <a class="btn" href="{% url 'account_order_detail' order.order_number %}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>Back to order</a>
+    <span class="spacer"></span>
+    {% if bill_pdf_url %}
+    <a class="btn btn-primary" href="{{ bill_pdf_url }}?download=1" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Download PDF</a>
+    {% else %}
+    <button type="button" class="btn btn-primary" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Save as PDF</button>
+    {% endif %}
+    <button type="button" class="btn" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>Print</button>
   </div>
-</section>
 
-<style>@media print { .no-print, nav, footer, .search-popup, #offcanvasCart { display: none !important; } }</style>
-{% endblock %}
+  <article class="sheet" id="printable-invoice">
+    <header class="band">
+      <span class="logo"><img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'store/images/main-logo.png' %}{% endif %}" alt="{{ store_name }} logo"></span>
+      <div class="band-text">
+        <p class="store">{{ store_name }}</p>
+        {% if site_settings.address %}<p class="band-muted">{{ site_settings.address|linebreaksbr }}</p>{% endif %}
+        <p class="band-muted">{% if site_settings.gstin %}GSTIN {{ site_settings.gstin }}{% endif %}{% if site_settings.gstin and site_settings.contact_phone %} · {% endif %}{% if site_settings.contact_phone %}{{ site_settings.contact_phone }}{% endif %}{% if site_settings.contact_email %} · {{ site_settings.contact_email }}{% endif %}</p>
+      </div>
+      <div class="band-right">
+        <span class="pill">Online Order Bill</span>
+        <span class="number">{{ order.order_number }}<small>Order no.</small></span>
+      </div>
+    </header>
+
+    <div class="strip">
+      <div class="cell"><span class="label">Customer</span><span class="value">{{ order.customer_name }}</span></div>
+      <div class="cell"><span class="label">Phone</span><span class="value">{{ order.customer_phone|default:"—" }}</span></div>
+      <div class="cell"><span class="label">Order date</span><span class="value">{{ order.created_at|date:"d/m/Y" }}</span></div>
+      <div class="cell hl"><span class="label">Status</span><span class="value">{{ order.get_status_display }}</span></div>
+    </div>
+
+    <div class="section-head"><h2>Item summary</h2><span>{{ order.items.count }} piece{{ order.items.count|pluralize }}</span></div>
+    <div class="rule"></div>
+    {% for item in order.items.all %}
+    <div class="item">
+      <span class="idx">{{ forloop.counter }}</span>
+      <div>
+        <p class="name">{% if item.quantity > 1 %}{{ item.quantity }} × {% endif %}{{ item.product_name }}</p>
+        <p class="meta">Qty {{ item.quantity }}{% if item.customization %} | Custom size{% elif item.size %} | Size {{ item.size }}{% endif %}{% if item.color %} | {{ item.color }}{% endif %}{% if item.sku %} | SKU {{ item.sku }}{% endif %} | {{ currency }}{{ item.unit_price }} each</p>
+        {% with rows=item.customization|custom_rows %}{% if rows %}<p class="measure"><b>Measurements:</b> {% for label, value in rows %}{{ label }} {{ value }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}{% endwith %}
+        {% if item.customization.notes %}<p class="note">“{{ item.customization.notes }}”</p>{% endif %}
+      </div>
+      <span class="amount">{{ currency }}{{ item.line_total }}</span>
+    </div>
+    {% endfor %}
+
+    <div class="lower">
+      <div>
+        <div class="section-head"><h2>Delivery address</h2></div>
+        <div class="rule"></div>
+        <div class="box">{{ order.shipping_address }}</div>
+        {% if order.location_url %}<a class="map" href="{{ order.location_url }}" target="_blank" rel="noopener noreferrer">Google Maps location</a>{% endif %}
+        {% if order.notes %}<div class="box wine">Customer notes: {{ order.notes }}</div>{% endif %}
+        {% if site_settings.returns_summary or has_custom %}
+        <div class="terms">
+          <h3>Terms</h3>
+          {% if site_settings.returns_summary %}{{ site_settings.returns_summary|linebreaks }}{% endif %}
+          {% if has_custom and site_settings.customization_terms %}<p>{{ site_settings.customization_terms }}</p>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <aside class="pay">
+        <h3>Payment summary</h3>
+        <div class="row"><span>Items</span><span>{{ currency }}{{ order.subtotal }}</span></div>
+        {% if order.discount_total > 0 %}<div class="row"><span>− Discount</span><span>{{ currency }}{{ order.discount_total }}</span></div>{% endif %}
+        <div class="row"><span>{% if order.shipping_total > 0 %}+ Shipping{% else %}Shipping (free){% endif %}</span><span>{{ currency }}{{ order.shipping_total }}</span></div>
+        <div class="total"><b>Total</b><strong>{{ currency }}{{ order.total }}</strong></div>
+        <div class="row"><span>{% if order.payment_status == "paid" %}− Paid{% else %}Paid{% endif %}</span><span>{% if order.payment_status == "paid" %}{{ currency }}{{ order.total }}{% else %}{{ currency }}0.00{% endif %}</span></div>
+        <div class="row strong"><span>Balance</span><span>{% if order.payment_status == "paid" %}{{ currency }}0.00{% else %}{{ currency }}{{ order.total }}{% endif %}</span></div>
+        <p class="pay-note{% if order.payment_status == 'paid' %} paid{% endif %}">{{ order.get_payment_method_display }} · {{ order.get_payment_status_display }}{% if order.payment_reference %} · Ref {{ order.payment_reference }}{% endif %}</p>
+      </aside>
+    </div>
+
+    <footer class="foot">
+      <div class="signs"><span>Customer</span><span>Authorized Signatory</span></div>
+      <p class="thanks">Thank you for choosing {{ store_name }}</p>
+    </footer>
+  </article>
+</div>
+{% endwith %}
+</body>
+</html>
