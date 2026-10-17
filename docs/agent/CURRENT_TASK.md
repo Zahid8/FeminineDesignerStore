@@ -1,5 +1,6 @@
 # Current Task
 
+> **T32 — Component polish pass: DONE (2026-10-17)** (notes at end).
 > **T31 — Concept A + B styling pass: DONE (2026-10-17)** (notes at end).
 > **T30 — Customer features + phone OTP login: DONE (2026-10-17)** (notes at end).
 > **T29 — Reference-driven redesign: DONE (2026-10-17)** (notes at end).
@@ -342,3 +343,27 @@ prices, promo banners, mobile quick-add) supporting. Concept C not used.
 - Cards/PDP: −N% badge (`percent_off` filter), Bestseller badge, sale price in
   wine; Add to Cart is the filled primary button, Buy Now outlined; mobile
   quick-add targets are 44px; Best Sellers section sits on a cream band.
+
+
+---
+
+## T32 Notes — Component polish (completed 2026-10-17)
+
+Owner asked for every component to be made excellent. Audited every page at
+1440 and 390 px (`docs/agent/browser-checks/audit.js`) and fixed what fell short:
+
+- Cart page: product image thumbnails, Item/Quantity/Total columns, dispatch
+  note, Remove + Move to wishlist, Update button only appears after a change,
+  sticky order summary with WhatsApp option and payment icons, "You may also
+  like" suggestions (`cart_suggestions` in `cart_detail`).
+- Cart drawer: thumbnails, inline quantity stepper that submits automatically,
+  free-shipping progress at top, sticky totals footer.
+- Auth: `partials/form_fields.html` replaces `form.as_p`; placeholders,
+  autocomplete, help text behind a "Requirements" disclosure.
+- Feedback: "added to your bag" toast with a View bag link (`extra_tags="cart"`).
+- Utility pages use `fd-page-header is-compact`.
+- Product page: thumbnails stack vertically beside the image on desktop.
+- Cards: "N colours" line; badges never overlap the heart; only the first
+  badge shows on phones.
+- Home editorial uses the product photo only if its file exists on storage
+  (`_editorial_image`), otherwise a lifestyle photo.

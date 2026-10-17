@@ -1,0 +1,9 @@
+<form method="post" action="{% url 'update_cart' line.key %}" class="fd-qty-form" data-qty-form>
+  {% csrf_token %}
+  <div data-quantity-stepper>
+    <button type="button" class="btn btn-sm qty-dec" aria-label="Decrease quantity of {{ line.product_name }}" data-action="dec">&minus;</button>
+    <input type="number" name="quantity" value="{{ line.quantity }}" min="0" max="99" class="form-control form-control-sm qty-input" aria-label="Quantity of {{ line.product_name }}">
+    <button type="button" class="btn btn-sm qty-inc" aria-label="Increase quantity of {{ line.product_name }}" data-action="inc">+</button>
+  </div>
+  <button type="submit" class="btn btn-outline-dark btn-sm fd-qty-update" data-qty-update>Update</button>
+</form>

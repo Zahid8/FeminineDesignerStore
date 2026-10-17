@@ -71,7 +71,7 @@
     {% for message in messages %}
     <div class="fd-toast{% if message.level_tag == 'error' %} is-error{% endif %}" data-toast>
       <svg width="20" height="20" aria-hidden="true"><use xlink:href="{% if message.level_tag == 'error' %}#info{% else %}#check{% endif %}"></use></svg>
-      <span>{{ message }}</span>
+      <span>{{ message }}{% if "cart" in message.tags %} <a href="{% url 'cart_detail' %}" class="fd-toast-link">View bag</a>{% endif %}</span>
       <button type="button" aria-label="Dismiss message" data-toast-close>&times;</button>
     </div>
     {% endfor %}

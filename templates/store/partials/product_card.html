@@ -43,6 +43,7 @@
       {% endif %}
       {% endfor %}
     </div>
+    {% with colors=product.color_choices %}{% if colors|length > 1 %}<span class="fd-card-colours">{{ colors|length }} colours</span>{% endif %}{% endwith %}
     <div class="product-price">
       <span class="fd-price{% if product.is_on_sale %} is-sale{% endif %}">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</span>
       {% if product.compare_at_price and product.compare_at_price > product.price %}

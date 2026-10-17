@@ -116,7 +116,8 @@ class ProductOptionTests(TestCase):
             {"quantity": 1, "color": "Ivory", "size": "M"},
         )
         content = self.client.get(reverse("cart_detail")).content.decode()
-        self.assertIn("Ivory / M", content)
+        self.assertIn("<span>Ivory</span>", content)
+        self.assertIn("<span>Size M</span>", content)
 
     def test_no_options_renders_no_radios(self):
         self.product.color_options = ""

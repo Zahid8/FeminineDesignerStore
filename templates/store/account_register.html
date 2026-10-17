@@ -14,9 +14,9 @@
       <div class="fd-auth-form">
         <h2 class="mb-2">Create Account</h2>
         <p class="text-muted mb-4">It only takes a minute.</p>
-        <form method="post" class="fd-form">
+        <form method="post" class="fd-form" novalidate>
           {% csrf_token %}
-          {{ form.as_p }}
+          {% include "store/partials/form_fields.html" with form=form %}
           <button type="submit" class="btn btn-dark btn-lg w-100 mt-2">Register</button>
         </form>
         <p class="mt-4 text-center text-muted">

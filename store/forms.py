@@ -49,6 +49,17 @@ class RegistrationForm(UserCreationForm):
         model = User
         fields = ("username", "email", "password1", "password2")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].help_text = "Letters, numbers and @ . + - _ only."
+        self.fields["username"].widget.attrs.update({"autocomplete": "username", "placeholder": "e.g. asha.k"})
+        self.fields["email"].widget.attrs.update({"autocomplete": "email", "placeholder": "you@example.com"})
+        self.fields["password1"].label = "Password"
+        self.fields["password1"].widget.attrs.update({"autocomplete": "new-password"})
+        self.fields["password2"].label = "Confirm password"
+        self.fields["password2"].help_text = ""
+        self.fields["password2"].widget.attrs.update({"autocomplete": "new-password"})
+
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
         if User.objects.filter(email__iexact=email).exists():
@@ -57,7 +68,12 @@ class RegistrationForm(UserCreationForm):
 
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(label="Username or Email")
+    username = forms.CharField(label="Username or Email",
+                               widget=forms.TextInput(attrs={"autocomplete": "username", "placeholder": "you@example.com"}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["password"].widget.attrs.update({"autocomplete": "current-password"})
 
 
 class CustomizationForm(forms.Form):

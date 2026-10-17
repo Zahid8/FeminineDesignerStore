@@ -23,6 +23,7 @@
       <!-- Gallery -->
       <div class="col-lg-7">
         {% with images=product.images.all|dictsort:"sort_order" %}
+        <div class="fd-gallery{% if images|length > 1 %} has-thumbs{% endif %}">
         {% if images %}
         <div id="productCarousel{{ product.pk }}" class="carousel slide product-gallery" data-bs-touch="true">
           <div class="carousel-inner overflow-hidden">
@@ -53,6 +54,7 @@
         {% else %}
         <div class="fd-pdp-single-wrap"><img src="{% static 'store/images/femdes-placeholder.svg' %}" alt="{{ product.name }}" class="fd-pdp-single"></div>
         {% endif %}
+        </div>
         {% endwith %}
       </div>
 

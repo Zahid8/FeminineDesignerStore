@@ -33,6 +33,17 @@
     return n;
   }
 
+  function markDirty(input) {
+    var form = input.closest('form[data-qty-form]');
+    if (!form) return;
+    form.classList.add('is-dirty');
+    // Cart drawer: no Update button, so submit shortly after the last change.
+    if (form.closest('.offcanvas')) {
+      clearTimeout(form._fdTimer);
+      form._fdTimer = setTimeout(function () { form.submit(); }, 450);
+    }
+  }
+
   function handleStep(e) {
     var btn = e.target.closest('[data-quantity-stepper] [data-action]');
     if (!btn) return;
@@ -43,13 +54,15 @@
     var min = readBound(input, 'min', 1);
     var max = readBound(input, 'max', 99);
     var delta = btn.getAttribute('data-action') === 'inc' ? 1 : -1;
-    input.value = clamp(clamp(input.value, min, max) + delta, min, max);
+    var next = clamp(clamp(input.value, min, max) + delta, min, max);
+    if (String(next) !== String(input.value)) { input.value = next; markDirty(input); }
   }
 
   function handleQtyChange(e) {
     var input = e.target;
     if (!input.matches || !input.matches('.qty-input')) return;
     input.value = clamp(input.value, readBound(input, 'min', 1), readBound(input, 'max', 99));
+    markDirty(input);
   }
 
   // ---- Search popup: focus ownership + live results ----

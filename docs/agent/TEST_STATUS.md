@@ -11,6 +11,16 @@ conda run -n femdes python manage.py check     # PASS (0 issues)
 conda run -n femdes python manage.py test       # PASS (448 tests)
 ```
 
+## T32 Verification — Component polish (2026-10-17)
+
+```bash
+conda run -n femdes python manage.py test   # PASS (448 tests)
+```
+One assertion updated (`test_selected_options_reach_cart`: cart renders
+colour and size as separate chips). Full-page audit captures of every page at
+both widths via `docs/agent/browser-checks/audit.js`; selected
+screenshots in `docs/agent/screenshots/t32/`.
+
 ## T31 Verification — Concept A + B styling (2026-10-17)
 
 ```bash

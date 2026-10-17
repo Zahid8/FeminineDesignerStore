@@ -169,14 +169,12 @@
 
 <!-- Editorial: atelier -->
 <section class="fd-editorial" data-reveal="fade">
-  <div class="fd-editorial-media is-product">
-    {% with story=hero_products|slice:"1:2"|first %}
-    {% if story and story.primary_image %}
-    <img src="{{ story.primary_image.image.url }}" class="promo-collage-img" alt="{{ story.name }}" loading="lazy" data-parallax="4">
+  <div class="fd-editorial-media{% if editorial_image %} is-product{% endif %}">
+    {% if editorial_image %}
+    <img src="{{ editorial_image.url }}" class="promo-collage-img" alt="{{ editorial_image.alt }}" loading="lazy" data-parallax="4">
     {% else %}
-    <img src="{% static 'store/images/femdes-placeholder.svg' %}" class="promo-collage-img" alt="" loading="lazy">
+    <img src="{% static 'store/images/banner-image-6.jpg' %}" class="promo-collage-img" alt="Blouse detail in the atelier" loading="lazy" data-parallax="4">
     {% endif %}
-    {% endwith %}
   </div>
   <div class="fd-editorial-copy">
     <span class="fd-eyebrow">Our Atelier</span>

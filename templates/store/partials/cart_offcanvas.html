@@ -1,48 +1,49 @@
+{% with currency=site_settings.currency_symbol|default:"$" %}
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCart" aria-labelledby="offcanvasCartLabel">
   <div class="offcanvas-header border-bottom">
-    <h5 class="offcanvas-title" id="offcanvasCartLabel">Your Bag ({{ cart.item_count }})</h5>
+    <h5 class="offcanvas-title" id="offcanvasCartLabel">Your Bag <span class="text-muted">({{ cart.item_count }})</span></h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close cart"></button>
   </div>
-  <div class="offcanvas-body d-flex flex-column">
-    {% if cart.lines %}
-      <ul class="list-unstyled flex-grow-1 mb-0">
-        {% for line in cart.lines %}
-        <li class="fd-mini-cart-line">
-          <a href="{% url 'product_detail' line.slug %}" class="fd-mini-cart-thumb" aria-hidden="true" tabindex="-1">
-            {% with primary=line.product.primary_image %}
-            {% if primary %}<img src="{{ primary.image.url }}" alt="">{% else %}{{ line.product_name|first }}{% endif %}
-            {% endwith %}
-          </a>
-          <div>
-            <strong>{{ line.product_name }}</strong>
-            {% if line.color %}<small class="d-block text-muted">{{ line.color }}{% if line.size %} / {{ line.size }}{% endif %}</small>{% endif %}
-            <span class="d-block small text-muted mt-1">Qty: {{ line.quantity }} &times; {{ site_settings.currency_symbol|default:"$" }}{{line.unit_price }}</span>
+  {% if cart.lines %}
+  <div class="offcanvas-body fd-drawer-body">
+    <div class="fd-drawer-ship">{% include "store/partials/free_shipping.html" %}</div>
+    <ul class="list-unstyled mb-0">
+      {% for line in cart.lines %}
+      <li class="fd-mini-cart-line">
+        <a href="{% url 'product_detail' line.slug %}" class="fd-mini-cart-thumb" tabindex="-1" aria-hidden="true">{% include "store/partials/line_thumb.html" %}</a>
+        <div class="fd-mini-cart-info">
+          <strong><a href="{% url 'product_detail' line.slug %}">{{ line.product_name }}</a></strong>
+          <small>{% if line.color %}{{ line.color }}{% endif %}{% if line.color and line.size %} · {% endif %}{% if line.size %}Size {{ line.size }}{% endif %}</small>
+          <div class="fd-mini-cart-row">
+            {% include "store/partials/qty_form.html" %}
+            <span class="fd-mini-cart-price">{{ currency }}{{ line.line_total }}</span>
           </div>
-          <form method="post" action="{% url 'remove_from_cart' line.key %}">
-            {% csrf_token %}
-            <button type="submit" class="fd-remove-btn" aria-label="Remove {{ line.product_name }}">
-              <svg width="14" height="14" aria-hidden="true"><use xlink:href="#close"></use></svg>
-            </button>
-          </form>
-        </li>
-        {% endfor %}
-      </ul>
-      <div class="pt-4">
-        {% include "store/partials/free_shipping.html" %}
-        <div class="fd-summary-row"><span class="text-muted">Subtotal</span><span>{{ site_settings.currency_symbol|default:"$" }}{{cart.subtotal }}</span></div>
-        {% if cart.discount_total > 0 %}<div class="fd-summary-row text-success"><span>Discount</span><span>-{{ site_settings.currency_symbol|default:"$" }}{{ cart.discount_total }}</span></div>{% endif %}
-        <div class="fd-summary-row"><span class="text-muted">Shipping</span><span>{% if cart.shipping > 0 %}{{ site_settings.currency_symbol|default:"$" }}{{ cart.shipping }}{% else %}Free{% endif %}</span></div>
-        <div class="fd-summary-row is-total"><span>Total</span><strong>{{ site_settings.currency_symbol|default:"$" }}{{cart.total }}</strong></div>
-        <a href="{% url 'checkout' %}" class="btn btn-dark w-100 mt-3">Checkout</a>
-        <a href="{% url 'cart_detail' %}" class="btn btn-outline-dark w-100 mt-2">View Bag</a>
-      </div>
-    {% else %}
-      <div class="text-center my-auto">
-        <div class="fd-empty-icon"><svg width="30" height="30" aria-hidden="true"><use xlink:href="#shopping-bag"></use></svg></div>
-        <h4 class="mb-2">Your cart is empty.</h4>
-        <p class="text-center text-muted">Find a blouse you love and it will wait for you here.</p>
-        <a href="{% url 'product_list' %}" class="btn btn-dark mt-2">Discover Blouses</a>
-      </div>
-    {% endif %}
+        </div>
+        <form method="post" action="{% url 'remove_from_cart' line.key %}">
+          {% csrf_token %}
+          <button type="submit" class="fd-remove-btn" aria-label="Remove {{ line.product_name }}"><svg width="14" height="14" aria-hidden="true"><use xlink:href="#close"></use></svg></button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
   </div>
+  <div class="fd-drawer-foot">
+    <div class="fd-summary-row"><span class="text-muted">Subtotal</span><span>{{ currency }}{{cart.subtotal }}</span></div>
+    {% if cart.discount_total > 0 %}<div class="fd-summary-row text-success"><span>Discount</span><span>-{{ currency }}{{ cart.discount_total }}</span></div>{% endif %}
+    <div class="fd-summary-row"><span class="text-muted">Shipping</span><span>{% if cart.shipping > 0 %}{{ currency }}{{ cart.shipping }}{% else %}Free{% endif %}</span></div>
+    <div class="fd-summary-row is-total"><span>Total</span><strong>{{ currency }}{{cart.total }}</strong></div>
+    <a href="{% url 'checkout' %}" class="btn btn-dark btn-lg w-100 mt-3">Checkout</a>
+    <a href="{% url 'cart_detail' %}" class="fd-link-underline d-block text-center mt-3">View bag</a>
+  </div>
+  {% else %}
+  <div class="offcanvas-body d-flex flex-column">
+    <div class="text-center my-auto">
+      <div class="fd-empty-icon"><svg width="30" height="30" aria-hidden="true"><use xlink:href="#shopping-bag"></use></svg></div>
+      <h4 class="mb-2">Your cart is empty.</h4>
+      <p class="text-center text-muted">Find a blouse you love and it will wait for you here.</p>
+      <a href="{% url 'product_list' %}" class="btn btn-dark mt-2">Discover Blouses</a>
+    </div>
+  </div>
+  {% endif %}
 </div>
+{% endwith %}

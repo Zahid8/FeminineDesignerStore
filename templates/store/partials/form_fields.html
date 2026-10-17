@@ -1,0 +1,11 @@
+{# Renders a Django form's fields with the store's styling. Usage: {% include "store/partials/form_fields.html" with form=form %} #}
+{% for e in form.non_field_errors %}<div class="alert alert-danger small">{{ e }}</div>{% endfor %}
+{% for field in form.visible_fields %}
+<div class="fd-field{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+  {{ field }}
+  {% for e in field.errors %}<p class="fd-field-error">{{ e }}</p>{% endfor %}
+  {% if field.help_text %}<details class="fd-field-help"><summary>Requirements</summary><div>{{ field.help_text|safe }}</div></details>{% endif %}
+</div>
+{% endfor %}
+{% for field in form.hidden_fields %}{{ field }}{% endfor %}

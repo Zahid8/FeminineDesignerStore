@@ -47,9 +47,23 @@ def _base_context(request):
     return ctx
 
 
+def _editorial_image(products):
+    """Second featured product's photo for the home editorial, if its file exists;
+    otherwise None so the template uses a lifestyle photo."""
+    try:
+        product = list(products[:2])[1]
+    except (IndexError, TypeError):
+        return None
+    primary = product.primary_image
+    if primary and primary.image and primary.image.storage.exists(primary.image.name):
+        return {"url": primary.image.url, "alt": product.name}
+    return None
+
+
 def home(request):
     ctx = _base_context(request)
     ctx.update(selectors.get_homepage_products())
+    ctx["editorial_image"] = _editorial_image(ctx.get("featured") or ctx.get("new_arrivals"))
     ctx["banners"] = selectors.get_home_banners("hero")
     ctx["promo_banners"] = selectors.get_home_banners("promo")
     ctx["occasions"] = selectors.get_shop_occasions()
@@ -137,6 +151,11 @@ def product_detail(request, slug):
 
 def cart_detail(request):
     ctx = _base_context(request)
+    in_cart = [line["product_id"] for line in ctx["cart"]["lines"]]
+    ctx["cart_suggestions"] = (
+        selectors.get_active_products().filter(stock_quantity__gt=0).exclude(pk__in=in_cart)
+        .order_by("-is_best_seller", "-is_recommended", "-created_at")[:4]
+    )
     ctx["cart_update_form"] = CartUpdateForm()
     return render(request, "store/cart.html", ctx)
 
@@ -158,6 +177,8 @@ def add_to_cart(request, product_id):
         )
     except ValueError as e:
         messages.error(request, str(e))
+    else:
+        messages.success(request, f"{product.name} added to your bag.", extra_tags="cart")
     return redirect("product_detail", slug=product.slug)
 
 

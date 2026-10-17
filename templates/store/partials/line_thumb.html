@@ -1,0 +1,1 @@
+{% load static %}{% with primary=line.product.primary_image %}<img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/femdes-placeholder.svg' %}{% endif %}" alt="{{ line.product_name }}" loading="lazy">{% endwith %}
