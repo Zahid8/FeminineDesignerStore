@@ -250,6 +250,15 @@ def remove_from_cart(request, cart_key):
     return redirect("cart_detail")
 
 
+def _remember_location(request, url):
+    """Keep the customer's latest map pin on their profile so checkout prefills it next time."""
+    if not url or not request.user.is_authenticated:
+        return
+    from store.models import CustomerProfile
+
+    CustomerProfile.objects.update_or_create(user=request.user, defaults={"location_url": url})
+
+
 def checkout(request):
     summary = services.get_cart_summary(request)
     if not summary["lines"]:
@@ -269,6 +278,7 @@ def checkout(request):
                 messages.error(request, str(e))
                 # Fall through to re-render with error.
             else:
+                _remember_location(request, order.location_url)
                 services.send_order_emails(order, request)
                 if order.payment_method == "razorpay":
                     return redirect("razorpay_payment", order_number=order.order_number)
@@ -285,6 +295,7 @@ def checkout(request):
                 profile = request.user.profile
                 initial["customer_phone"] = profile.phone or ""
                 initial["shipping_address"] = profile.shipping_address or ""
+                initial["location_url"] = profile.location_url or ""
             except CustomerProfile.DoesNotExist:
                 pass
         form = CheckoutForm(initial=initial, payment_methods=methods)
@@ -548,6 +559,7 @@ def account_profile_edit(request):
             request.user.save()
             profile.phone = form.cleaned_data.get("phone", "")
             profile.shipping_address = form.cleaned_data.get("shipping_address", "")
+            profile.location_url = form.cleaned_data.get("location_url", "")
             if form.cleaned_data.get("profile_image"):
                 profile.profile_image = form.cleaned_data["profile_image"]
             profile.save()
@@ -560,6 +572,7 @@ def account_profile_edit(request):
             "email": request.user.email,
             "phone": profile.phone or "",
             "shipping_address": profile.shipping_address or "",
+            "location_url": profile.location_url or "",
         })
     ctx = _base_context(request)
     ctx["form"] = form

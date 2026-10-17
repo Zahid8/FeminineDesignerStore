@@ -70,6 +70,9 @@
               {% for e in form.shipping_address.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-12">
+              {% include "store/partials/location_field.html" with field_id="id_location_url" %}
+            </div>
+            <div class="col-12">
               <label for="id_notes" class="form-label">Order Notes</label>
               <textarea name="notes" id="id_notes" class="form-control" rows="2" placeholder="Anything we should know?"></textarea>
             </div>

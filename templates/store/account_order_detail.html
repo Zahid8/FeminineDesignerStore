@@ -66,6 +66,7 @@
       <p><strong>{{ order.customer_name }}</strong><br>
       {{ order.customer_email }}{% if order.customer_phone %}<br>{{ order.customer_phone }}{% endif %}</p>
       <p class="mb-0">{{ order.shipping_address|linebreaksbr }}</p>
+      {% include "store/partials/map_link.html" with url=order.location_url %}
     </div>
 
     <div class="d-flex flex-wrap gap-3">

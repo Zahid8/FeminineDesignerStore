@@ -867,3 +867,10 @@ hr { border-color: var(--fd-line); opacity: 1; }
 .fd-custom-summary.is-compact .fd-custom-chips li { font-size: 0.68rem; padding: 0.15rem 0.45rem; }
 .fd-custom-notes { font-size: 0.8rem; color: var(--fd-muted); margin: 0.4rem 0 0; font-style: italic; }
 .fd-terms { margin-top: 1.5rem; padding: 1rem 1.2rem; background: var(--fd-ivory); border-left: 2px solid var(--fd-accent); font-size: 0.86rem; color: var(--fd-ink-soft); }
+
+/* Delivery location (Google Maps pin) */
+.fd-location-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.fd-location-row .form-control { flex: 1 1 260px; min-width: 0; }
+.fd-location-btn { display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+.fd-map-link { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.85rem; font-weight: 500; color: var(--fd-accent); text-decoration: underline; text-underline-offset: 3px; }
+.fd-map-link:hover { color: var(--fd-ink); }

@@ -5,7 +5,8 @@
   <div class="container-lg page-shell">
     <h2 class="mb-3">Order #{{ order.order_number }}</h2>
     <div class="indichic-card p-4 mb-3">
-      <p><strong>Customer:</strong> {{ order.customer_name }} ({{ order.customer_email }})</p>
+      <p><strong>Customer:</strong> {{ order.customer_name }} ({{ order.customer_email }}){% if order.customer_phone %} &middot; {{ order.customer_phone }}{% endif %}</p>
+      <p><strong>Deliver to:</strong> {{ order.shipping_address|linebreaksbr }}{% if order.location_url %}<br>{% include "store/partials/map_link.html" with url=order.location_url %}{% endif %}</p>
       <p><strong>Current Status:</strong> {{ order.get_status_display }}</p>
       <p><strong>Payment:</strong> {{ order.get_payment_status_display }} &mdash; {{ order.get_payment_method_display }}</p>
       <p><strong>Total:</strong> {{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</p>

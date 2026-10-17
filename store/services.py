@@ -275,6 +275,7 @@ def create_order_from_cart(request, checkout_data):
             customer_email=checkout_data["customer_email"],
             customer_phone=checkout_data.get("customer_phone", ""),
             shipping_address=checkout_data["shipping_address"],
+            location_url=checkout_data.get("location_url", "") or "",
             notes=checkout_data.get("notes", ""),
             customer_user=(
                 request.user if getattr(request, "user", None) and request.user.is_authenticated

@@ -27,6 +27,7 @@
       <div class="mt-4 pt-4 border-top">
         <span class="fd-eyebrow mb-2">Shipping address</span>
         <p class="text-muted mb-1">{{ user.profile.shipping_address|linebreaksbr }}</p>
+        {% include "store/partials/map_link.html" with url=user.profile.location_url %}
       </div>
       {% endif %}
       <div class="mt-4 d-flex flex-wrap gap-2">

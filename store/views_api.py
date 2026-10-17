@@ -41,8 +41,14 @@ def api_token_required(view):
     return wrapper
 
 
-def serialize_item(item):
+def _absolute(request, url):
+    return request.build_absolute_uri(url) if (request is not None and url) else url
+
+
+def serialize_item(item, request=None):
     custom = item.customization or None
+    product = item.product if item.product_id else None
+    image = product.primary_image if product else None
     return {
         "product_name": item.product_name,
         "sku": item.sku,
@@ -55,7 +61,12 @@ def serialize_item(item):
         "made_to_measure": bool(custom),
         "customization": custom,
         "customization_summary": [{"label": l, "value": v} for l, v in mspec.summary(custom)] if custom else [],
-        "product_url": item.product.get_absolute_url() if item.product_id and item.product else None,
+        "sleeve_style": (custom or {}).get("sleeve_style") or "",
+        "sleeve_style_label": mspec.SLEEVE_LABELS.get((custom or {}).get("sleeve_style") or "", "") if custom else "",
+        "tailor_notes": (custom or {}).get("notes") or "",
+        "category": product.category.name if product and product.category_id else "",
+        "image_url": _absolute(request, image.image.url) if image and image.image else None,
+        "product_url": _absolute(request, product.get_absolute_url()) if product else None,
     }
 
 
@@ -74,8 +85,25 @@ def order_type(order):
     return "mixed" if any(custom) else "ready_made"
 
 
-def serialize_order(request, order, site=None):
+def _customer_order_counts(orders):
+    """Orders placed per customer email (case-insensitive), for 'returning customer' badges."""
+    from django.db.models import Count
+    from django.db.models.functions import Lower
+
+    emails = {o.customer_email.lower() for o in orders if o.customer_email}
+    if not emails:
+        return {}
+    rows = (Order.objects.annotate(e=Lower("customer_email")).filter(e__in=emails)
+            .values("e").annotate(n=Count("id")))
+    return {r["e"]: r["n"] for r in rows}
+
+
+def serialize_order(request, order, site=None, order_counts=None):
     kind = order_type(order)
+    if order_counts is None:
+        order_counts = _customer_order_counts([order])
+    account = order.customer_user
+    profile = getattr(account, "profile", None) if account else None
     return {
         "order_number": order.order_number,
         "status": order.status,
@@ -85,6 +113,11 @@ def serialize_order(request, order, site=None):
         "payment_method": order.payment_method,
         "payment_method_label": order.get_payment_method_display(),
         "payment_reference": order.payment_reference,
+        "payment_notes": order.payment_notes,
+        "gateway": {
+            "order_id": order.gateway_order_id,
+            "payment_id": order.gateway_payment_id,
+        } if (order.gateway_order_id or order.gateway_payment_id) else None,
         "paid_at": order.paid_at.isoformat() if order.paid_at else None,
         "created_at": order.created_at.isoformat(),
         "updated_at": order.updated_at.isoformat(),
@@ -93,8 +126,13 @@ def serialize_order(request, order, site=None):
             "email": order.customer_email,
             "phone": order.customer_phone,
             "account_id": order.customer_user_id,
+            "has_account": bool(account),
+            "account_username": account.get_username() if account else "",
+            "verified_phone": (profile.phone_e164 or "") if profile else "",
+            "orders_count": order_counts.get((order.customer_email or "").lower(), 1),
         },
         "shipping_address": order.shipping_address,
+        "location_url": order.location_url or None,
         "notes": order.notes,
         "currency": getattr(site, "currency_code", None) or "INR",
         "subtotal": str(order.subtotal),
@@ -105,7 +143,7 @@ def serialize_order(request, order, site=None):
         "has_made_to_measure": kind != "ready_made",
         "order_type": kind,
         "order_type_label": dict(ORDER_TYPES)[kind],
-        "items": [serialize_item(i) for i in order.items.all()],
+        "items": [serialize_item(i, request) for i in order.items.all()],
         "links": {
             "admin": request.build_absolute_uri(reverse("admin:store_order_change", args=[order.pk])),
             "staff": request.build_absolute_uri(reverse("staff_order_update", args=[order.order_number])),
@@ -114,7 +152,8 @@ def serialize_order(request, order, site=None):
 
 
 def _orders_queryset():
-    return Order.objects.select_related("customer_user").prefetch_related("items__product").order_by("-created_at")
+    return (Order.objects.select_related("customer_user", "customer_user__profile")
+            .prefetch_related("items__product__images", "items__product__category").order_by("-created_at"))
 
 
 @csrf_exempt
@@ -158,8 +197,9 @@ def online_orders(request):
     site = SiteSettings.objects.first()
     orders = list(qs[:limit + 1])
     has_more = len(orders) > limit
+    counts = _customer_order_counts(orders[:limit])
     return JsonResponse({
-        "orders": [serialize_order(request, o, site) for o in orders[:limit]],
+        "orders": [serialize_order(request, o, site, counts) for o in orders[:limit]],
         "has_more": has_more,
         "statuses": [{"value": v, "label": l} for v, l in Order.STATUS_CHOICES],
         "payment_statuses": [{"value": v, "label": l} for v, l in Order._meta.get_field("payment_status").choices],

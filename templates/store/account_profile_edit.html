@@ -34,6 +34,9 @@
             <textarea id="pe-shipping_address" name="shipping_address" class="form-control" rows="3">{{ form.shipping_address.value|default:'' }}</textarea>
           </div>
           <div class="col-12">
+            {% include "store/partials/location_field.html" with field_id="pe-location_url" %}
+          </div>
+          <div class="col-12">
             <label class="form-label" for="pe-profile_image">Profile Image</label>
             <input type="file" id="pe-profile_image" name="profile_image" class="form-control">
           </div>

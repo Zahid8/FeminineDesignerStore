@@ -174,3 +174,59 @@ class LegacyOrderMigrationTests(TestCase):
         mig.backwards(global_apps, None)
         legacy.refresh_from_db()
         self.assertEqual(legacy.subtotal, Decimal("90.00"))
+
+
+class DeliveryLocationLinkTests(TestCase):
+    """Optional Google Maps link on delivery details."""
+
+    def test_clean_maps_link(self):
+        from django.core.exceptions import ValidationError
+
+        from store.locations import clean_maps_link
+
+        self.assertEqual(clean_maps_link(""), "")
+        self.assertEqual(clean_maps_link("  https://maps.app.goo.gl/AbC123  "), "https://maps.app.goo.gl/AbC123")
+        self.assertEqual(clean_maps_link("Home 📍 https://maps.app.goo.gl/AbC123, see you"), "https://maps.app.goo.gl/AbC123")
+        self.assertEqual(clean_maps_link("http://www.google.com/maps?q=18.52,73.85"), "https://www.google.com/maps?q=18.52,73.85")
+        self.assertEqual(clean_maps_link("https://www.google.co.in/maps/place/Pune"), "https://www.google.co.in/maps/place/Pune")
+        self.assertEqual(clean_maps_link("https://maps.google.com/?q=1,2"), "https://maps.google.com/?q=1,2")
+        for bad in ("my house near temple", "https://evil.example.com/maps", "https://www.google.com/search?q=x", "javascript:alert(1)"):
+            with self.assertRaises(ValidationError, msg=bad):
+                clean_maps_link(bad)
+
+
+class CheckoutLocationTests(TestCase):
+    def setUp(self):
+        from store.models import Category, Product
+
+        cat = Category.objects.create(name="Silk", slug="silk-loc", is_active=True)
+        self.p = Product.objects.create(category=cat, name="Rose", slug="rose-loc", sku="LOC-1", price=Decimal("500"),
+                                        stock_quantity=5, is_active=True)
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
+
+    def checkout(self, **extra):
+        data = {"customer_name": "Asha", "customer_email": "asha@example.com", "shipping_address": "Pune", **extra}
+        return self.client.post(reverse("checkout"), data)
+
+    def test_location_is_optional(self):
+        self.checkout()
+        self.assertEqual(Order.objects.get().location_url, "")
+
+    def test_pasted_share_text_is_saved_as_link_and_remembered(self):
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user("asha", "asha@example.com", "pw")
+        self.client.force_login(user)
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
+        self.checkout(location_url="Home: https://maps.app.goo.gl/AbC123")
+        self.assertEqual(Order.objects.get().location_url, "https://maps.app.goo.gl/AbC123")
+        user.refresh_from_db()
+        self.assertEqual(user.profile.location_url, "https://maps.app.goo.gl/AbC123")
+        edit = self.client.get(reverse("account_profile_edit")).content.decode()
+        self.assertIn('value="https://maps.app.goo.gl/AbC123"', edit)
+
+    def test_non_maps_link_is_rejected_with_message(self):
+        response = self.checkout(location_url="https://example.com/my-house")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Paste a Google Maps link")
+        self.assertEqual(Order.objects.count(), 0)

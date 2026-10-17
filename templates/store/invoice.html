@@ -27,6 +27,7 @@
           {{ order.customer_email }}<br>
           {% if order.customer_phone %}{{ order.customer_phone }}<br>{% endif %}
           {{ order.shipping_address|linebreaksbr }}
+          {% if order.location_url %}<br><a href="{{ order.location_url }}" target="_blank" rel="noopener noreferrer">Google Maps location</a>{% endif %}
         </div>
         <div class="col-6 text-end">
           <strong>Payment:</strong> {{ order.get_payment_method_display }}<br>

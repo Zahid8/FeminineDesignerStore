@@ -19,6 +19,7 @@ class CheckoutForm(forms.Form):
     customer_email = forms.EmailField()
     customer_phone = forms.CharField(max_length=40, required=False)
     shipping_address = forms.CharField(widget=forms.Textarea)
+    location_url = forms.CharField(max_length=2000, required=False)
     notes = forms.CharField(widget=forms.Textarea, required=False)
     payment_method = forms.ChoiceField(required=False)
 
@@ -26,6 +27,11 @@ class CheckoutForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.payment_methods = payment_methods or []
         self.fields["payment_method"].choices = [(m["value"], m["label"]) for m in self.payment_methods]
+
+    def clean_location_url(self):
+        from store.locations import clean_maps_link
+
+        return clean_maps_link(self.cleaned_data.get("location_url"))
 
     def clean_payment_method(self):
         value = self.cleaned_data.get("payment_method")
@@ -145,11 +151,17 @@ class ProfileEditForm(forms.Form):
     email = forms.EmailField(required=True)
     phone = forms.CharField(max_length=40, required=False)
     shipping_address = forms.CharField(widget=forms.Textarea, required=False)
+    location_url = forms.CharField(max_length=2000, required=False)
     profile_image = forms.ImageField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+
+    def clean_location_url(self):
+        from store.locations import clean_maps_link
+
+        return clean_maps_link(self.cleaned_data.get("location_url"))
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()

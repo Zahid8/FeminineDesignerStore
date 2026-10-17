@@ -676,6 +676,10 @@ class Order(models.Model):
     customer_email = models.EmailField()
     customer_phone = models.CharField(max_length=40, blank=True)
     shipping_address = models.TextField()
+    location_url = models.URLField(
+        "Google Maps location", max_length=500, blank=True,
+        help_text="Optional pin for the delivery address, shared by the customer at checkout.",
+    )
     notes = models.TextField(blank=True)
     payment_status = models.CharField(
         max_length=20,
@@ -881,6 +885,7 @@ class CustomerProfile(models.Model):
     phone_verified_at = models.DateTimeField(blank=True, null=True)
     saved_measurements = models.JSONField(blank=True, null=True, help_text="Last measurements used, in inches.")
     shipping_address = models.TextField(blank=True, null=True)
+    location_url = models.URLField("Google Maps location", max_length=500, blank=True, default="")
     profile_image = models.ImageField(
         upload_to="profiles/", blank=True, null=True
     )

@@ -36,7 +36,8 @@ class OnlineOrdersApiTests(TestCase):
         data = self.client.get(reverse("api_online_orders"), **AUTH).json()
         self.assertEqual([o["order_number"] for o in data["orders"]], [self.other.order_number, self.order.order_number])
         order = data["orders"][1]
-        self.assertEqual(order["customer"], {"name": "Asha Rao", "email": "asha@example.com", "phone": "9876543210", "account_id": None})
+        self.assertEqual(order["customer"], {"name": "Asha Rao", "email": "asha@example.com", "phone": "9876543210", "account_id": None,
+                                             "has_account": False, "account_username": "", "verified_phone": "", "orders_count": 1})
         self.assertEqual(order["total"], "2400.00")
         self.assertTrue(order["has_made_to_measure"])
         item = order["items"][0]
@@ -128,3 +129,49 @@ class OrderTypeAndDeliveredTests(TestCase):
         response = self.client.post(url, json.dumps({"status": "delivered"}), content_type="application/json", **AUTH)
         self.assertEqual(response.json()["order"]["status_label"], "Delivered")
         self.assertEqual(len(self.client.get(reverse("api_online_orders"), {"status": "delivered"}, **AUTH).json()["orders"]), 1)
+
+
+@override_settings(WEBSTORE_API_TOKEN="test-token")
+class FullOrderDetailTests(TestCase):
+    """Everything staff need to manage an order from the billing app."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        from store.models import CustomerProfile
+
+        cat = Category.objects.create(name="Silk", slug="silk-full", is_active=True)
+        self.p = Product.objects.create(category=cat, name="Rose", slug="rose-full", sku="RF-1", price=Decimal("1000"),
+                                        stock_quantity=5, is_active=True)
+        user = User.objects.create_user("asha", "asha@example.com", "pw")
+        CustomerProfile.objects.create(user=user, phone_e164="+919876543210")
+        self.order = Order.objects.create(customer_name="Asha", customer_email="Asha@Example.com", customer_phone="98765 43210",
+                                          shipping_address="12 MG Road", location_url="https://maps.app.goo.gl/AbC123",
+                                          notes="Ring the bell", payment_reference="UPI123", payment_notes="Checked by Sajida",
+                                          gateway_order_id="order_X", gateway_payment_id="pay_Y", customer_user=user,
+                                          total=Decimal("1000"))
+        OrderItem.objects.create(order=self.order, product=self.p, product_name="Rose", sku="RF-1", unit_price=Decimal("1000"),
+                                 quantity=1, line_total=Decimal("1000"),
+                                 customization={"measurements": {"chest": "36.00"}, "sleeve_style": "elbow", "notes": "deep back"})
+        Order.objects.create(customer_name="Asha", customer_email="asha@example.com", shipping_address="x", total=Decimal("1"))
+
+    def test_detail_has_delivery_payment_customer_and_item_details(self):
+        url = reverse("api_online_order_detail", args=[self.order.order_number])
+        order = self.client.get(url, **AUTH).json()["order"]
+        self.assertEqual(order["location_url"], "https://maps.app.goo.gl/AbC123")
+        self.assertEqual(order["notes"], "Ring the bell")
+        self.assertEqual(order["payment_notes"], "Checked by Sajida")
+        self.assertEqual(order["gateway"], {"order_id": "order_X", "payment_id": "pay_Y"})
+        customer = order["customer"]
+        self.assertTrue(customer["has_account"])
+        self.assertEqual(customer["verified_phone"], "+919876543210")
+        self.assertEqual(customer["orders_count"], 2)  # email match is case-insensitive
+        item = order["items"][0]
+        self.assertEqual((item["sleeve_style"], item["sleeve_style_label"], item["tailor_notes"]), ("elbow", "Elbow length", "deep back"))
+        self.assertEqual(item["category"], "Silk")
+        self.assertTrue(item["product_url"].startswith("http://testserver/products/rose-full/"))
+
+    def test_list_counts_returning_customers_without_extra_shape_changes(self):
+        data = self.client.get(reverse("api_online_orders"), **AUTH).json()
+        self.assertEqual({o["customer"]["orders_count"] for o in data["orders"]}, {2})
+        self.assertIsNone(next(o for o in data["orders"] if o["order_number"] != self.order.order_number)["location_url"])
