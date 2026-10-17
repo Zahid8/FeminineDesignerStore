@@ -689,3 +689,10 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - `python manage.py import_catalogue <folder> [--dry-run]`: validates first,
   creates products + ordered photos (first = primary, alt text per view),
   reuses category/occasions, skips existing slugs and taken SKUs.
+
+## T49 — Home hero photo (2026-10-18)
+
+- Split hero (featured products) showed square photos cropped into a 4:5
+  phone frame (straps cut off). Photo now uses `object-fit: contain` and the
+  phone frame is square, so the whole blouse shows edge to edge; desktop
+  half-column shows the full photo too.
