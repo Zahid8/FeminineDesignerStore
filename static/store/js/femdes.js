@@ -401,6 +401,34 @@
     });
   }
 
+  // ---- PIN code → city + state (India Post data via /api/pincode/) ----
+  function setupPinLookup() {
+    document.querySelectorAll('input[data-pin-lookup]').forEach(function (pin) {
+      var form = pin.form; if (!form) return;
+      var city = form.querySelector('[name=city]'), state = form.querySelector('[name=state]');
+      var hint = pin.parentNode.querySelector('[data-pin-hint]');
+      var last = '', autoCity = '';
+      function check() {
+        var v = pin.value.replace(/\D/g, '');
+        if (v.length !== 6 || v === last || !/^[1-9]/.test(v)) { if (v.length < 6 && hint) hint.textContent = ''; return; }
+        last = v;
+        if (hint) hint.textContent = 'Looking up…';
+        fetch(pin.getAttribute('data-pin-lookup').replace('000000', v), { headers: { Accept: 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (!d || !d.found) { if (hint) hint.textContent = 'We could not find this PIN code. Please check it.'; return; }
+            if (city && d.city && (!city.value || city.value === autoCity)) { city.value = d.city; autoCity = d.city; city.dispatchEvent(new Event('input', { bubbles: true })); }
+            if (state && d.state && state.value !== d.state) { state.value = d.state; state.dispatchEvent(new Event('change', { bubbles: true })); }
+            if (hint) hint.textContent = 'Delivering to ' + [d.city, d.state].filter(Boolean).join(', ');
+          })
+          .catch(function () { if (hint) hint.textContent = ''; });
+      }
+      pin.addEventListener('input', check);
+      pin.addEventListener('change', check);
+      if (pin.value) check();
+    });
+  }
+
   // ---- Sticky mobile buy bar ----
   function setupStickyBuy() {
     var bar = document.querySelector('[data-sticky-buy]');
@@ -593,6 +621,7 @@
     setupHero();
     setupReveals();
     setupGallery();
+    setupPinLookup();
     setupStickyBuy();
     setupAutoSubmit();
     setupSubmitFeedback();

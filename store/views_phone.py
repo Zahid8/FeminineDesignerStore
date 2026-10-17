@@ -100,13 +100,20 @@ def phone_verify(request):
                 if linking:
                     messages.success(request, "Your mobile number is verified.")
                     return redirect(next_url or "account_profile")
+                if not (user.email or user.first_name) and not next_url:
+                    # Brand-new mobile account: ask for a name and email (order updates, bills).
+                    messages.success(request, "Welcome! Add your name and email so we can send order updates.")
+                    return redirect("account_profile_edit")
                 messages.success(request, "You are signed in.")
                 return redirect(next_url or "home")
     else:
         form = OTPVerifyForm()
     ctx = _base_context(request)
+    from django.conf import settings
+
     ctx.update({
         "form": form,
+        "otp_length": settings.OTP_LENGTH,
         "masked_phone": mask(phone),
         "resend_wait": otp_service.seconds_until_resend(phone),
     })

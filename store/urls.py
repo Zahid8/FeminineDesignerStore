@@ -38,6 +38,7 @@ urlpatterns = [
         views.customization_created,
         name="customization_created",
     ),
+    path("api/pincode/<str:pin>/", views_extra.pincode_lookup, name="pincode_lookup"),
     # Razorpay (webhook first: "webhook" would otherwise match <order_number>)
     path("razorpay/webhook/", views.razorpay_webhook, name="razorpay_webhook"),
     path(

@@ -1333,3 +1333,7 @@ a.fd-link-underline, a.btn-link.fd-link-underline, .fd-link-underline { border-b
 .fd-or::before, .fd-or::after { content: ""; flex: 1; height: 1px; background: var(--fd-line); }
 .fd-google-btn { display: flex; justify-content: center; min-height: 44px; }
 .fd-register-fast { margin-bottom: 0; }
+.fd-pin-hint { min-height: 1.2em; margin-top: 0.35rem; font-size: 0.8rem; color: var(--fd-muted); }
+.fd-connect-google summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--fd-wine); list-style: none; }
+.fd-connect-google summary::-webkit-details-marker { display: none; }
+.fd-connect-google .fd-or { margin-top: 0.4rem; }

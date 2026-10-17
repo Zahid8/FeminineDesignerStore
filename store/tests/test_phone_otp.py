@@ -156,6 +156,19 @@ class PhoneLoginViewTests(TestCase):
     def test_external_next_is_ignored(self):
         self.client.post(reverse("phone_login"), {"country": "IN", "phone": "9876543210", "next": "https://evil.example/"})
         response = self.client.post(reverse("phone_verify"), {"code": last_code()})
+        # Brand-new account goes to "add your name and email", never off-site.
+        self.assertRedirects(response, reverse("account_profile_edit"))
+
+    def test_returning_customer_lands_on_home(self):
+        self.client.post(reverse("phone_login"), {"country": "IN", "phone": "9876543210"})
+        self.client.post(reverse("phone_verify"), {"code": last_code()})
+        from django.contrib.auth.models import User
+        User.objects.filter(username="phone_919876543210").update(first_name="Asha")
+        self.client.logout()
+        from store.models import PhoneOTP
+        PhoneOTP.objects.all().delete()
+        self.client.post(reverse("phone_login"), {"country": "IN", "phone": "9876543210"})
+        response = self.client.post(reverse("phone_verify"), {"code": last_code()})
         self.assertRedirects(response, reverse("home"))
 
     def test_invalid_number_shows_error_and_sends_nothing(self):

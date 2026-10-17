@@ -492,3 +492,12 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 521 OK (test_import_catalogue.py: create, reuse, re-run skip, SKU clash, dry run, validation, shipped catalogue dry-run = 22)
 - `makemigrations --check` — no changes
 - Demo import: 22 added; shop + product pages render all photos on phone/desktop, no JS errors
+
+## T50–T52 — Payments, OTP, Google, checkout QoL (2026-10-18)
+
+- `python manage.py test` — 559 OK (test_payments, test_signin_options, test_pincode, updated razorpay/storefront/phone tests)
+- `makemigrations --check` — no changes (0029 added)
+- Live India Post lookup: 400050 Mumbai/Maharashtra, 110001 Central Delhi/Delhi, 560001 Bangalore/Karnataka, 682001 Ernakulam/Kerala
+- Browser: pin_e2e (autofill + bad PIN message), signin_shots (Google button renders), e2e_mtm, mtm_guard, location_e2e, invoice_check, handoff — all pass (e2e fixtures restocked first)
+- qa_design: baseline + expected GSI console errors from the fake local client ID
+- Not testable here: real Razorpay keys/webhook, MSG91/2Factor delivery, real Google client — mocked in unit tests

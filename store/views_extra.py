@@ -181,3 +181,17 @@ def order_track(request):
     ctx = _base_context(request)
     ctx.update({"form": form, "order": order, "status_timeline": Order.STATUS_CHOICES})
     return render(request, "store/order_track.html", ctx)
+
+
+def pincode_lookup(request, pin):
+    """GET /api/pincode/<pin>/ → {"city", "state", "areas"} for checkout autofill."""
+    from django.http import JsonResponse
+
+    from store.pincode import lookup
+
+    result = lookup(pin)
+    if not result:
+        return JsonResponse({"found": False}, status=404)
+    response = JsonResponse({"found": True, **result})
+    response["Cache-Control"] = "public, max-age=86400"
+    return response

@@ -730,3 +730,14 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   google_sub` (migration 0029), links an existing customer by verified email
   (never staff), else creates a passwordless account; profile page can
   connect Google. Hidden when GOOGLE_CLIENT_ID is empty.
+
+## T52 — Checkout & sign-in quality of life (2026-10-18)
+
+- PIN code autofill: `store/pincode.py` (India Post api.postalpincode.in,
+  cached 30 days, state mapped to our dropdown) + `GET /api/pincode/<pin>/`;
+  typing a 6-digit PIN fills city and state and shows "Delivering to …";
+  PIN field now sits above City/State.
+- Guests see "Faster checkout: sign in" on checkout (bag is kept).
+- OTP screen: auto-submits at 6 digits, WebOTP autofill on Android Chrome
+  (needs the SMS to end with "@<domain> #<code>"); brand-new mobile accounts
+  go to "add your name and email".
