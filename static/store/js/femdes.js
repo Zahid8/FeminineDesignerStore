@@ -371,7 +371,7 @@
   function setupSubmitFeedback() {
     document.addEventListener('submit', function (e) {
       var form = e.target;
-      if (!form.matches || !form.matches('.add-to-cart-form, [data-fd-busy]')) return;
+      if (e.defaultPrevented || !form.matches || !form.matches('.add-to-cart-form, [data-fd-busy]')) return;
       var btn = form.querySelector('button[type="submit"]');
       if (btn) { btn.setAttribute('aria-busy', 'true'); btn.style.opacity = '0.7'; }
     });

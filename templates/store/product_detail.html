@@ -198,8 +198,8 @@
 
             {% if can_custom %}
             <noscript><style>#customize-section{display:block!important}</style></noscript>
-            <section class="fd-builder" id="customize-section" x-show="fit === 'custom'"{% if not custom_open %} style="display:none"{% endif %}{% if custom_form.errors %} x-init="$nextTick(() => $el.scrollIntoView({ block: 'start' }))"{% endif %}
-              x-data="{ step: 1, unit: '{{ custom_form.unit.value|default:'in' }}', m: { {% for field, spec in custom_form.measurement_fields %}{{ field.name }}: '{{ field.value|default_if_none:''|escapejs }}', {% endfor %}sleeve_style: '{{ custom_form.sleeve_style.value|default_if_none:''|escapejs }}', notes: '{{ custom_form.notes.value|default_if_none:''|escapejs }}' }, req: ['length', 'chest', 'waist', 'armhole', 'opening', 'bicep'], convert(to) { if (to === this.unit) return; const f = to === 'cm' ? 2.54 : 1 / 2.54; this.$root.querySelectorAll('input[data-measure]').forEach(i => { if (i.value !== '') { i.value = (Math.round(parseFloat(i.value) * f * 100) / 100).toString(); i.dispatchEvent(new Event('input')); } }); this.unit = to; }, missing() { return this.req.filter(k => !this.m[k] && this.m[k] !== 0).length; } }">
+            <section class="fd-builder" id="customize-section" x-show="fit === 'custom'"{% if not custom_open %} style="display:none"{% endif %}{% if custom_form.errors %} x-init="$nextTick(() => serverErrors())"{% endif %}
+              x-data="{ step: 1, unit: '{{ custom_form.unit.value|default:'in' }}', m: { {% for field, spec in custom_form.measurement_fields %}{{ field.name }}: '{{ field.value|default_if_none:''|escapejs }}', {% endfor %}sleeve_style: '{{ custom_form.sleeve_style.value|default_if_none:''|escapejs }}', notes: '{{ custom_form.notes.value|default_if_none:''|escapejs }}' }, req: ['length', 'chest', 'waist', 'armhole', 'opening', 'bicep'], convert(to) { if (to === this.unit) return; const f = to === 'cm' ? 2.54 : 1 / 2.54; this.$root.querySelectorAll('input[data-measure]').forEach(i => { if (i.value !== '') { i.value = (Math.round(parseFloat(i.value) * f * 100) / 100).toString(); i.dispatchEvent(new Event('input')); } }); this.unit = to; }, missing() { return this.req.filter(k => !this.m[k] && this.m[k] !== 0).length; }, showErrors: {% if custom_form.errors %}true{% else %}false{% endif %}, problems() { const out = []; this.$root.querySelectorAll('input[data-measure]').forEach(i => { const raw = this.m[i.name]; const v = parseFloat(raw); const label = i.dataset.label; if (raw === undefined || raw === null || String(raw).trim() === '' || isNaN(v)) { if (i.required) out.push({ name: i.name, msg: 'Please enter your ' + label.toLowerCase() + '.' }); return; } const f = this.unit === 'cm' ? 2.54 : 1; const lo = parseFloat(i.dataset.min), hi = parseFloat(i.dataset.max); const inches = v / f; if (inches < lo - 0.005 || inches > hi + 0.005) out.push({ name: i.name, msg: label + ' should be between ' + (Math.round(lo * f * 10) / 10) + '–' + (Math.round(hi * f * 10) / 10) + ' ' + this.unit + '.' }); }); return out; }, err(name) { const p = this.problems().find(x => x.name === name); return p ? p.msg : ''; }, goFix() { this.step = 1; this.showErrors = true; this.$nextTick(() => { const p = this.problems()[0]; const el = p ? this.$root.querySelector('#id_' + p.name) : this.$root; if (!el) return; const d = el.closest && el.closest('details'); if (d) d.open = true; el.scrollIntoView({ block: 'center' }); if (el.focus) el.focus({ preventScroll: true }); }); }, guard(e) { if (this.problems().length) { e.preventDefault(); this.goFix(); } }, serverErrors() { if (this.problems().length) { this.goFix(); return; } this.step = 3; this.$nextTick(() => { const e = this.$root.querySelector('.fd-field-error, .alert-danger'); const d = e && e.closest('details'); if (d) d.open = true; (e || this.$root).scrollIntoView({ block: 'center' }); }); } }">
               <header class="fd-builder-head">
                 <div>
                   <span class="fd-eyebrow">Made to measure</span>
@@ -213,7 +213,7 @@
                 </ol>
               </header>
 
-              <form method="post" action="{% url 'add_to_cart' product.pk %}" id="custom-fit-form" class="fd-builder-form" data-fd-busy novalidate>
+              <form method="post" action="{% url 'add_to_cart' product.pk %}" id="custom-fit-form" class="fd-builder-form" data-fd-busy novalidate @submit="guard($event)">
                 {% csrf_token %}
                 <input type="hidden" name="custom" value="1">
                 <input type="hidden" name="quantity" value="1">
@@ -232,11 +232,12 @@
                       <div class="fd-measure-grid">
                         {% for field, spec in custom_form.measurement_fields %}
                         {% if spec.2 %}
-                        <div class="fd-measure{% if field.errors %} has-error{% endif %}">
+                        <div class="fd-measure{% if field.errors %} has-error{% endif %}" :class="{ 'has-error': showErrors && err('{{ field.name }}') }">
                           <label for="{{ field.id_for_label }}"><span class="fd-measure-num">{{ forloop.counter }}</span><span x-text="'{{ spec.1 }} (' + unit + ')'">{{ spec.1 }} (in)</span></label>
-                          <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" required data-measure x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
+                          <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" required data-measure data-label="{{ spec.1 }}" data-min="{{ spec.3.0 }}" data-max="{{ spec.3.1 }}" x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
                           <small id="{{ field.id_for_label }}-hint">{{ spec.4 }}</small>
-                          {% for e in field.errors %}<p class="fd-field-error">{{ e }}</p>{% endfor %}
+                          {% for e in field.errors %}<p class="fd-field-error" x-show="!showErrors || !err('{{ field.name }}')">{{ e }}</p>{% endfor %}
+                          <p class="fd-field-error" role="alert" x-show="showErrors && err('{{ field.name }}')" x-text="err('{{ field.name }}')" style="display:none"></p>
                         </div>
                         {% endif %}
                         {% endfor %}
@@ -246,11 +247,12 @@
                         <div class="fd-measure-grid mt-3">
                           {% for field, spec in custom_form.measurement_fields %}
                           {% if not spec.2 %}
-                          <div class="fd-measure{% if field.errors %} has-error{% endif %}">
+                          <div class="fd-measure{% if field.errors %} has-error{% endif %}" :class="{ 'has-error': showErrors && err('{{ field.name }}') }">
                             <label for="{{ field.id_for_label }}"><span class="fd-measure-num">{{ forloop.counter }}</span><span x-text="'{{ spec.1 }} (' + unit + ')'">{{ spec.1 }} (in)</span></label>
-                            <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" data-measure x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
+                            <input type="number" step="0.25" min="0" inputmode="decimal" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default_if_none:'' }}" placeholder="0.00" data-measure data-label="{{ spec.1 }}" data-min="{{ spec.3.0 }}" data-max="{{ spec.3.1 }}" x-model="m.{{ field.name }}" aria-describedby="{{ field.id_for_label }}-hint">
                             <small id="{{ field.id_for_label }}-hint">{{ spec.4 }}</small>
-                            {% for e in field.errors %}<p class="fd-field-error">{{ e }}</p>{% endfor %}
+                            {% for e in field.errors %}<p class="fd-field-error" x-show="!showErrors || !err('{{ field.name }}')">{{ e }}</p>{% endfor %}
+                          <p class="fd-field-error" role="alert" x-show="showErrors && err('{{ field.name }}')" x-text="err('{{ field.name }}')" style="display:none"></p>
                           </div>
                           {% endif %}
                           {% endfor %}
@@ -266,7 +268,7 @@
                   </div>
                   <div class="fd-builder-nav">
                     <span class="text-muted small" x-show="missing() > 0" x-text="missing() + ' required measurement' + (missing() === 1 ? '' : 's') + ' left'"></span>
-                    <button type="button" class="btn btn-dark ms-auto" @click="step = 2">Continue to style</button>
+                    <button type="button" class="btn btn-dark ms-auto" @click="problems().length ? goFix() : (step = 2)">Continue to style</button>
                   </div>
                 </div>
 
@@ -298,7 +300,11 @@
                         {% endfor %}
                         <li x-show="m.sleeve_style"><span>Sleeves</span><span x-text="({ sleeveless: 'Sleeveless', cap: 'Cap sleeve', short: 'Short sleeve', elbow: 'Elbow length', three_quarter: 'Three-quarter', full: 'Full sleeve' })[m.sleeve_style] || ''"></span></li>
                       </ul>
-                      <p class="small text-muted mt-2" x-show="missing() > 0"><svg width="14" height="14" aria-hidden="true"><use xlink:href="#info"></use></svg> Some required measurements are still empty — <button type="button" class="fd-text-btn" @click="step = 1">go back</button>.</p>
+                      <div class="alert alert-warning small mt-3 mb-0" role="alert" x-show="problems().length" style="display:none" data-mtm-problems>
+                        <p class="mb-1"><strong>Before we can add this to your bag:</strong></p>
+                        <ul class="mb-2 ps-3"><template x-for="p in problems()" :key="p.name"><li x-text="p.msg"></li></template></ul>
+                        <button type="button" class="btn btn-dark btn-sm" @click="goFix()">Complete measurements</button>
+                      </div>
                     </div>
                     <div class="fd-review-price">
                       <div class="fd-summary-row"><span>{{ product.name }}</span><span>{{ currency }}{{ product.get_effective_price }}</span></div>

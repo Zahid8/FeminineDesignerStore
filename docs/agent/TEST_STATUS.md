@@ -446,3 +446,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 486 tests OK (timeline test updated for Delivered); `makemigrations --check` — no changes
 - Billing app: `vitest` 226 OK, `tsc --noEmit` OK, `eslint .` OK
 - `node docs/agent/browser-checks/billing_stages.js` against a production build — 18/18 PASS, no JS errors
+
+## T37-FIX — Builder validation (2026-10-17)
+
+- `python manage.py test` — 488 tests OK (BuilderClientValidationTests)
+- `node docs/agent/browser-checks/mtm_guard.js` — 24/24 PASS (desktop + mobile)
+- `node docs/agent/browser-checks/e2e_mtm.js` (DEBUG=False server) — 28/28 PASS

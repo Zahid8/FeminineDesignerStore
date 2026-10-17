@@ -504,3 +504,19 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - Billing app (Feminine_Designer, same day): stage tracker, one-tap next
   stage, Shipped/Delivered/Fulfilled tabs, type badges and filter.
   Browser check: `docs/agent/browser-checks/billing_stages.js` (18/18).
+
+## T37-FIX — Made-to-measure still "not adding" on the live site (2026-10-17)
+
+- Reproduced on https://zahidhussain909.pythonanywhere.com: the only product
+  prefills 4 of 6 required measurements (Opening, Bicep empty). The builder
+  let customers reach Review and submit; the server rejected it and re-rendered
+  with errors far below the guide image on phones, so nothing seemed to happen
+  and the bag stayed empty. (With all six filled it already worked live.)
+- Fix: client-side validation in the builder (required + range, in or cm):
+  "Continue to style" and "Add Made-to-Measure to Bag" (and the fitting-call
+  submit) are guarded; failing jumps to step 1, opens the field, scrolls it to
+  the centre and focuses it, with an inline message per field; Review lists
+  exactly what is missing. Server errors re-render and focus the first error.
+  femdes.js no longer marks a prevented submit as busy.
+- Checks: `browser-checks/mtm_guard.js` (24/24 desktop+mobile),
+  `browser-checks/e2e_mtm.js` (28/28 on a DEBUG=False server), 488 tests OK.

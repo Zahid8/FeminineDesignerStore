@@ -274,3 +274,31 @@ class BuilderPrefillAndTermsTests(TestCase):
     def test_terms_hidden_for_ready_made_only(self):
         self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
         self.assertNotContains(self.client.get(reverse("checkout")), "Made-to-measure terms")
+
+
+class BuilderClientValidationTests(TestCase):
+    """The builder checks measurements in the browser before submitting (live bug: missing
+    Opening/Bicep submitted, page reloaded with the error off-screen, bag stayed empty)."""
+
+    def setUp(self):
+        cat = Category.objects.create(name="Silk", slug="silk-cv2", is_active=True)
+        self.p = Product.objects.create(category=cat, name="Crop Top", slug="crop-cv2", sku="CV2-1", price=Decimal("4350"),
+                                        stock_quantity=5, is_active=True, default_length=Decimal("14.5"),
+                                        default_chest=Decimal("36"))
+
+    def test_inputs_carry_ranges_and_form_is_guarded(self):
+        content = self.client.get(self.p.get_absolute_url(), {"fit": "custom"}).content.decode()
+        self.assertIn('@submit="guard($event)"', content)
+        self.assertIn('data-label="Opening" data-min="4" data-max="30"', content)
+        self.assertIn('data-label="Chest" data-min="20" data-max="70"', content)
+        self.assertIn("problems().length ? goFix() : (step = 2)", content)  # Continue validates
+        self.assertIn("data-mtm-problems", content)  # review lists what is missing
+
+    def test_server_errors_still_rendered_and_focused(self):
+        response = self.client.post(reverse("add_to_cart", args=[self.p.pk]),
+                                    {"custom": "1", "quantity": "1", "length": "14.5", "chest": "36"})
+        content = response.content.decode()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("This field is required.", content)
+        self.assertIn('x-init="$nextTick(() => serverErrors())"', content)
+        self.assertFalse(self.client.session.get("femdes_cart"))

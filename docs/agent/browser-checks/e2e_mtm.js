@@ -118,18 +118,16 @@ async function api(ctx, num) {
     await ctx.close();
   }
 
-  // ---------- S4: invalid measurement — is the error visible? ----------
+  // ---------- S4: invalid measurement is caught before submitting ----------
   {
-    const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } }); const p = await ctx.newPage(); watch(p, 'S4');
+    const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true }); const p = await ctx.newPage(); watch(p, 'S4');
+    let posts = 0; p.on('request', r => { if (r.method() === 'POST') posts++; });
     await p.goto(base + SOLD + '?fit=custom', { waitUntil: 'networkidle' });
-    await fillBuilder(p, { ...IN, chest: '90' });
-    await submitBuilder(p);
-    await p.waitForTimeout(1000);
-    const err = p.locator('.fd-field-error').first();
-    const hasErr = await err.count() > 0;
-    const inView = hasErr && await err.evaluate(e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && !!e.offsetParent; });
-    ok('[S4] invalid value rejected with message', hasErr, hasErr ? await err.textContent() : 'no error element');
-    ok('[S4] error message visible without scrolling', inView, `scrollY=${await p.evaluate(() => scrollY)}`);
+    for (const [k, v] of Object.entries({ ...IN, chest: '90' })) await p.fill('#id_' + k, v);
+    await p.click('#customize-section button:has-text("Continue to style")'); await p.waitForTimeout(700);
+    const err = p.locator('.fd-measure.has-error .fd-field-error:visible').first();
+    ok('[S4] invalid value blocked before submit', posts === 0 && (await err.count()) > 0, await err.textContent().catch(() => 'no error'));
+    ok('[S4] error message visible without scrolling', await err.evaluate(e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }));
     ok('[S4] entered values kept', (await p.inputValue('#id_waist')) === '30');
     await p.screenshot({ path: '/tmp/fdshot/e2e_s4.png' });
     await ctx.close();
