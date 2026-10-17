@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
     "store",
 ]
 
@@ -179,6 +180,37 @@ if MEDIA_STORAGE_MODE == "s3":
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
 RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
+
+# Email (order confirmations, password reset, back-in-stock alerts).
+# Development default prints emails to the console; set DJANGO_EMAIL_HOST for SMTP.
+EMAIL_HOST = os.getenv("DJANGO_EMAIL_HOST", "")
+EMAIL_BACKEND = os.getenv(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.smtp.EmailBackend" if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend",
+)
+EMAIL_PORT = int(os.getenv("DJANGO_EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("DJANGO_EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("DJANGO_EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.getenv("DJANGO_EMAIL_USE_TLS", "True").lower() in ("true", "1", "yes")
+DEFAULT_FROM_EMAIL = os.getenv("DJANGO_DEFAULT_FROM_EMAIL", "FemDes <no-reply@localhost>")
+# Staff inbox for new-order / appointment notifications (optional).
+STORE_NOTIFY_EMAIL = os.getenv("STORE_NOTIFY_EMAIL", "")
+
+LOGIN_URL = "account_login"
+
+# Phone OTP login. Countries are defined in store/phone.py; enable more by ISO code.
+PHONE_LOGIN_COUNTRIES = [c.strip() for c in os.getenv("PHONE_LOGIN_COUNTRIES", "IN").split(",") if c.strip()]
+SMS_BACKEND = os.getenv("SMS_BACKEND", "store.sms.ConsoleSmsBackend")
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER", "")  # +E.164 number or MG... service SID
+OTP_LENGTH = 6
+OTP_TTL_SECONDS = 300
+OTP_MAX_ATTEMPTS = 5
+OTP_RESEND_COOLDOWN_SECONDS = 30
+OTP_MAX_SENDS_PER_PHONE_PER_HOUR = 5
+OTP_MAX_SENDS_PER_IP_PER_HOUR = 20
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,20 +1,37 @@
 {% extends "base.html" %}
 {% block title %} — My Account{% endblock %}
 {% block content %}
-<section class="py-5">
+<header class="fd-page-header pb-4">
+  <div class="container-lg">
+    <span class="fd-eyebrow is-center">My Account</span>
+    <h1>Hello, <em class="fd-display-italic">{{ user.first_name|default:user.username }}</em></h1>
+  </div>
+</header>
+<section class="pb-5">
   <div class="container-lg page-shell">
-    <h2 class="mb-3">My Account</h2>
-    <div class="indichic-card p-4 mb-4">
-      <h5>{{ user.first_name|default:user.username }}</h5>
-      <p class="text-muted mb-1">{{ user.email }}</p>
-      {% if user.profile.phone %}<p class="text-muted mb-1">Phone: {{ user.profile.phone }}</p>{% endif %}
-      {% if user.profile.shipping_address %}<p class="text-muted mb-1">{{ user.profile.shipping_address|linebreaksbr }}</p>{% endif %}
-      {% if user.profile.profile_image %}
-      <img src="{{ user.profile.profile_image.url }}" alt="Profile" class="rounded-circle mt-2" style="width:80px;height:80px;object-fit:cover;">
+    <div class="indichic-card p-4 p-md-5 mb-4">
+      <div class="d-flex flex-wrap align-items-center gap-4">
+        {% if user.profile.profile_image %}
+        <img src="{{ user.profile.profile_image.url }}" alt="Profile" class="fd-avatar">
+        {% else %}
+        <span class="fd-avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</span>
+        {% endif %}
+        <div>
+          <h5 class="mb-1">{{ user.first_name|default:user.username }} {{ user.last_name }}</h5>
+          <p class="text-muted mb-1">{{ user.email }}</p>
+          {% if user.profile.phone %}<p class="text-muted mb-1">Phone: {{ user.profile.phone }}</p>{% endif %}
+          {% if user.profile.phone_e164 %}<p class="small mb-1"><span class="fd-stock">Mobile verified for OTP sign-in</span></p>{% else %}<p class="small mb-1"><a href="{% url 'phone_login' %}">Verify a mobile number for OTP sign-in &rarr;</a></p>{% endif %}
+        </div>
+      </div>
+      {% if user.profile.shipping_address %}
+      <div class="mt-4 pt-4 border-top">
+        <span class="fd-eyebrow mb-2">Shipping address</span>
+        <p class="text-muted mb-1">{{ user.profile.shipping_address|linebreaksbr }}</p>
+      </div>
       {% endif %}
-      <div class="mt-3">
+      <div class="mt-4 d-flex flex-wrap gap-2">
+        <a href="{% url 'account_orders' %}" class="btn btn-dark rounded-pill">My Orders</a>
         <a href="{% url 'account_profile_edit' %}" class="btn btn-outline-dark rounded-pill">Edit Profile</a>
-        <a href="{% url 'account_orders' %}" class="btn btn-outline-dark rounded-pill">My Orders</a>
         <form method="post" action="{% url 'account_logout' %}" class="d-inline">
           {% csrf_token %}<button type="submit" class="btn btn-outline-danger rounded-pill">Sign Out</button>
         </form>

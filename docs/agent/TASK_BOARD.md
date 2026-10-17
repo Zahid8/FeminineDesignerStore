@@ -38,6 +38,8 @@
 | T25 | Ready | Customer order status search/filter | account order filters, tracking timeline, optional status metadata, tests | focused account order tests, full suite, check, migration dry-run if models change |
 | T26 | Ready | Contact and feedback capture | feedback model/form/views/templates/admin/tests | focused contact/admin tests, full suite, check, migration dry-run |
 | T27 | Ready | Client-side interaction polish | small progressive JS, affected templates, storefront tests, browser notes | storefront tests, full suite, check, collectstatic, browser pass |
+| T28 | Done (2026-10-17) | Customer-facing UI revamp ("Atelier" theme) | femdes-theme.css, all storefront/account templates, femdes.js motion layer, CDN libs (Bootstrap 5.3.8, Swiper 11, GSAP 3.15 + ScrollTrigger, Lenis), branded placeholder, Django messages as toasts | full suite, check, migration dry-run, collectstatic, Playwright desktop+mobile screenshots |
+| T29 | Done (2026-10-17) | Reference-driven storefront redesign ("Maison" v2) | femdes-theme.css rewrite, two-tier header + mega menu, HomeBanner model/admin/migration 0015, PLP sort + density, PDP colour/size chips + WhatsApp + sticky buy bar, live search, Alpine.js, design-reference montages | 351 tests, check, migration dry-run, collectstatic, Playwright desktop+mobile + behaviour script |
 
 ## Dependency Order
 
@@ -82,6 +84,12 @@
   public storefront, using `reference.png` for inspiration only.
 - T21 is an owner-requested light IndiChic-inspired UI pass for the blouse-only
   storefront, using `web_temp/indichic` for layout inspiration only.
+- T29 is the owner-requested second pass: study leading fashion sites and
+  adopt their best patterns without over-doing drama; use popular frameworks.
+  See `docs/agent/design-references/README.md`.
+- T28 is an owner-requested complete visual revamp of the customer-facing
+  site; the owner allowed a stack change but Django was kept (see
+  `CURRENT_TASK.md` T28 notes).
 - T22-T27 are owner-requested feature tasks inspired by
   `web_temp/indichic/ECommerceSite-Django`. Implement only missing FemDes
   capabilities from that reference: customer profile details/editing, order

@@ -92,3 +92,46 @@ class FeedbackForm(forms.Form):
         if self.user and User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists():
             raise forms.ValidationError("This email is already in use.")
         return email
+
+
+from store import phone as phone_numbers
+
+
+class PhoneLoginForm(forms.Form):
+    country = forms.ChoiceField()
+    phone = forms.CharField(max_length=20, label="Mobile number")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        countries = phone_numbers.enabled_countries()
+        self.fields["country"].choices = [(c.code, f"{c.name} (+{c.dial_code})") for c in countries]
+        if countries:
+            self.fields["country"].initial = countries[0].code
+            self.fields["phone"].widget.attrs.update({
+                "placeholder": countries[0].example,
+                "inputmode": "tel",
+                "autocomplete": "tel-national",
+            })
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("country") and cleaned.get("phone"):
+            try:
+                cleaned["phone_e164"] = phone_numbers.normalize(cleaned["country"], cleaned["phone"])
+            except phone_numbers.InvalidPhoneNumber as exc:
+                self.add_error("phone", str(exc))
+        return cleaned
+
+
+class OTPVerifyForm(forms.Form):
+    code = forms.RegexField(
+        regex=r"^\d{4,8}$",
+        max_length=8,
+        label="Verification code",
+        error_messages={"invalid": "Enter the digits from the SMS."},
+        widget=forms.TextInput(attrs={
+            "inputmode": "numeric",
+            "autocomplete": "one-time-code",
+            "pattern": r"\d*",
+        }),
+    )

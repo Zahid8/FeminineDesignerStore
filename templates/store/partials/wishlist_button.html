@@ -1,0 +1,6 @@
+<form method="post" action="{% url 'wishlist_toggle' product.pk %}" class="fd-wish-form{% if extra_class %} {{ extra_class }}{% endif %}" data-wishlist>
+  {% csrf_token %}
+  <button type="submit" class="fd-wish{% if product.pk in wishlist_ids %} is-saved{% endif %}" aria-pressed="{% if product.pk in wishlist_ids %}true{% else %}false{% endif %}" aria-label="{% if product.pk in wishlist_ids %}Remove {{ product.name }} from wishlist{% else %}Save {{ product.name }} to wishlist{% endif %}">
+    <svg width="18" height="18" aria-hidden="true"><use xlink:href="#heart"></use></svg>{% if label %}<span>{% if product.pk in wishlist_ids %}Saved{% else %}Add to Wishlist{% endif %}</span>{% endif %}
+  </button>
+</form>

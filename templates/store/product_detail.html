@@ -2,194 +2,289 @@
 {% load static %}
 
 {% block title %} — {{ product.name }}{% endblock %}
+{% block meta_description %}{{ product.short_description|default:product.description|striptags|truncatechars:155 }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ product.name }}{% endblock %}
+{% block og_description %}{{ product.short_description|default:product.description|striptags|truncatechars:155 }}{% endblock %}
+{% block og_image %}{% with primary=product.primary_image %}{% if primary %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ primary.image.url }}">{% endif %}{% endwith %}{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{{ product_jsonld }}</script>{% endblock %}
 
 {% block content %}
-<section class="py-5">
+{% with currency=site_settings.currency_symbol|default:"$" %}
+<section class="fd-pdp">
   <div class="container-lg">
-    <div class="row g-5">
-      <!-- Product images — one-at-a-time carousel -->
-      <div class="col-md-6">
+    <ol class="fd-crumbs" aria-label="Breadcrumb">
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li><a href="{% url 'product_list' %}">Shop</a></li>
+      {% if product.category %}<li><a href="{% url 'product_list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>{% endif %}
+      <li aria-current="page">{{ product.name }}</li>
+    </ol>
+    <div class="row g-4 g-lg-5">
+      <!-- Gallery -->
+      <div class="col-lg-7">
         {% with images=product.images.all|dictsort:"sort_order" %}
         {% if images %}
-        <div id="productCarousel{{ product.pk }}" class="carousel slide product-gallery" style="min-height: 400px;">
-          <div class="carousel-inner rounded overflow-hidden bg-light" style="aspect-ratio: 1/1;">
+        <div id="productCarousel{{ product.pk }}" class="carousel slide product-gallery" data-bs-touch="true">
+          <div class="carousel-inner overflow-hidden">
             {% for img in images %}
             <div class="carousel-item{% if forloop.first %} active{% endif %}">
-              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="d-block w-100 h-100" style="object-fit: cover;">
+              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="d-block w-100 h-100" style="object-fit: cover;"{% if not forloop.first %} loading="lazy"{% endif %}>
             </div>
             {% endfor %}
           </div>
           {% if images|length > 1 %}
           <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide="prev" aria-label="Previous image">
-            <span class="carousel-control-prev-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+            <span class="fd-gallery-arrow" aria-hidden="true"><svg width="18" height="18"><use xlink:href="#arrow-left"></use></svg></span>
           </button>
           <button class="carousel-control-next" type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide="next" aria-label="Next image">
-            <span class="carousel-control-next-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+            <span class="fd-gallery-arrow" aria-hidden="true"><svg width="18" height="18"><use xlink:href="#arrow-right"></use></svg></span>
           </button>
-          <div class="mt-2 text-center small text-muted">
-            {% for img in images %}
-            <button type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide-to="{{ forloop.counter0 }}" class="border-0 bg-transparent mx-1{% if forloop.first %} active fw-bold{% endif %}" aria-label="Image {{ forloop.counter }}">
-              <span class="d-inline-block rounded-circle bg-secondary" style="width:8px;height:8px;"></span>
-            </button>
-            {% endfor %}
-          </div>
           {% endif %}
         </div>
+        {% if images|length > 1 %}
+        <div class="fd-thumbs" role="group" aria-label="Choose image">
+          {% for img in images %}
+          <button type="button" data-bs-target="#productCarousel{{ product.pk }}" data-bs-slide-to="{{ forloop.counter0 }}" class="fd-thumb{% if forloop.first %} active{% endif %}"{% if forloop.first %} aria-current="true"{% endif %} aria-label="Image {{ forloop.counter }}">
+            <img src="{{ img.image.url }}" alt="" loading="lazy">
+          </button>
+          {% endfor %}
+        </div>
+        {% endif %}
         {% else %}
-        <img src="{% static 'store/images/product-item-1.jpg' %}" alt="{{ product.name }}" class="img-fluid rounded">
+        <div class="fd-pdp-single-wrap"><img src="{% static 'store/images/femdes-placeholder.svg' %}" alt="{{ product.name }}" class="fd-pdp-single"></div>
         {% endif %}
         {% endwith %}
       </div>
-      <!-- Product info -->
-      <div class="col-md-6">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-            {% if product.category %}
-            <li class="breadcrumb-item"><a href="{% url 'product_list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+
+      <!-- Buy panel -->
+      <div class="col-lg-5">
+        <div class="fd-pdp-info" data-buy-panel>
+          <h1>{{ product.name }}</h1>
+          <div class="fd-pdp-meta">
+            {% if product.sku %}<span>SKU: {{ product.sku }}</span>{% endif %}
+            {% if product.category %}<span>{{ product.category.name }}</span>{% endif %}
+            {% for tag in product.tags.all %}{% if tag.is_active %}<a href="{% url 'product_list' %}?tag={{ tag.slug }}">#{{ tag.name }}</a>{% endif %}{% endfor %}
+          </div>
+          <div class="fd-pdp-price">
+            <span class="fd-price">{{ currency }}{{ product.get_effective_price }}</span>
+            {% if product.compare_at_price and product.compare_at_price > product.price %}
+            <span class="fd-compare">{{ currency }}{{ product.compare_at_price }}</span>
+            <span class="fd-badge is-sale">Sale</span>
             {% endif %}
-            <li class="breadcrumb-item active">{{ product.name }}</li>
-          </ol>
-        </nav>
-        <h1 class="mb-2">{{ product.name }}</h1>
-        {% if product.sku %}<span class="text-muted">SKU: {{ product.sku }}</span>{% endif %}
-        {% for tag in product.tags.all %}
-        {% if tag.is_active %}
-        <a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="badge bg-light text-dark text-decoration-none me-1">{{ tag.name }}</a>
-        {% endif %}
-        {% endfor %}
-        <div class="my-3">
-          <span class="fs-3 text-primary fw-bold">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</span>
-          {% if product.compare_at_price and product.compare_at_price > product.price %}
-          <span class="text-muted text-decoration-line-through ms-2 fs-5">{{ site_settings.currency_symbol|default:"$" }}{{ product.compare_at_price }}</span>
-          {% endif %}
-        </div>
-        {% if product.short_description %}<p>{{ product.short_description }}</p>{% endif %}
-        {% if product.description %}<p class="text-muted">{{ product.description|linebreaks }}</p>{% endif %}
-        <p>
+          </div>
+          {% if product.short_description %}<p class="fd-pdp-short">{{ product.short_description }}</p>{% endif %}
+          <p>
+            {% if product.is_in_stock %}
+            <span class="fd-stock is-in">In Stock ({{ product.stock_quantity }} available)</span>
+            {% else %}
+            <span class="fd-stock is-out">Out of Stock</span>
+            {% endif %}
+          </p>
+
+          <!-- Ready-Made Measurements -->
+          <div class="fd-pdp-block" id="ready-made-specs">
+            <span class="fd-label">Ready-Made Specifications</span>
+            <p class="text-muted small mb-2">Standard measurements included with your purchase.</p>
+            {% if product.measurement_note %}<p class="small fst-italic">{{ product.measurement_note }}</p>{% endif %}
+            <div class="fd-spec-grid">
+              {% if product.default_length is not None %}<div><strong>Length</strong> <span>{{ product.default_length }} in</span></div>{% endif %}
+              {% if product.default_chest is not None %}<div><strong>Chest</strong> <span>{{ product.default_chest }} in</span></div>{% endif %}
+              {% if product.default_waist is not None %}<div><strong>Waist</strong> <span>{{ product.default_waist }} in</span></div>{% endif %}
+              {% if product.default_armhole is not None %}<div><strong>Armhole</strong> <span>{{ product.default_armhole }} in</span></div>{% endif %}
+              {% if product.default_opening is not None %}<div><strong>Opening</strong> <span>{{ product.default_opening }} in</span></div>{% endif %}
+              {% if product.default_bicep is not None %}<div><strong>Bicep</strong> <span>{{ product.default_bicep }} in</span></div>{% endif %}
+            </div>
+          </div>
+
           {% if product.is_in_stock %}
-          <span class="badge bg-success">In Stock ({{ product.stock_quantity }} available)</span>
-          {% else %}
-          <span class="badge bg-secondary">Out of Stock</span>
-          {% endif %}
-        </p>
-      <!-- Ready-Made Measurements -->
-      <div class="mt-4 pt-3 border-top" id="ready-made-specs">
-        <h5>Ready-Made Specifications</h5>
-        <p class="text-muted small">Standard measurements included with your purchase.</p>
-        {% if product.measurement_note %}<p class="small fst-italic">{{ product.measurement_note }}</p>{% endif %}
-        <div class="row g-2">
-          {% if product.default_length is not None %}<div class="col-6"><strong>Length</strong> {{ product.default_length }} in</div>{% endif %}
-          {% if product.default_chest is not None %}<div class="col-6"><strong>Chest</strong> {{ product.default_chest }} in</div>{% endif %}
-          {% if product.default_waist is not None %}<div class="col-6"><strong>Waist</strong> {{ product.default_waist }} in</div>{% endif %}
-          {% if product.default_armhole is not None %}<div class="col-6"><strong>Armhole</strong> {{ product.default_armhole }} in</div>{% endif %}
-          {% if product.default_opening is not None %}<div class="col-6"><strong>Opening</strong> {{ product.default_opening }} in</div>{% endif %}
-          {% if product.default_bicep is not None %}<div class="col-6"><strong>Bicep</strong> {{ product.default_bicep }} in</div>{% endif %}
-        </div>
-      </div>
-
-        {% if product.is_in_stock %}
-        <div class="d-flex gap-2 mt-4">
-          <form method="post" action="{% url 'buy_now' product.pk %}">
+          <form method="post" action="{% url 'add_to_cart' product.pk %}" id="pdp-cart-form" data-fd-busy>
             {% csrf_token %}
-            <button type="submit" class="btn btn-dark btn-lg">Buy Now</button>
+            {% with colors=product.color_choices sizes=product.size_choices %}
+            {% if colors %}
+            <fieldset class="fd-pdp-block">
+              <legend class="fd-label">Colour</legend>
+              <div class="fd-options">
+                {% for c in colors %}
+                <input type="radio" name="color" value="{{ c }}" id="color-{{ forloop.counter }}"{% if forloop.first %} checked{% endif %}>
+                <label for="color-{{ forloop.counter }}">{{ c }}</label>
+                {% endfor %}
+              </div>
+            </fieldset>
+            {% endif %}
+            {% if sizes %}
+            <fieldset class="fd-pdp-block">
+              <legend class="fd-label">Size</legend>
+              <div class="fd-options">
+                {% for s in sizes %}
+                <input type="radio" name="size" value="{{ s }}" id="size-{{ forloop.counter }}"{% if forloop.first %} checked{% endif %}>
+                <label for="size-{{ forloop.counter }}">{{ s }}</label>
+                {% endfor %}
+              </div>
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            <div class="fd-pdp-actions">
+              <div class="fd-pdp-cart">
+                <label for="quantity" class="visually-hidden">Quantity</label>
+                <div data-quantity-stepper>
+                  <button type="button" class="btn btn-sm qty-dec" aria-label="Decrease quantity" data-action="dec">&minus;</button>
+                  <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ product.stock_quantity }}" class="form-control qty-input">
+                  <button type="button" class="btn btn-sm qty-inc" aria-label="Increase quantity" data-action="inc">+</button>
+                </div>
+                <button type="submit" class="btn btn-outline-dark">Add to Cart</button>
+              </div>
+            </div>
           </form>
-          <a href="#customize-section" class="btn btn-outline-dark btn-lg">Customize</a>
-        </div>
-        <form method="post" action="{% url 'add_to_cart' product.pk %}" class="mt-3">
-          {% csrf_token %}
-          <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-              <label for="quantity" class="form-label">Qty</label>
-              <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ product.stock_quantity }}" class="form-control qty-input">
-            </div>
-            <div class="col-md-auto">
-              <button type="submit" class="btn btn-outline-dark">Add to Cart</button>
-            </div>
+          <div class="fd-pdp-actions mt-0">
+            <form method="post" action="{% url 'buy_now' product.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-dark">Buy Now</button>
+            </form>
+            <a href="#customize-section" class="btn btn-outline-dark">Customize</a>
+            {% if site_settings.whatsapp_url %}
+            <a href="{{ site_settings.whatsapp_url }}?text={{ product.name|urlencode }}%20-%20{{ request.build_absolute_uri|urlencode }}" class="btn btn-wa" target="_blank" rel="noopener">
+              <svg width="16" height="16" class="me-2" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg>Order on WhatsApp
+            </a>
+            {% endif %}
           </div>
-        </form>
-        {% endif %}
-      </div>
-
-      <!-- Measurement Guide Image -->
-      {% if product.measurement_guide_image %}
-      <div class="mt-5" id="measurement-guide">
-        <h5>Measurement Guide</h5>
-        <img src="{{ product.measurement_guide_image.url }}" alt="Measurement Guide" class="img-fluid rounded" style="aspect-ratio: 1/1; object-fit: cover; width: 100%; max-width: 400px;">
-      </div>
-      {% else %}
-      <div class="mt-5" id="measurement-guide">
-        <h5>Measurement Guide</h5>
-        <img src="{% static 'store/images/product-item-1.jpg' %}" alt="Measurement Guide (sample)" class="img-fluid rounded" style="aspect-ratio: 1/1; object-fit: cover; width: 100%; max-width: 400px;">
-      </div>
-      {% endif %}
-
-      <!-- Customization Section -->
-      <div class="mt-5 pt-4 border-top" id="customize-section">
-        <h3>Customize Your Blouse</h3>
-        <p class="text-muted">Enter your measurements below to create a customization request.</p>
-        <div class="alert alert-info small">
-          <strong>Disclaimer:</strong> Customization requires a 500 advance payment to UPI +919898989898. Please send the UPI payment screenshot through WhatsApp along with your customization link.
-        </div>
-        <form method="post" action="{% url 'customization_create' product.slug %}">
-          {% csrf_token %}
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Name</label>
-              <input type="text" name="customer_name" class="form-control" required maxlength="160">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Phone</label>
-              <input type="text" name="customer_phone" class="form-control" required maxlength="40">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Length (in)</label>
-              <input type="number" step="0.01" name="length" class="form-control" value="{{ customization_form.length.value|default:product.default_length }}" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Chest (in)</label>
-              <input type="number" step="0.01" name="chest" class="form-control" value="{{ customization_form.chest.value|default:product.default_chest }}" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Waist (in)</label>
-              <input type="number" step="0.01" name="waist" class="form-control" value="{{ customization_form.waist.value|default:product.default_waist }}" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Armhole (in)</label>
-              <input type="number" step="0.01" name="armhole" class="form-control" value="{{ customization_form.armhole.value|default:product.default_armhole }}" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Opening (in)</label>
-              <input type="number" step="0.01" name="opening" class="form-control" value="{{ customization_form.opening.value|default:product.default_opening }}" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Bicep (in)</label>
-              <input type="number" step="0.01" name="bicep" class="form-control" value="{{ customization_form.bicep.value|default:product.default_bicep }}" required>
-            </div>
-            <div class="col-12 mt-3">
-              <button type="submit" class="btn btn-dark">Submit Customization Request</button>
-            </div>
+          {% else %}
+          <div class="fd-pdp-actions">
+            <a href="#customize-section" class="btn btn-dark">Customize this design</a>
+            {% if site_settings.whatsapp_url %}
+            <a href="{{ site_settings.whatsapp_url }}?text={{ product.name|urlencode }}%20-%20{{ request.build_absolute_uri|urlencode }}" class="btn btn-wa" target="_blank" rel="noopener">
+              <svg width="16" height="16" class="me-2" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg>Order on WhatsApp
+            </a>
+            {% endif %}
           </div>
-        </form>
+          {% endif %}
+
+          {% include "store/partials/wishlist_button.html" with label=True extra_class="fd-pdp-wish" %}
+
+          <div class="fd-trust-row">
+            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#needle"></use></svg>Handcrafted</div>
+            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#ruler"></use></svg>Tailoring available</div>
+            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#shield"></use></svg>Secure checkout</div>
+          </div>
+
+          <div class="fd-details">
+            {% if product.description %}
+            <details open>
+              <summary>Description</summary>
+              <div class="fd-details-body">{{ product.description|linebreaks }}</div>
+            </details>
+            {% endif %}
+            <details id="measurement-guide"{% if not product.description %} open{% endif %}>
+              <summary>Measurement Guide</summary>
+              <div class="fd-details-body">
+                {% if product.measurement_guide_image %}
+                <img src="{{ product.measurement_guide_image.url }}" alt="Measurement Guide" class="fd-guide-img" loading="lazy">
+                {% else %}
+                <p class="mb-0">Measure over a well-fitting blouse: length from shoulder to hem, chest and waist at their fullest points, armhole around the joint, opening at the sleeve edge and bicep at its widest. Need help? <a href="{% url 'contact' %}">Ask us</a>.</p>
+                {% endif %}
+              </div>
+            </details>
+            <details>
+              <summary>Payment &amp; Help</summary>
+              <div class="fd-details-body">Pay securely at checkout. Questions about fit or fabric? <a href="{% url 'contact' %}">Contact us</a> and we will help you choose.</div>
+            </details>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- Related products -->
-    {% if related_products %}
-    <section id="related-products" class="related-products product-carousel py-5 position-relative overflow-hidden mt-5 pt-5 border-top">
-      <div class="container">
-        <h3 class="mb-4">Related Products</h3>
-        <div class="swiper product-swiper open-up">
-          <div class="swiper-wrapper d-flex">
-            {% for product in related_products %}
-            <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
-            {% endfor %}
+
+    <!-- Customization -->
+    <div class="fd-customize" id="customize-section">
+      <div class="row g-5">
+        <div class="col-lg-4">
+          <span class="fd-eyebrow">Made to measure</span>
+          <h3>Customize Your Blouse</h3>
+          <p class="text-muted">Enter your measurements below to create a customization request.</p>
+          <div class="fd-note alert alert-info small">
+            <svg width="20" height="20" aria-hidden="true"><use xlink:href="#info"></use></svg>
+            <div><strong>Disclaimer:</strong> Customization requires a 500 advance payment to UPI +919898989898. Please send the UPI payment screenshot through WhatsApp along with your customization link.</div>
           </div>
         </div>
-        <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
-        <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
+        <div class="col-lg-8">
+          <form method="post" action="{% url 'customization_create' product.slug %}">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="cz-name">Name</label>
+                <input type="text" id="cz-name" name="customer_name" class="form-control" required maxlength="160" autocomplete="name">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="cz-phone">Phone</label>
+                <input type="text" id="cz-phone" name="customer_phone" class="form-control" required maxlength="40" autocomplete="tel" inputmode="tel">
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label" for="cz-length">Length (in)</label>
+                <input type="number" step="0.01" id="cz-length" name="length" class="form-control" value="{{ customization_form.length.value|default:product.default_length }}" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label" for="cz-chest">Chest (in)</label>
+                <input type="number" step="0.01" id="cz-chest" name="chest" class="form-control" value="{{ customization_form.chest.value|default:product.default_chest }}" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label" for="cz-waist">Waist (in)</label>
+                <input type="number" step="0.01" id="cz-waist" name="waist" class="form-control" value="{{ customization_form.waist.value|default:product.default_waist }}" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label" for="cz-armhole">Armhole (in)</label>
+                <input type="number" step="0.01" id="cz-armhole" name="armhole" class="form-control" value="{{ customization_form.armhole.value|default:product.default_armhole }}" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label" for="cz-opening">Opening (in)</label>
+                <input type="number" step="0.01" id="cz-opening" name="opening" class="form-control" value="{{ customization_form.opening.value|default:product.default_opening }}" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label" for="cz-bicep">Bicep (in)</label>
+                <input type="number" step="0.01" id="cz-bicep" name="bicep" class="form-control" value="{{ customization_form.bicep.value|default:product.default_bicep }}" required>
+              </div>
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-dark btn-lg">Submit Customization Request</button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
-    </section>
-    {% endif %}
+    </div>
   </div>
+
+  <!-- Related products -->
+  {% if related_products %}
+  <section id="related-products" class="related-products product-carousel fd-section position-relative overflow-hidden pb-0">
+    <div class="container">
+      <div class="fd-section-head">
+        <div>
+          <span class="fd-eyebrow">You may also love</span>
+          <h3 class="mb-0">Related Products</h3>
+        </div>
+        <div class="fd-arrows">
+          <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
+          <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
+        </div>
+      </div>
+      <div class="swiper product-swiper open-up">
+        <div class="swiper-wrapper d-flex">
+          {% for product in related_products %}
+          <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if product.is_in_stock %}
+  <!-- Sticky mobile buy bar: submits the main cart form via the form attribute -->
+  <div class="fd-sticky-buy" data-sticky-buy aria-hidden="true">
+    <div class="overflow-hidden">
+      <div class="fd-sticky-name">{{ product.name }}</div>
+      <div class="fd-sticky-price">{{ currency }}{{ product.get_effective_price }}</div>
+    </div>
+    <button type="submit" form="pdp-cart-form" class="btn btn-dark btn-sm" tabindex="-1">Add to Cart</button>
+  </div>
+  {% endif %}
 </section>
+{% endwith %}
 {% endblock %}

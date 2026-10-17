@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} — Sign in with mobile{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container-lg">
+    <div class="fd-auth" data-reveal="scale">
+      <div class="fd-auth-visual">
+        <img src="{% static 'store/images/banner-image-2.jpg' %}" alt="" aria-hidden="true">
+        <span class="fd-eyebrow">Welcome</span>
+        <h2>Sign in with <em>your mobile</em></h2>
+        <p>We will text you a one-time code. No password needed.</p>
+      </div>
+      <div class="fd-auth-form">
+        {% if user.is_authenticated %}
+        <h2 class="mb-2">Verify your mobile</h2>
+        <p class="text-muted mb-4">Add a verified number to sign in with a one-time code next time.</p>
+        {% else %}
+        {% include "store/partials/auth_tabs.html" with active="phone" %}
+        <h2 class="mb-2">Sign In</h2>
+        <p class="text-muted mb-4">Enter your mobile number to receive a code.</p>
+        {% endif %}
+        <form method="post" class="fd-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          {% for e in form.non_field_errors %}<div class="alert alert-danger small">{{ e }}</div>{% endfor %}
+          <label for="{{ form.phone.id_for_label }}">Mobile number</label>
+          <div class="fd-phone-field">
+            {% if form.fields.country.choices|length > 1 %}
+            <label for="{{ form.country.id_for_label }}" class="visually-hidden">Country</label>
+            {{ form.country }}
+            {% else %}
+            {% for value, label in form.fields.country.choices %}<input type="hidden" name="country" value="{{ value }}"><span class="fd-dial">{{ label|cut:"India "|cut:"("|cut:")" }}</span>{% endfor %}
+            {% endif %}
+            {{ form.phone }}
+          </div>
+          {% for e in form.phone.errors %}<ul class="errorlist"><li>{{ e }}</li></ul>{% endfor %}
+          <p class="helptext mt-2 mb-0">Standard SMS rates may apply.</p>
+          <button type="submit" class="btn btn-dark btn-lg w-100 mt-4">Send Code</button>
+        </form>
+        {% if not user.is_authenticated %}
+        <p class="mt-4 text-center text-muted">New here? Signing in with your mobile creates your account automatically.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

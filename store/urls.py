@@ -1,6 +1,7 @@
+from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from store import views
+from store import views, views_extra, views_phone
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -51,7 +52,33 @@ urlpatterns = [
     # Accounts
     path("accounts/register/", views.account_register, name="account_register"),
     path("accounts/login/", views.account_login, name="account_login"),
+    path("accounts/login/phone/", views_phone.phone_login, name="phone_login"),
+    path("accounts/login/phone/verify/", views_phone.phone_verify, name="phone_verify"),
     path("accounts/logout/", views.account_logout, name="account_logout"),
+    path(
+        "accounts/password/reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="store/password_reset_form.html",
+            email_template_name="store/emails/password_reset_email.txt",
+            subject_template_name="store/emails/password_reset_subject.txt",
+        ),
+        name="password_reset",
+    ),
+    path(
+        "accounts/password/reset/sent/",
+        auth_views.PasswordResetDoneView.as_view(template_name="store/password_reset_done.html"),
+        name="password_reset_done",
+    ),
+    path(
+        "accounts/password/reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(template_name="store/password_reset_confirm.html"),
+        name="password_reset_confirm",
+    ),
+    path(
+        "accounts/password/reset/complete/",
+        auth_views.PasswordResetCompleteView.as_view(template_name="store/password_reset_complete.html"),
+        name="password_reset_complete",
+    ),
     path("accounts/profile/", views.account_profile, name="account_profile"),
     path("accounts/profile/edit/", views.account_profile_edit, name="account_profile_edit"),
     path("accounts/orders/", views.account_orders, name="account_orders"),
@@ -65,4 +92,6 @@ urlpatterns = [
     path("staff/feedback/", views.staff_feedback_list, name="staff_feedback_list"),
     # Public
     path("contact/", views.contact_view, name="contact"),
+    path("wishlist/", views_extra.wishlist_page, name="wishlist"),
+    path("wishlist/toggle/<int:product_id>/", views_extra.wishlist_toggle, name="wishlist_toggle"),
 ]

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %} — Wishlist{% endblock %}
+{% block content %}
+<header class="fd-page-header">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{% url 'home' %}">Home</a></li><li aria-current="page">Wishlist</li></ol>
+    <h1>Your Wishlist</h1>
+    <p>{% if products %}{{ products|length }} saved piece{{ products|length|pluralize }}{% else %}Save the pieces you love and find them here later.{% endif %}</p>
+  </div>
+</header>
+<section class="indichic-section">
+  <div class="container-lg">
+    {% if not user.is_authenticated and products %}
+    <div class="fd-note mb-4"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#info"></use></svg><div>Your wishlist is saved on this device. <a href="{% url 'account_login' %}?next={% url 'wishlist' %}">Sign in</a> to keep it across devices.</div></div>
+    {% endif %}
+    {% if products %}
+    <div class="row g-3 g-lg-4 gy-5">
+      {% for product in products %}
+      <div class="col-6 col-md-4 col-lg-3">{% include "store/partials/product_card.html" %}</div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="fd-empty-icon"><svg width="30" height="30" aria-hidden="true"><use xlink:href="#heart"></use></svg></div>
+      <h4>Your wishlist is empty</h4>
+      <p class="text-muted">Tap the heart on any blouse to save it.</p>
+      <a href="{% url 'product_list' %}" class="btn btn-dark mt-2">Discover Blouses</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

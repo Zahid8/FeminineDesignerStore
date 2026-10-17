@@ -95,8 +95,10 @@ class TimelineActiveStatusTests(TestCase):
         self.user = User.objects.create_user(username="buyer", password="pass")
 
     def test_each_status_is_active(self):
-        """For each status value the matching badge is active (bg-dark)
-        and non-current badges are inactive (bg-light text-muted)."""
+        """For each status value exactly that step is current (is-current +
+        aria-current="step") and every other step is rendered as a plain step."""
+        import re
+
         self.client.login(username="buyer", password="pass")
         for status_val, _ in Order.STATUS_CHOICES:
             order = Order.objects.create(
@@ -110,20 +112,20 @@ class TimelineActiveStatusTests(TestCase):
             self.assertEqual(response.status_code, 200,
                              msg=f"Detail failed for status={status_val}")
             content = response.content.decode()
-
-            for tv, tl in self.TIMELINE_LABELS.items():
-                if tv == status_val:
-                    # The active badge must have bg-dark, not bg-light
-                    self.assertIn('bg-dark rounded-pill', content,
-                                  msg=f"Active status '{tl}' should have bg-dark badge")
-                    self.assertIn(tl, content)
-                else:
-                    # Non-current badges must have bg-light text-muted
-                    self.assertIn(
-                        f'bg-light text-muted rounded-pill px-3 py-2">{tl}</span>',
-                        content,
-                        msg=f"Inactive status '{tl}' should have bg-light text-muted badge",
-                    )
+            timeline = re.search(
+                r'<ol class="fd-steps-track[^"]*" aria-label="Order status timeline">(.*?)</ol>',
+                content, re.S,
+            )
+            self.assertIsNotNone(timeline, "Order status timeline <ol> missing")
+            steps = re.findall(r'<li class="([^"]*)"([^>]*)>([^<]+)</li>', timeline.group(1))
+            self.assertEqual([label for _, _, label in steps],
+                             list(self.TIMELINE_LABELS.values()))
+            for classes, attrs, label in steps:
+                is_current = label == self.TIMELINE_LABELS[status_val]
+                self.assertEqual("is-current" in classes.split(), is_current,
+                                 msg=f"Step '{label}' current-class mismatch for {status_val}")
+                self.assertEqual('aria-current="step"' in attrs, is_current,
+                                 msg=f"Step '{label}' aria-current mismatch for {status_val}")
             order.delete()
 
 

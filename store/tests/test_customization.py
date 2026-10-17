@@ -343,7 +343,7 @@ class CustomizationViewMoreTests(TestCase):
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "product-item-1.jpg")
+        self.assertContains(response, "femdes-placeholder.svg")
         self.assertNotIn('aria-label="Previous image"', response.content.decode())
         self.assertNotIn('aria-label="Next image"', response.content.decode())
 

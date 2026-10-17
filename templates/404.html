@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %} — Page not found{% endblock %}
+{% block content %}
+<section class="fd-section">
+  <div class="container-lg text-center" style="max-width:640px">
+    <span class="fd-eyebrow is-center">Error 404</span>
+    <h1>This page has wandered off</h1>
+    <p class="text-muted mb-4">The link may be broken, or the piece is no longer available.</p>
+    <form method="get" action="{% url 'product_list' %}" class="fd-underline-input mx-auto mb-4" style="max-width:420px">
+      <label for="nf-q" class="visually-hidden">Search products</label>
+      <input type="search" id="nf-q" name="q" class="form-control" placeholder="Search blouses">
+      <button type="submit">Search</button>
+    </form>
+    <a href="{% url 'home' %}" class="btn btn-dark">Back to Home</a>
+    <a href="{% url 'product_list' %}" class="btn btn-outline-dark ms-2">Shop All</a>
+  </div>
+</section>
+{% endblock %}

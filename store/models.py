@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import IntegrityError, models, transaction
+from django.urls import reverse
 from django.utils import timezone as tz
 
 
@@ -146,6 +148,37 @@ class Product(models.Model):
             return None
         primary = [i for i in imgs if i.is_primary]
         return primary[0] if primary else imgs[0]
+
+    def get_absolute_url(self):
+        return reverse("product_detail", kwargs={"slug": self.slug})
+
+    @property
+    def secondary_image(self):
+        """Return the first non-primary image by sort order (card hover), or None."""
+        primary = self.primary_image
+        for img in self.images.all():
+            if primary is None or img.pk != primary.pk:
+                return img
+        return None
+
+    @staticmethod
+    def _split_options(raw):
+        seen = []
+        for part in re.split(r"[,\n]", raw or ""):
+            part = part.strip()
+            if part and part not in seen:
+                seen.append(part)
+        return seen
+
+    @property
+    def color_choices(self):
+        """Admin-entered colour options (comma or newline separated)."""
+        return self._split_options(self.color_options)
+
+    @property
+    def size_choices(self):
+        """Admin-entered size options (comma or newline separated)."""
+        return self._split_options(self.size_options)
 
     @property
     def is_in_stock(self):
@@ -370,6 +403,40 @@ class Discount(models.Model):
         return max(result, Decimal("0.00"))
 
 
+class HomeBanner(models.Model):
+    """Full-bleed homepage hero slide managed by staff in Django admin."""
+
+    TEXT_THEMES = [
+        ("light", "Light text (for dark photos)"),
+        ("dark", "Dark text (for light photos)"),
+    ]
+
+    image = models.ImageField(upload_to="banners/")
+    mobile_image = models.ImageField(
+        upload_to="banners/", blank=True, null=True,
+        help_text="Optional portrait crop shown on phones.",
+    )
+    eyebrow = models.CharField(max_length=80, blank=True)
+    title = models.CharField(max_length=140)
+    subtitle = models.CharField(max_length=255, blank=True)
+    cta_label = models.CharField(max_length=40, default="Shop Now")
+    cta_url = models.CharField(
+        max_length=255, blank=True,
+        help_text="Site path or full URL. Leave blank to link to the shop.",
+    )
+    text_theme = models.CharField(max_length=10, choices=TEXT_THEMES, default="light")
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return self.title
+
+
 class NewsletterSubscriber(models.Model):
     """Captured newsletter signups."""
 
@@ -579,6 +646,9 @@ class CustomerProfile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
     )
     phone = models.CharField(max_length=40, blank=True, null=True)
+    # Verified number in E.164 form, used for OTP login (one account per number).
+    phone_e164 = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    phone_verified_at = models.DateTimeField(blank=True, null=True)
     shipping_address = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(
         upload_to="profiles/", blank=True, null=True
@@ -588,6 +658,25 @@ class CustomerProfile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+
+
+class PhoneOTP(models.Model):
+    """A hashed one-time password sent by SMS for phone login/verification."""
+
+    phone = models.CharField(max_length=20, db_index=True)  # E.164
+    code_hash = models.CharField(max_length=64)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    expires_at = models.DateTimeField()
+    consumed_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "phone OTP"
+
+    def __str__(self):
+        return f"OTP for {self.phone} at {self.created_at:%Y-%m-%d %H:%M}"
 
 
 class Feedback(models.Model):
@@ -605,3 +694,18 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"Feedback from {self.name}: {self.subject}"
+
+
+class WishlistItem(models.Model):
+    """A product saved by a signed-in customer (guests use the session)."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="wishlist_items")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="wishlisted_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [models.UniqueConstraint(fields=["user", "product"], name="unique_wishlist_item")]
+
+    def __str__(self):
+        return f"{self.user} ♥ {self.product}"

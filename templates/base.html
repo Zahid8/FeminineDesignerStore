@@ -7,32 +7,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="format-detection" content="telephone=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+  <meta name="theme-color" content="#faf7f2">
+  <meta name="description" content="{% block meta_description %}{{ site_settings.tagline|default:'Handcrafted designer blouses, ready-made or tailored to your measurements.' }}{% endblock %}">
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <meta property="og:site_name" content="{{ site_settings.store_name|default:'FemDes' }}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}{{ site_settings.store_name|default:'FemDes' }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ site_settings.tagline|default:'Handcrafted designer blouses, ready-made or tailored to your measurements.' }}{% endblock %}">
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  {% block og_image %}{% if site_settings.logo %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ site_settings.logo.url }}">{% endif %}{% endblock %}
+  <meta name="twitter:card" content="summary_large_image">
+  {% block structured_data %}{% endblock %}
+  <script>
+    /* Reveal animations hide content only when motion is allowed; the
+       storefront script removes the class again if GSAP fails to load. */
+    (function (d) {
+      if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        d.documentElement.classList.add('fd-js');
+        setTimeout(function () { if (!window.__fdReady) d.documentElement.classList.remove('fd-js'); }, 2500);
+      }
+      /* Swap broken product images (file missing from storage) for the placeholder. */
+      d.addEventListener('error', function (e) {
+        var img = e.target, fb = d.body && d.body.getAttribute('data-fallback-img');
+        if (!img || img.tagName !== 'IMG' || img.getAttribute('data-fd-fallback') || !fb) return;
+        img.setAttribute('data-fd-fallback', '1');
+        img.src = fb;
+      }, true);
+    })(document);
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="{% static 'store/css/vendor.css' %}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.css"
+    integrity="sha384-gAPqlBuTCdtVcYt9ocMOYWrnBZ4XSL6q+4eXqwNycOr4iFczhNKtnYhF3NEXJM51" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="{% static 'store/style.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.27/dist/lenis.css"
+    integrity="sha384-gvLq/iOMNnPchdosgVym5huSVkKipHCQaqSw2Eg0V52Mzmlf169ZOsXcNc2cNu8x" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=Marcellus&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="{% static 'store/css/femdes-theme.css' %}">
 </head>
-<body>
+<body data-fallback-img="{% static 'store/images/femdes-placeholder.svg' %}">
+  <div class="fd-progress" aria-hidden="true"></div>
   {% include "store/partials/icons.html" %}
   {% include "store/partials/search_popup.html" %}
   {% include "store/partials/cart_offcanvas.html" %}
+  <div class="fd-announce" role="note">
+    Handcrafted designer blouses<span class="d-sm-inline"> &middot; made to your measurements</span>{% if site_settings.whatsapp_url %} &middot; <a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">Chat with us on WhatsApp</a>{% endif %}
+  </div>
   {% include "store/partials/navbar.html" %}
 
+  <main id="main">
   {% block content %}{% endblock %}
+  </main>
 
   {% include "store/partials/footer.html" %}
 
+  {% if messages %}
+  <div class="fd-toasts" role="status" aria-live="polite">
+    {% for message in messages %}
+    <div class="fd-toast{% if message.level_tag == 'error' %} is-error{% endif %}" data-toast>
+      <svg width="20" height="20" aria-hidden="true"><use xlink:href="{% if message.level_tag == 'error' %}#info{% else %}#check{% endif %}"></use></svg>
+      <span>{{ message }}</span>
+      <button type="button" aria-label="Dismiss message" data-toast-close>&times;</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if site_settings.whatsapp_url %}
+  <a href="{{ site_settings.whatsapp_url }}" class="fd-whatsapp-float" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp">
+    <svg width="26" height="26" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg>
+  </a>
+  {% endif %}
+  <button type="button" class="fd-to-top" aria-label="Back to top" data-to-top>
+    <svg width="18" height="18" aria-hidden="true"><use xlink:href="#arrow-up"></use></svg>
+  </button>
+
   <script src="{% static 'store/js/jquery.min.js' %}"></script>
   <script src="{% static 'store/js/plugins.js' %}"></script>
-  <script src="{% static 'store/js/SmoothScroll.js' %}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.js"
+    integrity="sha384-2UI1PfnXFjVMQ7/ZDEF70CR943oH3v6uZrFQGGqJYlvhh4g6z6uVktxYbOlAczav" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"
+    integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"
+    integrity="sha384-wl5TeDVvOWt30Pbf8aSo2ZrzsOjddu3avOBvHe+p+OhJt9gP6w9YXmDkN5DK2/dF" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.27/dist/lenis.min.js"
+    integrity="sha384-R18XzqnxvVLEF+BYfhpmDx30v7eP83fAckyfoRzK7/Uf6nGqufcmsk0eAKo7S3RU" crossorigin="anonymous"></script>
   <script src="{% static 'store/js/script.min.js' %}"></script>
-<script src="{% static 'store/js/femdes.js' %}"></script>
+  <script src="{% static 'store/js/femdes.js' %}"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/cdn.min.js"
+    integrity="sha384-5/joNqFnRyVWzXp99bHot6RHG+EksGp+USSgZwPar7T9SD9PKKER37n/8bXBAZGd" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -2,106 +2,107 @@
 {% load static %}
 
 {% block content %}
-<!-- Hero / Billboard -->
-<section class="hero-section py-5">
-  <div class="container-lg">
-    <div id="hero-carousel" class="swiper product-swiper">
-      <div class="swiper-wrapper">
-        {% for product in featured|default:new_arrivals %}
-        <div class="swiper-slide">
-          <div class="row align-items-center">
-            <div class="col-md-6 hero-text-col">
-              <span class="badge bg-light text-dark mb-3 px-3 py-2 rounded-pill">New Collection</span>
-              <h1 class="display-5 fw-bold hero-title">{{ product.name }}</h1>
-              <p class="lead text-muted my-3">{{ product.short_description|default:"Handcrafted blouses, tailored for you." }}</p>
-              <p class="fs-3 fw-bold hero-price mb-4">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</p>
-              <div class="d-flex gap-3 flex-wrap">
-                <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark btn-lg rounded-pill">Shop Now</a>
-                <a href="{% url 'product_list' %}" class="btn btn-outline-dark btn-lg rounded-pill">Browse Collection</a>
-              </div>
-            </div>
-            <div class="col-md-6 hero-img-col">
-              {% with primary=product.primary_image %}
-              <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="img-fluid hero-capsule-img" alt="{{ product.name }}">
-              {% endwith %}
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      <div class="swiper-pagination"></div>
-    </div>
-  </div>
-</section>
+{% with currency=site_settings.currency_symbol|default:"$" hero_products=featured|default:new_arrivals %}
 
-<!-- Promo Editorial Collage -->
-<section class="py-5 section-soft">
-  <div class="container-lg">
-    <div class="row g-3 align-items-center">
-      <div class="col-md-5">
-        <div class="position-relative">
-          {% with promo_img=featured|default:new_arrivals|first %}
-          {% with primary=promo_img.primary_image %}
-          <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/banner-image-1.jpg' %}{% endif %}" class="promo-collage-img shadow-sm" alt="Blouse Collection">
-          {% endwith %}
-          {% endwith %}
-          <div class="promo-float-card position-absolute bottom-0 end-0 m-3 bg-white rounded-4 p-3 shadow-sm">
-            <div class="promo-stat fs-4 fw-bold text-warm">15+</div>
-            <small class="text-muted">Exclusive Designs</small>
+{% if banners %}
+<!-- Hero: full-bleed campaign banners (Django admin > Home banners) -->
+<section class="fd-hero-banner{% if banners.0.text_theme == 'dark' %} is-light-theme{% endif %}" data-hero-banner data-hero-theme="{{ banners.0.text_theme }}">
+  <div id="hero-carousel" class="swiper">
+    <div class="swiper-wrapper">
+      {% for banner in banners %}
+      <div class="swiper-slide">
+        <div class="fd-hero-slide" data-theme="{{ banner.text_theme }}">
+          <picture>
+            {% if banner.mobile_image %}<source media="(max-width: 767px)" srcset="{{ banner.mobile_image.url }}">{% endif %}
+            <img src="{{ banner.image.url }}" alt="" class="fd-hero-img"{% if not forloop.first %} loading="lazy"{% endif %}>
+          </picture>
+          <div class="fd-hero-copy" data-hero-text>
+            {% if banner.eyebrow %}<span class="fd-eyebrow">{{ banner.eyebrow }}</span>{% endif %}
+            {% if forloop.first %}<h1 data-split>{{ banner.title }}</h1>{% else %}<h2 data-split>{{ banner.title }}</h2>{% endif %}
+            {% if banner.subtitle %}<p>{{ banner.subtitle }}</p>{% endif %}
+            <a href="{% if banner.cta_url %}{{ banner.cta_url }}{% else %}{% url 'product_list' %}{% endif %}" class="btn btn-outline-light">{{ banner.cta_label|default:"Shop Now" }}</a>
           </div>
         </div>
       </div>
-      <div class="col-md-7">
-        <div class="row g-3">
-          <div class="col-6">
-            {% with second=featured|default:new_arrivals|slice:"1:2"|first %}
-            {% if second %}
-            <img src="{% if second.primary_image %}{{ second.primary_image.image.url }}{% else %}{% static 'store/images/product-item-1.jpg' %}{% endif %}" class="promo-collage-img shadow-sm w-100" alt="Blouse">
-            {% else %}
-            <img src="{% static 'store/images/product-item-1.jpg' %}" class="promo-collage-img shadow-sm w-100" alt="Blouse">
-            {% endif %}
+      {% endfor %}
+    </div>
+    <div class="fd-hero-pagination"></div>
+  </div>
+  <span class="fd-scroll-cue" aria-hidden="true"></span>
+</section>
+{% else %}
+<!-- Hero: product split (no banners configured yet) -->
+<section class="fd-hero-split" data-hero-split>
+  <div id="hero-carousel" class="swiper">
+    <div class="swiper-wrapper">
+      {% for product in hero_products|slice:":5" %}
+      <div class="swiper-slide">
+        <div class="fd-hero-split-slide">
+          <div class="fd-hero-split-copy" data-hero-text>
+            <span class="fd-eyebrow">{% if product.category %}{{ product.category.name }} &middot; {% endif %}New Collection</span>
+            <h1 data-split>{{ product.name }}</h1>
+            <p>{{ product.short_description|default:"Handcrafted blouses, tailored for you." }}</p>
+            <p class="fd-hero-split-price"><small>From</small>{{ currency }}{{ product.get_effective_price }}</p>
+            <div class="d-flex gap-3 flex-wrap">
+              <a href="{% url 'product_detail' product.slug %}" class="btn btn-dark rounded-pill">Shop Now</a>
+              <a href="{% url 'product_list' %}" class="btn btn-outline-dark rounded-pill">Browse Collection</a>
+            </div>
+            <div class="fd-hero-trust">
+              <span><svg width="14" height="14" aria-hidden="true"><use xlink:href="#needle"></use></svg>Handcrafted</span>
+              <span><svg width="14" height="14" aria-hidden="true"><use xlink:href="#ruler"></use></svg>Made to measure</span>
+              <span><svg width="14" height="14" aria-hidden="true"><use xlink:href="#shield"></use></svg>Secure checkout</span>
+            </div>
+          </div>
+          <div class="fd-hero-split-media">
+            {% with primary=product.primary_image %}
+            <img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/femdes-placeholder.svg' %}{% endif %}" class="hero-capsule-img" alt="{{ product.name }}"{% if not forloop.first %} loading="lazy"{% endif %}>
             {% endwith %}
           </div>
-          <div class="col-6 d-flex flex-column gap-3">
-            <div class="promo-card p-3 flex-grow-1 d-flex align-items-center justify-content-center">
-              <div class="text-center">
-                <div class="promo-stat fs-4 fw-bold text-warm">100%</div>
-                <small class="text-muted">Handcrafted</small>
-              </div>
-            </div>
-            <div class="promo-card p-3 flex-grow-1 d-flex align-items-center justify-content-center">
-              <div class="text-center">
-                <div class="promo-stat fs-4 fw-bold text-warm">Custom</div>
-                <small class="text-muted">Tailored Fit</small>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+      {% empty %}
+      <div class="swiper-slide">
+        <div class="fd-hero-split-slide">
+          <div class="fd-hero-split-copy" data-hero-text>
+            <span class="fd-eyebrow">The Blouse Atelier</span>
+            <h1 data-split>Blouses, made for you</h1>
+            <p>Handcrafted blouses, tailored for you.</p>
+            <div class="d-flex gap-3 flex-wrap"><a href="{% url 'product_list' %}" class="btn btn-dark rounded-pill">Shop Now</a></div>
+          </div>
+          <div class="fd-hero-split-media"><img src="{% static 'store/images/femdes-placeholder.svg' %}" class="hero-capsule-img" alt="Designer blouse"></div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
+    <div class="fd-hero-pagination"></div>
   </div>
 </section>
+{% endif %}
 
-<!-- Services / Features Band -->
-<section class="py-4 border-bottom">
+<!-- Services band -->
+<section class="fd-features py-4">
   <div class="container-lg">
-    <div class="row g-4 text-center">
-      <div class="col-md-3"><h6>Free Shipping</h6><small class="text-muted">On orders over $50</small></div>
-      <div class="col-md-3"><h6>Secure Payment</h6><small class="text-muted">100% secure checkout</small></div>
-      <div class="col-md-3"><h6>Easy Returns</h6><small class="text-muted">30-day return policy</small></div>
-      <div class="col-md-3"><h6>24/7 Support</h6><small class="text-muted">Dedicated assistance</small></div>
+    <div class="row g-3">
+      <div class="col-6 col-lg-3"><div class="fd-feature"><span class="fd-feature-icon"><svg width="22" height="22" aria-hidden="true"><use xlink:href="#needle"></use></svg></span><h6>Handcrafted</h6><small>Finished by skilled artisans</small></div></div>
+      <div class="col-6 col-lg-3"><div class="fd-feature"><span class="fd-feature-icon"><svg width="22" height="22" aria-hidden="true"><use xlink:href="#ruler"></use></svg></span><h6>Made to Measure</h6><small>Six measurements, tailored to you</small></div></div>
+      <div class="col-6 col-lg-3"><div class="fd-feature"><span class="fd-feature-icon"><svg width="22" height="22" aria-hidden="true"><use xlink:href="#shield"></use></svg></span><h6>Secure Payment</h6><small>UPI and card checkout</small></div></div>
+      <div class="col-6 col-lg-3"><div class="fd-feature"><span class="fd-feature-icon"><svg width="22" height="22" aria-hidden="true"><use xlink:href="#chat"></use></svg></span><h6>Personal Support</h6><small>Talk to us on WhatsApp</small></div></div>
     </div>
   </div>
 </section>
 
 <!-- Categories -->
 {% if categories %}
-<section class="py-5">
+<section class="fd-section">
   <div class="container-lg">
-    <h2 class="text-center mb-4">Shop by Category</h2>
-    <div class="row g-4">
+    <div class="fd-section-head-center" data-reveal>
+      <span class="fd-eyebrow is-center">Collections</span>
+      <h2>A silhouette for every occasion</h2>
+      <p>From everyday cotton to occasion-ready silk</p>
+    </div>
+    <div class="row g-3 g-lg-4 justify-content-center">
       {% for category in categories %}
-      <div class="col-6 col-md-4 col-lg-3">{% include "store/partials/category_card.html" %}</div>
+      <div class="col-6 col-md-4 col-lg-3" data-reveal>{% include "store/partials/category_card.html" %}</div>
       {% endfor %}
     </div>
   </div>
@@ -110,95 +111,146 @@
 
 <!-- New Arrivals -->
 {% if new_arrivals %}
-<section id="new-arrival" class="new-arrival product-carousel py-5 position-relative overflow-hidden">
+<section id="new-arrival" class="new-arrival product-carousel fd-section pt-0 position-relative overflow-hidden">
   <div class="container">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 mb-3">
-      <h4 class="text-uppercase">New Arrivals</h4>
-      <a href="{% url 'product_list' %}" class="btn-link">View All Products</a>
+    <div class="fd-section-head" data-reveal>
+      <div>
+        <span class="fd-eyebrow">Just in</span>
+        <h2>New Arrivals</h2>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <a href="{% url 'product_list' %}?sort=newest" class="btn-link fd-link-underline">View All Products</a>
+        <div class="fd-arrows">
+          <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
+          <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
+        </div>
+      </div>
     </div>
-    <div class="swiper product-swiper open-up">
+    <div class="swiper product-swiper open-up" data-reveal>
       <div class="swiper-wrapper d-flex">
         {% for product in new_arrivals %}
         <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
         {% endfor %}
       </div>
     </div>
-    <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
-    <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
   </div>
 </section>
 {% endif %}
 
+<!-- Editorial: atelier -->
+<section class="fd-editorial" data-reveal="fade">
+  <div class="fd-editorial-media is-product">
+    {% with story=hero_products|slice:"1:2"|first %}
+    {% if story and story.primary_image %}
+    <img src="{{ story.primary_image.image.url }}" class="promo-collage-img" alt="{{ story.name }}" loading="lazy" data-parallax="4">
+    {% else %}
+    <img src="{% static 'store/images/femdes-placeholder.svg' %}" class="promo-collage-img" alt="" loading="lazy">
+    {% endif %}
+    {% endwith %}
+  </div>
+  <div class="fd-editorial-copy">
+    <span class="fd-eyebrow">Our Atelier</span>
+    <h2>Made by hand, <em>fitted to you</em></h2>
+    <p>Every blouse is cut, stitched and finished with care. Choose a ready-made fit, or send us your measurements and we will tailor the piece to your shape &mdash; the way a blouse should be made.</p>
+    <div class="fd-stats">
+      <div class="fd-stat promo-card"><strong>100%</strong><small>Handcrafted</small></div>
+      <div class="fd-stat promo-card"><strong>6</strong><small>Measurements</small></div>
+      <div class="fd-stat promo-card"><strong>1:1</strong><small>Tailored fit</small></div>
+    </div>
+    <div><a href="{% url 'product_list' %}" class="btn btn-dark">Explore the Collection</a></div>
+  </div>
+</section>
+
 <!-- Best Sellers -->
 {% if best_sellers %}
-<section id="best-sellers" class="best-sellers product-carousel py-5 position-relative overflow-hidden">
+<section id="best-sellers" class="best-sellers product-carousel fd-section position-relative overflow-hidden">
   <div class="container">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 mb-3">
-      <h4 class="text-uppercase">Best Sellers</h4>
-      <a href="{% url 'product_list' %}" class="btn-link">View All Products</a>
+    <div class="fd-section-head" data-reveal>
+      <div>
+        <span class="fd-eyebrow">Most loved</span>
+        <h2>Best Sellers</h2>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <a href="{% url 'product_list' %}" class="btn-link fd-link-underline">View All Products</a>
+        <div class="fd-arrows">
+          <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
+          <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
+        </div>
+      </div>
     </div>
-    <div class="swiper product-swiper open-up">
+    <div class="swiper product-swiper open-up" data-reveal>
       <div class="swiper-wrapper d-flex">
         {% for product in best_sellers %}
         <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
         {% endfor %}
       </div>
     </div>
-    <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
-    <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
   </div>
 </section>
 {% endif %}
 
+<!-- Made to measure -->
+<section class="fd-editorial is-flipped is-wine" id="made-to-measure" data-reveal="fade">
+  <div class="fd-editorial-media">
+    <img src="{% static 'store/images/banner-image-3.jpg' %}" alt="Tailoring in the atelier" loading="lazy" data-parallax="4">
+  </div>
+  <div class="fd-editorial-copy">
+    <span class="fd-eyebrow">Made to measure</span>
+    <h2>Your blouse, <em>your fit</em></h2>
+    <p>Any design in our collection can be tailored. Here is how it works.</p>
+    <ol class="fd-steps">
+      <li><div><h6>Choose a design</h6><p>Pick any blouse and open its customization form.</p></div></li>
+      <li><div><h6>Share your measurements</h6><p>Length, chest, waist, armhole, opening and bicep &mdash; that is all.</p></div></li>
+      <li><div><h6>We stitch it for you</h6><p>Our tailors cut and finish the piece to your numbers.</p></div></li>
+    </ol>
+    <div class="mt-4"><a href="{% url 'product_list' %}" class="btn btn-outline-light">Start Customizing</a></div>
+  </div>
+</section>
+
 <!-- Recommended -->
 {% if recommended %}
-<section id="related-products" class="related-products product-carousel py-5 position-relative overflow-hidden">
+<section id="related-products" class="related-products product-carousel fd-section position-relative overflow-hidden">
   <div class="container">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 mb-3">
-      <h4 class="text-uppercase">Recommended For You</h4>
-      <a href="{% url 'product_list' %}" class="btn-link">View All Products</a>
+    <div class="fd-section-head" data-reveal>
+      <div>
+        <span class="fd-eyebrow">Curated</span>
+        <h2>Recommended For You</h2>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <a href="{% url 'product_list' %}" class="btn-link fd-link-underline">View All Products</a>
+        <div class="fd-arrows">
+          <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
+          <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
+        </div>
+      </div>
     </div>
-    <div class="swiper product-swiper open-up">
+    <div class="swiper product-swiper open-up" data-reveal>
       <div class="swiper-wrapper d-flex">
         {% for product in recommended %}
         <div class="swiper-slide">{% include "store/partials/product_card.html" %}</div>
         {% endfor %}
       </div>
     </div>
-    <div class="icon-arrow icon-arrow-left"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-left"></use></svg></div>
-    <div class="icon-arrow icon-arrow-right"><svg width="50" height="50" viewBox="0 0 24 24"><use xlink:href="#arrow-right"></use></svg></div>
   </div>
 </section>
 {% endif %}
 
-<!-- Newsletter -->
-<section id="newsletter" class="newsletter py-5 bg-light">
-  <div class="container-lg text-center">
-    <h2 class="mb-3">Subscribe to Our Newsletter</h2>
-    <p class="text-muted mb-4">Get the latest updates on new products and upcoming sales.</p>
-    <form method="post" action="{% url 'newsletter_subscribe' %}" class="row justify-content-center">
-      {% csrf_token %}
-      <div class="col-md-5">
-        <input type="email" name="email" class="form-control form-control-lg" placeholder="Your email address" required>
-      </div>
-      <div class="col-md-auto">
-        <button type="submit" class="btn btn-dark btn-lg">Subscribe</button>
-      </div>
-    </form>
-  </div>
-</section>
-
-<!-- Instagram Strip -->
-<section class="py-5">
+<!-- Instagram -->
+<section class="newsletter fd-section-sm pb-5">
   <div class="container-lg">
-    <h5 class="text-center text-uppercase text-muted mb-4">Follow us on Instagram</h5>
-    <div class="row g-2">
+    <div class="fd-section-head-center mb-4" data-reveal>
+      <span class="fd-eyebrow is-center">Follow us on Instagram</span>
+      <h3 class="mb-0">Styled by you</h3>
+    </div>
+    <div class="fd-insta-grid">
       {% for i in "123456" %}
-      <div class="col-4 col-md-2">
-        <img src="{% static 'store/images/insta-item' %}{{ i }}.jpg" alt="Instagram" class="img-fluid">
-      </div>
+      <a href="{{ site_settings.instagram_url|default:'#' }}"{% if site_settings.instagram_url %} target="_blank" rel="noopener"{% endif %} data-reveal aria-label="Instagram post {{ i }}">
+        <img src="{% static 'store/images/insta-item' %}{{ i }}.jpg" alt="Instagram" loading="lazy">
+        <svg width="26" height="26" aria-hidden="true"><use xlink:href="#instagram"></use></svg>
+      </a>
       {% endfor %}
     </div>
   </div>
 </section>
+{% endwith %}
 {% endblock %}

@@ -5,6 +5,8 @@ from store.models import (
     CustomerProfile,
     CustomizationRequest,
     Feedback,
+    HomeBanner,
+    PhoneOTP,
     Discount,
     NewsletterSubscriber,
     Order,
@@ -289,8 +291,8 @@ class CustomizationRequestAdmin(admin.ModelAdmin):
 
 @admin.register(CustomerProfile)
 class CustomerProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "phone", "created_at", "updated_at")
-    search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "phone")
+    list_display = ("user", "phone", "phone_e164", "phone_verified_at", "created_at")
+    search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "phone", "phone_e164")
     list_filter = ("created_at",)
     readonly_fields = ("created_at", "updated_at")
 
@@ -301,3 +303,33 @@ class FeedbackAdmin(admin.ModelAdmin):
     list_filter = ("is_read", "created_at")
     search_fields = ("name", "email", "subject", "message")
     readonly_fields = ("created_at",)
+
+
+@admin.register(HomeBanner)
+class HomeBannerAdmin(admin.ModelAdmin):
+    list_display = ("title", "eyebrow", "text_theme", "is_active", "sort_order")
+    list_editable = ("is_active", "sort_order")
+    list_filter = ("is_active", "text_theme")
+    search_fields = ("title", "eyebrow", "subtitle")
+    fieldsets = (
+        (None, {"fields": ("image", "mobile_image", "text_theme")}),
+        ("Copy", {"fields": ("eyebrow", "title", "subtitle", "cta_label", "cta_url")}),
+        ("Display", {"fields": ("is_active", "sort_order")}),
+    )
+
+
+@admin.register(PhoneOTP)
+class PhoneOTPAdmin(admin.ModelAdmin):
+    """Read-only audit of OTP sends (codes are stored only as hashes)."""
+
+    list_display = ("phone", "created_at", "expires_at", "attempts", "consumed_at", "ip_address")
+    list_filter = ("created_at",)
+    search_fields = ("phone",)
+    exclude = ("code_hash",)
+    readonly_fields = ("phone", "ip_address", "attempts", "expires_at", "consumed_at", "created_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

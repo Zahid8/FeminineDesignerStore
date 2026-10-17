@@ -2,14 +2,87 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T25 complete. 330 tests. PDF deferred. T25-FIX (strengthened search/filter tests) complete.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T25 complete. 330 tests. PDF deferred. T25-FIX (strengthened search/filter tests) complete. T28 UI revamp and T29 reference-driven redesign complete (351 tests). TASK-027-FIX item 5 (dedicated stepper/search/status tests) is still unwritten.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (330 tests)
+conda run -n femdes python manage.py test       # PASS (351 tests)
 ```
+
+## T29 Verification — Reference-driven redesign (2026-10-17)
+
+```bash
+conda run -n femdes python manage.py check                          # PASS (0 issues)
+conda run -n femdes python manage.py test                           # PASS (351 tests)
+conda run -n femdes python manage.py makemigrations --check --dry-run  # No changes detected
+conda run -n femdes python manage.py collectstatic --noinput        # OK
+```
+
+New tests: `store/tests/test_redesign.py` (17): HomeBanner rendering/order/
+inactive/CTA fallback/theme/admin; product sort whitelist and filter
+preservation; colour/size choices parsing, radio rendering inside the cart
+form, options reaching the cart; sticky buy bar `form=` wiring;
+`secondary_image` + hover image hook; WhatsApp float/PDP button only when
+`SiteSettings.whatsapp_url` is set.
+
+Changed tests: the three primary-image tests in `test_storefront` now assert
+the card's `<img class="product-image">` `src` (helper `_primary_card_srcs`)
+and the hero block, because cards now also render a second hover image.
+
+Browser evidence (`docs/agent/screenshots/after/*.jpg`, 1440 and 390 widths,
+no page errors) and `docs/agent/browser-checks/behave.js` (all passed):
+steppers, search open/focus/Escape, offcanvas cart, mobile menu, anchor
+offset, no-JS reveal state, sort select navigates to `?sort=price_asc`,
+density toggle persists in localStorage, mega menu opens on hover, live
+search returns 4 cards, sticky buy bar appears after scrolling past the buy
+panel. One demo `HomeBanner` was created in the local dev DB for screenshots.
+
+Known gap: TASK-027-FIX item 5 (dedicated stepper/search tests) still
+unwritten; T29's `ProductOptionTests.test_sticky_bar_submits_the_cart_form`
+and the storefront search tests cover part of it.
+
+## T28 Verification — UI revamp (2026-10-17)
+
+```bash
+conda run -n femdes python manage.py check                          # PASS (0 issues)
+conda run -n femdes python manage.py test                           # PASS (351 tests)
+conda run -n femdes python manage.py makemigrations --check --dry-run  # No changes detected
+conda run -n femdes python manage.py collectstatic --noinput        # OK
+```
+
+Browser evidence (Playwright Chromium, 1440x900 and 390x844): before/after
+full-page screenshots in `docs/agent/screenshots/{before,after}/` for home,
+shop, product detail, cart, checkout, login and contact. No JS page errors.
+The only console error is a pre-existing 404 for demo media
+`/media/products/demo/primary.jpg` (missing file in local `media/`); the new
+head-script image fallback swaps it for `femdes-placeholder.svg`.
+
+Reusable scripts: `docs/agent/browser-checks/{shot,behave,vp}.js` (need
+`npm i playwright` in a scratch dir and the dev server on 127.0.0.1:8765).
+
+New tests: `test_storefront.FlashMessageToastTests` (3) prove Django messages
+render as toasts (none when empty, info toast after empty-cart checkout
+redirect, `is-error` toast when add-to-cart exceeds stock).
+
+Scripted interaction checks (all passed): product stepper clamps 1..stock and
+recovers blank input to 1; cart stepper reaches 0; desktop search trigger opens
+the popup, focuses `q`, Escape closes it and returns focus to the same trigger;
+cart offcanvas and mobile menu open; Collections dropdown opens without
+navigating; `#customize-section` anchor lands below the sticky header; the
+head-script fallback replaced 3 broken demo images with the placeholder; with
+JavaScript disabled no reveal element is hidden (`after/nojs_home.png`).
+
+Test changes:
+- `test_invoices.TimelineActiveStatusTests.test_each_status_is_active` now
+  asserts the `<ol>` stepper semantics (`is-current` + `aria-current="step"` on
+  exactly the matching step, all six labels in order) instead of Bootstrap
+  badge class strings. It was already failing on the uncommitted T27-FIX
+  `<span>`→`<li>` change.
+- `test_customization...test_no_images_renders_placeholder` now expects
+  `femdes-placeholder.svg` instead of the Kaira `product-item-1.jpg` stock
+  photo (a male model, wrong for a blouse store).
 
 ## T10/T10-FIX Verification (2026-07-09)
 

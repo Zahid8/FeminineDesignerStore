@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Image coming soon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8efe8"/>
+      <stop offset="1" stop-color="#eed9cf"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#bg)"/>
+  <g fill="none" stroke="#7a2238" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".55" transform="translate(400 470)">
+    <path d="M-150 -180 C-120 -200 -80 -205 -55 -200 C-40 -150 40 -150 55 -200 C80 -205 120 -200 150 -180 L215 -110 L165 -55 L130 -90 L130 120 C40 140 -40 140 -130 120 L-130 -90 L-165 -55 L-215 -110 Z"/>
+    <path d="M-55 -200 C-35 -110 35 -110 55 -200" opacity=".6"/>
+    <path d="M-130 70 C-40 88 40 88 130 70" stroke-dasharray="4 14" opacity=".7"/>
+  </g>
+  <text x="400" y="760" text-anchor="middle" font-family="Georgia, 'Cormorant Garamond', serif" font-style="italic" font-size="44" fill="#7a2238" opacity=".75">FemDes</text>
+  <text x="400" y="806" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="18" letter-spacing="6" fill="#6b5f63">IMAGE COMING SOON</text>
+</svg>

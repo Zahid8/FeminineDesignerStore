@@ -1,36 +1,81 @@
 {% load static %}
-<footer class="bg-dark text-white py-5 mt-5">
+{% with store_name=site_settings.store_name|default:"FemDes" %}
+<footer class="fd-footer bg-dark text-white py-5 mt-5">
+  <section class="fd-newsletter" id="newsletter">
+    <div class="container-lg">
+      <span class="fd-eyebrow is-center">Stay in touch</span>
+      <h2>Subscribe to Our Newsletter</h2>
+      <p>Get the latest updates on new products and upcoming sales.</p>
+      <form method="post" action="{% url 'newsletter_subscribe' %}" class="fd-newsletter-form fd-underline-input">
+        {% csrf_token %}
+        <label for="newsletter-email" class="visually-hidden">Email address</label>
+        <input type="email" id="newsletter-email" name="email" class="form-control" placeholder="Your email address" required>
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
   <div class="container-lg">
-    <div class="row g-4">
-      <div class="col-lg-4">
-        <h5 class="fw-bold mb-3">{{ site_settings.store_name|default:"FemDes" }}</h5>
-        {% if site_settings.tagline %}<p>{{ site_settings.tagline }}</p>{% endif %}
-        {% if site_settings.address %}<p class="small">{{ site_settings.address }}</p>{% endif %}
-        {% if site_settings.contact_email %}<p class="small">Email: {{ site_settings.contact_email }}</p>{% endif %}
-        {% if site_settings.contact_phone %}<p class="small">Phone: {{ site_settings.contact_phone }}</p>{% endif %}
-        <div class="social-links mt-3">
-          {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}" class="text-white me-3"><svg width="20" height="20"><use xlink:href="#instagram"></use></svg></a>{% endif %}
-          {% if site_settings.facebook_url %}<a href="{{ site_settings.facebook_url }}" class="text-white me-3"><svg width="20" height="20"><use xlink:href="#facebook"></use></svg></a>{% endif %}
+    <div class="fd-footer-main">
+      <div class="row g-4 g-lg-5">
+        <div class="col-lg-4">
+          <div class="fd-footer-brand">{{ store_name }}</div>
+          {% if site_settings.tagline %}<p>{{ site_settings.tagline }}</p>{% else %}<p>Designer blouses, handcrafted in small batches and tailored to the way you wear them.</p>{% endif %}
+          <div class="fd-social mt-3">
+            {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#instagram"></use></svg></a>{% endif %}
+            {% if site_settings.facebook_url %}<a href="{{ site_settings.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#facebook"></use></svg></a>{% endif %}
+            {% if site_settings.whatsapp_url %}<a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg></a>{% endif %}
+            {% if site_settings.contact_email %}<a href="mailto:{{ site_settings.contact_email }}" aria-label="Email"><svg width="16" height="16" aria-hidden="true"><use xlink:href="#mail"></use></svg></a>{% endif %}
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+          <details open>
+            <summary><h6>Shop</h6></summary>
+            <ul>
+              <li><a href="{% url 'product_list' %}">All Blouses</a></li>
+              <li><a href="{% url 'product_list' %}?sort=newest">New In</a></li>
+              {% for cat in categories|slice:":4" %}
+              <li><a href="{% url 'product_list' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
+              {% endfor %}
+            </ul>
+          </details>
+        </div>
+        <div class="col-md-4 col-lg-2">
+          <details open>
+            <summary><h6>Help</h6></summary>
+            <ul>
+              <li><a href="{% url 'cart_detail' %}">Cart</a></li>
+              <li><a href="{% url 'contact' %}">Contact Us</a></li>
+              <li><a href="{% url 'home' %}#made-to-measure">Made to Measure</a></li>
+              {% if user.is_authenticated %}
+              <li><a href="{% url 'account_orders' %}">Track Orders</a></li>
+              <li><a href="{% url 'account_profile' %}">My Account</a></li>
+              {% else %}
+              <li><a href="{% url 'account_login' %}">Sign In</a></li>
+              {% endif %}
+            </ul>
+          </details>
+        </div>
+        <div class="col-md-4 col-lg-4">
+          <details open>
+            <summary><h6>Visit &amp; Contact</h6></summary>
+            <ul>
+              {% if site_settings.address %}<li>{{ site_settings.address|linebreaksbr }}</li>{% endif %}
+              {% if site_settings.contact_email %}<li><a href="mailto:{{ site_settings.contact_email }}">{{ site_settings.contact_email }}</a></li>{% endif %}
+              {% if site_settings.contact_phone %}<li><a href="tel:{{ site_settings.contact_phone }}">{{ site_settings.contact_phone }}</a></li>{% endif %}
+            </ul>
+          </details>
+          <div class="fd-pay-icons d-flex gap-2 mt-3">
+            <img src="{% static 'store/images/visa-card.png' %}" alt="Visa">
+            <img src="{% static 'store/images/master-card.png' %}" alt="Mastercard">
+            <img src="{% static 'store/images/paypal-card.png' %}" alt="PayPal">
+          </div>
         </div>
       </div>
-      <div class="col-lg-4">
-        <h5 class="fw-bold mb-3">Quick Links</h5>
-        <ul class="list-unstyled">
-          <li><a href="{% url 'home' %}" class="text-white-50">Home</a></li>
-          <li><a href="{% url 'product_list' %}" class="text-white-50">Shop</a></li>
-          <li><a href="{% url 'cart_detail' %}" class="text-white-50">Cart</a></li>
-        </ul>
-      </div>
-      <div class="col-lg-4">
-        <h5 class="fw-bold mb-3">Payment</h5>
-        <img src="{% static 'store/images/visa-card.png' %}" alt="Visa" class="me-2" height="30">
-        <img src="{% static 'store/images/master-card.png' %}" alt="Mastercard" class="me-2" height="30">
-        <img src="{% static 'store/images/paypal-card.png' %}" alt="PayPal" height="30">
-      </div>
     </div>
-    <div class="text-center mt-4 pt-3 border-top border-secondary">
-      <p class="small text-white-50 mb-1">&copy; {% now "Y" %} {{ site_settings.store_name|default:"FemDes" }}. All rights reserved.</p>
-      <p class="small text-white-50 mb-0">Free template by <a href="https://templatesjungle.com/" class="text-white-50" target="_blank">TemplatesJungle</a>. Distributed by <a href="https://themewagon.com/" class="text-white-50" target="_blank">ThemeWagon</a>.</p>
+    <div class="fd-footer-bottom d-flex flex-column flex-md-row justify-content-between gap-2">
+      <p class="mb-0">&copy; {% now "Y" %} {{ store_name }}. All rights reserved.</p>
+      <p class="mb-0">Free template by <a href="https://templatesjungle.com/" target="_blank" rel="noopener">TemplatesJungle</a>. Distributed by <a href="https://themewagon.com/" target="_blank" rel="noopener">ThemeWagon</a>.</p>
     </div>
   </div>
 </footer>
+{% endwith %}

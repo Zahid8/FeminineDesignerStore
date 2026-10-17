@@ -3,13 +3,14 @@
   <a href="{% url 'product_list' %}?category={{ category.slug }}" class="text-decoration-none">
     <div class="category-image overflow-hidden">
       {% if category.image %}
-      <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid">
+      <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid" loading="lazy">
       {% else %}
-      <img src="{% static 'store/images/cat-item1.jpg' %}" alt="{{ category.name }}" class="img-fluid">
+      <span class="fd-cat-fallback" aria-hidden="true">{{ category.name|first }}</span>
       {% endif %}
     </div>
     <div class="category-info mt-2 text-center">
       <h5 class="text-dark">{{ category.name }}</h5>
+      <span>Discover</span>
     </div>
   </a>
 </div>

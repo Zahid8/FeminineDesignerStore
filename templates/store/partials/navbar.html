@@ -1,53 +1,128 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg indichic-nav py-3">
+{% with url_name=request.resolver_match.url_name store_name=site_settings.store_name|default:'FemDes' %}
+<header class="fd-header" data-header x-data="{ mega: false }" @keydown.escape.window="mega = false">
   <div class="container-lg">
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="d-flex d-lg-none align-items-center gap-3">
-      <a href="#search" class="search-button"><svg width="18" height="18"><use xlink:href="#search"></use></svg></a>
-      <a href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="position-relative">
-        <svg width="20" height="20"><use xlink:href="#shopping-bag"></use></svg>
-        <span class="cart-count-badge">{{ cart.item_count }}</span>
+    <!-- Utility row: links / logo / icons -->
+    <div class="fd-util">
+      <div class="fd-util-left">
+        <button class="fd-hamburger d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+        <a href="{% url 'contact' %}" class="d-none d-lg-inline">Contact</a>
+        {% if site_settings.whatsapp_url %}<a href="{{ site_settings.whatsapp_url }}" class="d-none d-lg-inline" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+      </div>
+      <a class="fd-brand" href="{% url 'home' %}" aria-label="{{ store_name }} home">
+        {% if site_settings and site_settings.logo %}
+        <img src="{{ site_settings.logo.url }}" alt="{{ store_name }}" class="fd-logo-dark">
+        <img src="{{ site_settings.logo.url }}" alt="" class="fd-logo-light" aria-hidden="true">
+        {% else %}
+        <img src="{% static 'store/images/main-logo.png' %}" alt="{{ store_name }}" class="fd-logo-dark">
+        <img src="{% static 'store/images/light-logo.png' %}" alt="" class="fd-logo-light" aria-hidden="true">
+        {% endif %}
       </a>
-    </div>
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
-      <div class="offcanvas-header"><h5 class="offcanvas-title">Menu</h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div>
-      <div class="offcanvas-body indichic-nav-body">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}">Shop</a></li>
-          {% for cat in categories %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
-          {% endfor %}
-        </ul>
-        <a class="navbar-brand indichic-brand mx-auto d-lg-block" href="{% url 'home' %}">
-          {% if site_settings and site_settings.logo %}
-          <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.store_name|default:'FemDes' }}" height="36">
-          {% else %}
-          <img src="{% static 'store/images/main-logo.png' %}" alt="{{ site_settings.store_name|default:'FemDes' }}" height="36">
-          {% endif %}
+      <div class="fd-util-right">
+        {% if user.is_authenticated %}
+        <a href="{% url 'account_profile' %}" class="fd-nav-icon" aria-label="My account"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#user"></use></svg></a>
+        {% else %}
+        <a href="{% url 'account_login' %}" class="fd-text-link d-none d-lg-inline">Login</a>
+        <a href="{% url 'account_register' %}" class="fd-text-link d-none d-lg-inline">Register</a>
+        <a href="{% url 'account_login' %}" class="fd-nav-icon d-lg-none" aria-label="Sign in"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#user"></use></svg></a>
+        {% endif %}
+        <a href="{% url 'wishlist' %}" class="fd-nav-icon d-none d-sm-inline-flex" aria-label="Wishlist ({{ wishlist_count }} items)"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#heart"></use></svg>{% if wishlist_count %}<span class="cart-count-badge" data-wishlist-count>{{ wishlist_count }}</span>{% else %}<span class="cart-count-badge d-none" data-wishlist-count>0</span>{% endif %}</a>
+        <a href="#search" class="search-button" aria-label="Search"><span class="fd-nav-icon"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#search"></use></svg></span></a>
+        <a href="{% url 'cart_detail' %}" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="fd-nav-icon" aria-label="Open cart ({{ cart.item_count }} items)">
+          <svg width="20" height="20" aria-hidden="true"><use xlink:href="#shopping-bag"></use></svg>
+          <span class="cart-count-badge">{{ cart.item_count }}</span>
         </a>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+      </div>
+    </div>
+
+    <!-- Primary nav (centred) -->
+    <nav class="navbar navbar-expand-lg indichic-nav" aria-label="Main navigation">
+      <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close menu"></button>
+        </div>
+        <div class="offcanvas-body indichic-nav-body">
+          <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link{% if url_name == 'home' %} active{% endif %}" href="{% url 'home' %}">Home</a></li>
+            <li class="nav-item" @mouseenter="if (window.innerWidth >= 992) mega = true" @mouseleave="mega = false">
+              <a class="nav-link{% if url_name == 'product_list' %} active{% endif %}" href="{% url 'product_list' %}" @focus="if (window.innerWidth >= 992) mega = true" :aria-expanded="mega.toString()" aria-controls="fd-mega">Shop</a>
+              {% if categories %}
+              <ul class="fd-mobile-sub d-lg-none">
+                {% for cat in categories %}
+                <li><a href="{% url 'product_list' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}?sort=newest">New In</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#made-to-measure">Made to Measure</a></li>
+            <li class="nav-item"><a class="nav-link{% if url_name == 'contact' %} active{% endif %}" href="{% url 'contact' %}">Contact</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'wishlist' %}">Wishlist ({{ wishlist_count }})</a></li>
+            {% if user.is_authenticated %}
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'account_orders' %}">Orders</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'account_profile' %}">Account</a></li>
+            <li class="nav-item d-lg-none">
+              <form method="post" action="{% url 'account_logout' %}" class="d-inline">
+                {% csrf_token %}<button type="submit" class="nav-link btn btn-link">Logout</button>
+              </form>
+            </li>
+            {% else %}
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'account_login' %}">Login</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'account_register' %}">Register</a></li>
+            {% endif %}
+          </ul>
           {% if user.is_authenticated %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'account_profile' %}">Account</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'account_orders' %}">Orders</a></li>
-          <li class="nav-item">
-            <form method="post" action="{% url 'account_logout' %}" class="d-inline">
-              {% csrf_token %}<button type="submit" class="nav-link btn btn-link">Logout</button>
-            </form>
-          </li>
-          {% else %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'account_login' %}">Login</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'account_register' %}">Register</a></li>
           {% endif %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'cart_detail' %}">Cart ({{ cart.item_count }})</a></li>
-        </ul>
-        <ul class="navbar-nav flex-row align-items-center ms-lg-3 d-none d-lg-flex">
-          <li class="nav-item me-2"><a href="#search" class="search-button nav-icon"><svg width="18" height="18"><use xlink:href="#search"></use></svg></a></li>
-          <li class="nav-item"><a href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="nav-icon position-relative"><svg width="20" height="20"><use xlink:href="#shopping-bag"></use></svg><span class="cart-count-badge">{{ cart.item_count }}</span></a></li>
-        </ul>
+          <div class="fd-mobile-meta d-lg-none">
+            <span class="fd-eyebrow">Need help?</span>
+            {% if site_settings.contact_phone %}<p class="mb-1"><a href="tel:{{ site_settings.contact_phone }}">{{ site_settings.contact_phone }}</a></p>{% endif %}
+            {% if site_settings.contact_email %}<p class="mb-0"><a href="mailto:{{ site_settings.contact_email }}">{{ site_settings.contact_email }}</a></p>{% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Mega menu (desktop) -->
+  {% if categories %}
+  <div id="fd-mega" class="fd-mega d-none d-lg-block" :class="{ 'is-open': mega }" @mouseenter="mega = true" @mouseleave="mega = false">
+    <div class="container-lg">
+      <div class="row g-4">
+        <div class="col-lg-3">
+          <span class="fd-eyebrow">Collections</span>
+          <ul>
+            <li><a href="{% url 'product_list' %}">All Blouses</a></li>
+            {% for cat in categories %}
+            <li><a href="{% url 'product_list' %}?category={{ cat.slug }}">{{ cat.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="col-lg-3">
+          <span class="fd-eyebrow">Discover</span>
+          <ul>
+            <li><a href="{% url 'product_list' %}?sort=newest">New Arrivals</a></li>
+            <li><a href="{% url 'home' %}#best-sellers">Best Sellers</a></li>
+            <li><a href="{% url 'home' %}#made-to-measure">Made to Measure</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-6">
+          <div class="row g-3">
+            {% for cat in categories|slice:":2" %}
+            <div class="col-6">
+              <a href="{% url 'product_list' %}?category={{ cat.slug }}" class="fd-mega-tile">
+                {% if cat.image %}<img src="{{ cat.image.url }}" alt="" loading="lazy">{% else %}<img src="{% static 'store/images/femdes-placeholder.svg' %}" alt="" loading="lazy">{% endif %}
+                <span>{{ cat.name }}</span>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</nav>
+  {% endif %}
+</header>
+{% endwith %}

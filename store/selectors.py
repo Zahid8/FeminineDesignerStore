@@ -1,7 +1,7 @@
 from django.db import models
 from django.shortcuts import get_object_or_404
 
-from store.models import Category, Product, ProductTag
+from store.models import Category, HomeBanner, Product, ProductTag
 
 
 def get_active_categories():
@@ -64,3 +64,21 @@ def filter_products(category_slug=None, tag_slug=None, query=None):
             | models.Q(short_description__icontains=query)
         )
     return qs.distinct()
+
+
+PRODUCT_SORTS = {
+    "newest": ("-created_at", "-id"),
+    "price_asc": ("price", "id"),
+    "price_desc": ("-price", "id"),
+    "name": ("name", "id"),
+}
+
+
+def sort_products(qs, sort_key):
+    """Apply a whitelisted sort; unknown keys keep the default order."""
+    ordering = PRODUCT_SORTS.get(sort_key)
+    return qs.order_by(*ordering) if ordering else qs
+
+
+def get_home_banners():
+    return HomeBanner.objects.filter(is_active=True).order_by("sort_order", "id")

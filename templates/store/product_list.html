@@ -1,30 +1,73 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block content %}
-<section class="indichic-section">
-  <div class="container-lg">
-    {% if query %}<p class="text-center text-muted mb-4">Search results for: <strong>{{ query }}</strong></p>{% endif %}
+{% block title %} — Shop{% endblock %}
 
-    <!-- Pill filters -->
-    <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-      <a href="{% url 'product_list' %}" class="filter-pill {% if not selected_category and not selected_tag %}active{% endif %}">All</a>
-      {% for cat in categories %}
-      <a href="{% url 'product_list' %}?category={{ cat.slug }}" class="filter-pill {% if selected_category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
-      {% endfor %}
-      {% for tag in active_tags %}
-      <a href="{% url 'product_list' %}?tag={{ tag.slug }}" class="filter-pill {% if selected_tag == tag.slug %}active{% endif %}">{{ tag.name }}</a>
-      {% endfor %}
+{% block content %}
+<header class="fd-page-header">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb">
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li aria-current="page">Shop</li>
+    </ol>
+    {% if query %}
+    <h1>Results for &ldquo;{{ query }}&rdquo;</h1>
+    {% else %}
+    <h1>Blouses</h1>
+    <p>Ready-made pieces you can wear tomorrow, every one available tailored to your measurements.</p>
+    {% endif %}
+  </div>
+</header>
+
+<section class="indichic-section" x-data="{ density: localStorage.getItem('fd-density') || 'default', setDensity(d) { this.density = d; localStorage.setItem('fd-density', d); } }">
+  <div class="fd-filter-bar">
+    <div class="container-lg">
+      <nav class="fd-filter-scroll" aria-label="Filter products">
+        <a href="{% url 'product_list' %}{% if sort %}?sort={{ sort }}{% endif %}" class="filter-pill {% if not selected_category and not selected_tag %}active{% endif %}"{% if not selected_category and not selected_tag %} aria-current="page"{% endif %}>All</a>
+        {% for cat in categories %}
+        <a href="{% url 'product_list' %}?category={{ cat.slug }}{% if sort %}&amp;sort={{ sort }}{% endif %}" class="filter-pill {% if selected_category == cat.slug %}active{% endif %}"{% if selected_category == cat.slug %} aria-current="page"{% endif %}>{{ cat.name }}</a>
+        {% endfor %}
+        {% for tag in active_tags %}
+        <a href="{% url 'product_list' %}?tag={{ tag.slug }}{% if sort %}&amp;sort={{ sort }}{% endif %}" class="filter-pill is-tag {% if selected_tag == tag.slug %}active{% endif %}"{% if selected_tag == tag.slug %} aria-current="page"{% endif %}>{{ tag.name }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+
+  <div class="container-lg">
+    <div class="fd-toolbar">
+      <p class="fd-result-meta">{{ products|length }} piece{{ products|length|pluralize }}</p>
+      <div class="fd-toolbar-right">
+        <form method="get" class="fd-sort" data-auto-submit>
+          {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+          {% if selected_tag %}<input type="hidden" name="tag" value="{{ selected_tag }}">{% endif %}
+          {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+          <label for="sort">Sort</label>
+          <select name="sort" id="sort" class="form-select form-select-sm">
+            <option value=""{% if not sort %} selected{% endif %}>Featured</option>
+            <option value="newest"{% if sort == 'newest' %} selected{% endif %}>Newest</option>
+            <option value="price_asc"{% if sort == 'price_asc' %} selected{% endif %}>Price: low to high</option>
+            <option value="price_desc"{% if sort == 'price_desc' %} selected{% endif %}>Price: high to low</option>
+            <option value="name"{% if sort == 'name' %} selected{% endif %}>Name</option>
+          </select>
+          <noscript><button type="submit" class="btn btn-outline-dark btn-sm">Apply</button></noscript>
+        </form>
+        <div class="fd-density" role="group" aria-label="Grid size">
+          <button type="button" aria-label="Large grid" :aria-pressed="(density === 'large').toString()" @click="setDensity('large')"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6"/><rect x="9" y="1" width="6" height="6"/><rect x="1" y="9" width="6" height="6"/><rect x="9" y="9" width="6" height="6"/></svg></button>
+          <button type="button" aria-label="Compact grid" :aria-pressed="(density !== 'large').toString()" @click="setDensity('default')"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="4" height="4"/><rect x="6" y="1" width="4" height="4"/><rect x="11" y="1" width="4" height="4"/><rect x="1" y="6" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="11" y="6" width="4" height="4"/><rect x="1" y="11" width="4" height="4"/><rect x="6" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></svg></button>
+        </div>
+      </div>
     </div>
 
     {% if products %}
-    <div class="row g-4">
+    <div class="row g-3 g-lg-4 gy-5 fd-grid" :data-density="density">
       {% for product in products %}
-      <div class="col-6 col-md-4 col-lg-3">{% include "store/partials/product_card.html" %}</div>
+      <div class="col-6 col-md-4 col-lg-3" data-reveal>{% include "store/partials/product_card.html" %}</div>
       {% endfor %}
     </div>
     {% else %}
     <div class="empty-state">
+      <div class="fd-empty-icon"><svg width="30" height="30" aria-hidden="true"><use xlink:href="#search"></use></svg></div>
       <h4>No products found</h4>
       <p class="text-muted">Try a different search or browse our categories.</p>
       <a href="{% url 'product_list' %}" class="btn btn-outline-dark rounded-pill mt-2">View All Products</a>

@@ -1,10 +1,12 @@
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from store import selectors, services
+from store.seo import product_jsonld
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -30,9 +32,14 @@ def _cart_context(request):
 
 
 def _base_context(request):
+    from store import wishlist
+
+    wishlist_ids = wishlist.product_ids(request)
     ctx = {
         "site_settings": _get_site_settings(),
         "categories": selectors.get_active_categories(),
+        "wishlist_ids": wishlist_ids,
+        "wishlist_count": len(wishlist_ids),
     }
     ctx.update(_cart_context(request))
     return ctx
@@ -41,6 +48,7 @@ def _base_context(request):
 def home(request):
     ctx = _base_context(request)
     ctx.update(selectors.get_homepage_products())
+    ctx["banners"] = selectors.get_home_banners()
     return render(request, "store/home.html", ctx)
 
 
@@ -48,15 +56,22 @@ def product_list(request):
     category_slug = request.GET.get("category", "")
     tag_slug = request.GET.get("tag", "")
     query = request.GET.get("q", "")
-    products = selectors.filter_products(
-        category_slug=category_slug or None,
-        tag_slug=tag_slug or None,
-        query=query or None,
+    sort = request.GET.get("sort", "")
+    if sort not in selectors.PRODUCT_SORTS:
+        sort = ""
+    products = selectors.sort_products(
+        selectors.filter_products(
+            category_slug=category_slug or None,
+            tag_slug=tag_slug or None,
+            query=query or None,
+        ),
+        sort,
     )
     ctx = _base_context(request)
     ctx.update(
         {
             "products": products,
+            "sort": sort,
             "selected_category": category_slug,
             "selected_tag": tag_slug,
             "query": query,
@@ -75,6 +90,7 @@ def product_detail(request, slug):
     ctx.update(
         {
             "product": product,
+            "product_jsonld": product_jsonld(request, product, ctx["site_settings"]),
             "related_products": related,
             "add_to_cart_form": AddToCartForm(),
             "customization_form": CustomizationForm(initial={
@@ -553,3 +569,16 @@ def staff_feedback_list(request):
     ctx = _base_context(request)
     ctx["feedbacks"] = feedbacks
     return render(request, "store/staff_feedback_list.html", ctx)
+
+
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Disallow: /staff/",
+        "Disallow: /accounts/",
+        "Disallow: /cart/",
+        "Disallow: /checkout/",
+        f"Sitemap: {request.build_absolute_uri(reverse('sitemap'))}",
+    ]
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")

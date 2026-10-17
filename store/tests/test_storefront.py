@@ -106,6 +106,12 @@ def _check_wrapper_contains_descendant(html, wrapper_class, descendant_class):
     return False
 
 
+def _primary_card_srcs(content):
+    """src of every card's primary <img class="product-image"> (hover images excluded)."""
+    import re
+    return re.findall(r'<img src="([^"]+)"[^>]*class="product-image', content)
+
+
 class HomeViewTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -334,8 +340,9 @@ class ProductListViewTests(TestCase):
         self.product.refresh_from_db()
         # Shop page
         shop = self.client.get(reverse("product_list"))
-        self.assertContains(shop, "primary.jpg")
-        self.assertNotContains(shop, "non-primary.jpg")
+        srcs = _primary_card_srcs(shop.content.decode())
+        self.assertTrue(any(s.endswith("/primary.jpg") for s in srcs), srcs)
+        self.assertFalse(any("non-primary.jpg" in s for s in srcs), srcs)
 
     def test_homepage_hero_uses_primary_image(self):
         """Home page hero renders primary image for a featured product."""
@@ -354,9 +361,10 @@ class ProductListViewTests(TestCase):
         img2.image.name = "products/demo/hero-other.jpg"
         img2.save()
         self.product.refresh_from_db()
-        home = self.client.get(reverse("home"))
-        self.assertContains(home, "hero-primary.jpg")
-        self.assertNotContains(home, "hero-other.jpg")
+        home = self.client.get(reverse("home")).content.decode()
+        hero = home[home.index("fd-hero-split"):home.index("</section>", home.index("fd-hero-split"))]
+        self.assertIn("hero-primary.jpg", hero)
+        self.assertNotIn("hero-other.jpg", hero)
 
     def test_card_fallback_when_no_primary(self):
         """Without is_primary, lowest sort_order image renders, higher does not."""
@@ -373,8 +381,9 @@ class ProductListViewTests(TestCase):
         img2.save()
         self.product.refresh_from_db()
         shop = self.client.get(reverse("product_list"))
-        self.assertContains(shop, "low-sort.jpg")
-        self.assertNotContains(shop, "high-sort.jpg")
+        srcs = _primary_card_srcs(shop.content.decode())
+        self.assertTrue(any("low-sort.jpg" in s for s in srcs), srcs)
+        self.assertFalse(any("high-sort.jpg" in s for s in srcs), srcs)
 
     def test_product_list_renders_product_names(self):
         response = self.client.get(reverse("product_list"))
@@ -698,3 +707,36 @@ class NewsletterViewTests(TestCase):
             reverse("newsletter_subscribe"), {"email": "dup@example.com"}
         )
         self.assertEqual(response.status_code, 302)
+
+
+class FlashMessageToastTests(TestCase):
+    """Django messages are rendered by base.html as accessible toasts (T28)."""
+
+    def setUp(self):
+        self.client = Client()
+
+    def test_no_messages_renders_no_toast_region(self):
+        response = self.client.get(reverse("home"))
+        self.assertNotContains(response, 'class="fd-toasts"')
+
+    def test_info_message_renders_as_toast(self):
+        response = self.client.get(reverse("checkout"), follow=True)
+        self.assertRedirects(response, reverse("cart_detail"))
+        content = response.content.decode()
+        self.assertIn('<div class="fd-toasts" role="status" aria-live="polite">', content)
+        toast_start = content.index('class="fd-toast"')
+        self.assertIn("Your cart is empty.", content[toast_start:toast_start + 400])
+        self.assertIn('data-toast-close', content)
+
+    def test_error_message_renders_error_toast(self):
+        cat = Category.objects.create(name="Blouses", slug="toast-blouses", is_active=True)
+        product = Product.objects.create(
+            category=cat, name="Last One", slug="last-one", sku="SKU-TOAST",
+            price=Decimal("10"), stock_quantity=1, is_active=True,
+        )
+        response = self.client.post(
+            reverse("add_to_cart", kwargs={"product_id": product.pk}),
+            {"quantity": 5},
+            follow=True,
+        )
+        self.assertContains(response, 'class="fd-toast is-error"')

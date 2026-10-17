@@ -3,58 +3,77 @@
 {% block title %} — Checkout{% endblock %}
 
 {% block content %}
-<section class="py-5">
+{% with currency=site_settings.currency_symbol|default:"$" %}
+<header class="fd-page-header pb-4">
   <div class="container-lg">
-    <h1 class="mb-4">Checkout</h1>
+    <ol class="fd-crumbs" aria-label="Breadcrumb">
+      <li><a href="{% url 'cart_detail' %}">Cart</a></li>
+      <li aria-current="page">Checkout</li>
+    </ol>
+    <h1>Checkout</h1>
+    <p>Just a few details and your blouse is on its way.</p>
+  </div>
+</header>
 
+<section class="pb-5">
+  <div class="container-lg">
     {% if cart.lines %}
     <div class="row g-5">
       <!-- Order summary -->
-      <div class="col-md-5 order-md-last">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Order Summary</h5>
-            {% for line in cart.lines %}
-            <div class="d-flex justify-content-between py-1">
-              <span>{{ line.product_name }} x {{ line.quantity }}</span>
-              <span>{{ site_settings.currency_symbol|default:"$" }}{{line.line_total }}</span>
-            </div>
-            {% endfor %}
-            <hr>
-            <p class="d-flex justify-content-between fw-bold"><span>Total:</span> <span>{{ site_settings.currency_symbol|default:"$" }}{{cart.total }}</span></p>
+      <div class="col-lg-5 order-lg-last">
+        <div class="fd-card p-4 fd-sticky">
+          <h5 class="fd-card-title">Order Summary</h5>
+          {% for line in cart.lines %}
+          <div class="d-flex justify-content-between align-items-start py-2 border-bottom gap-3">
+            <span><strong class="text-dark fw-semibold">{{ line.product_name }}</strong> <span class="text-muted">x {{ line.quantity }}</span>{% if line.color %}<small class="d-block text-muted">{{ line.color }}{% if line.size %} / {{ line.size }}{% endif %}</small>{% endif %}</span>
+            <span>{{ currency }}{{line.line_total }}</span>
+          </div>
+          {% endfor %}
+          <div class="pt-3">
+            {% if cart.discount_total > 0 %}
+            <p class="fd-summary-row text-success"><span>Discount</span><span>-{{ currency }}{{ cart.discount_total }}</span></p>
+            {% endif %}
+            <p class="fd-summary-row is-total"><span>Total:</span> <strong>{{ currency }}{{cart.total }}</strong></p>
           </div>
         </div>
       </div>
       <!-- Checkout form -->
-      <div class="col-md-7">
-        <form method="post" id="checkout-form">
+      <div class="col-lg-7">
+        <form method="post" id="checkout-form" class="fd-card p-4 p-md-5">
           {% csrf_token %}
+          {% if form.errors %}
+          <div class="alert alert-danger small">Please check the highlighted fields and try again.</div>
+          {% endif %}
           <div class="row g-3">
-            <div class="col-12"><h5>Contact Information</h5></div>
+            <div class="col-12"><span class="fd-eyebrow mb-0">Step 1</span><h5>Contact Information</h5></div>
             <div class="col-md-6">
               <label for="id_customer_name" class="form-label">Full Name *</label>
-              <input type="text" name="customer_name" id="id_customer_name" class="form-control" required maxlength="160" value="{{ form.customer_name.value|default:'' }}">
+              <input type="text" name="customer_name" id="id_customer_name" class="form-control{% if form.customer_name.errors %} is-invalid{% endif %}" required maxlength="160" autocomplete="name" value="{{ form.customer_name.value|default:'' }}">
+              {% for e in form.customer_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-md-6">
               <label for="id_customer_email" class="form-label">Email *</label>
-              <input type="email" name="customer_email" id="id_customer_email" class="form-control" required value="{{ form.customer_email.value|default:'' }}">
+              <input type="email" name="customer_email" id="id_customer_email" class="form-control{% if form.customer_email.errors %} is-invalid{% endif %}" required autocomplete="email" value="{{ form.customer_email.value|default:'' }}">
+              {% for e in form.customer_email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-md-6">
               <label for="id_customer_phone" class="form-label">Phone</label>
-              <input type="text" name="customer_phone" id="id_customer_phone" class="form-control" maxlength="40" value="{{ form.customer_phone.value|default:'' }}">
+              <input type="text" name="customer_phone" id="id_customer_phone" class="form-control" maxlength="40" autocomplete="tel" inputmode="tel" value="{{ form.customer_phone.value|default:'' }}">
             </div>
-            <div class="col-12 mt-3"><h5>Shipping Address</h5></div>
+            <div class="col-12 mt-4"><span class="fd-eyebrow mb-0">Step 2</span><h5>Shipping Address</h5></div>
             <div class="col-12">
               <label for="id_shipping_address" class="form-label">Address *</label>
-              <textarea name="shipping_address" id="id_shipping_address" class="form-control" rows="3" required>{{ form.shipping_address.value|default:'' }}</textarea>
+              <textarea name="shipping_address" id="id_shipping_address" class="form-control{% if form.shipping_address.errors %} is-invalid{% endif %}" rows="3" required autocomplete="street-address">{{ form.shipping_address.value|default:'' }}</textarea>
+              {% for e in form.shipping_address.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-12">
               <label for="id_notes" class="form-label">Order Notes</label>
-              <textarea name="notes" id="id_notes" class="form-control" rows="2"></textarea>
+              <textarea name="notes" id="id_notes" class="form-control" rows="2" placeholder="Anything we should know?"></textarea>
             </div>
             <div class="col-12 mt-3">
-              <div class="alert alert-info small">
-                <strong>Payment:</strong> After placing your order, send the payment via UPI to <strong>+919898989898</strong>. Share the screenshot on WhatsApp with your order number.
+              <div class="fd-note alert alert-info small">
+                <svg width="20" height="20" aria-hidden="true"><use xlink:href="#info"></use></svg>
+                <div><strong>Payment:</strong> After placing your order, send the payment via UPI to <strong>+919898989898</strong>. Share the screenshot on WhatsApp with your order number.</div>
               </div>
             </div>
             <div class="col-12 mt-2">
@@ -65,8 +84,12 @@
       </div>
     </div>
     {% else %}
-    <p class="text-center text-muted">Your cart is empty. <a href="{% url 'product_list' %}">Continue shopping</a>.</p>
+    <div class="empty-state">
+      <h4>Your cart is empty</h4>
+      <p class="text-center text-muted">Your cart is empty. <a href="{% url 'product_list' %}">Continue shopping</a>.</p>
+    </div>
     {% endif %}
   </div>
 </section>
+{% endwith %}
 {% endblock %}

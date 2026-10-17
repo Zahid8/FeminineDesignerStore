@@ -1,6 +1,8 @@
 # CONTINUITY
 
 ## [PLANS]
+- 2026-10-17T14:40:00Z [USER] Requested a second pass modelled on famous fashion sites, explicitly without over-doing drama and using popular CSS/JS frameworks. Delivered as T29.
+- 2026-10-17T13:30:00Z [USER] Requested a complete, "very amazing" customer-facing UI revamp; any popular JS allowed; stack change optional. Delivered as T28 (see docs/agent/CURRENT_TASK.md T28 notes).
 - 2026-07-11T07:09:56Z [USER] Requested inspection of `web_temp/indichic/ECommerceSite-Django` and a tracked implementation-task roadmap for useful missing FemDes features inspired by that reference app.
 - 2026-07-10T20:43:50Z [USER] Clarified T21-FIX must take heavy inspiration from `web_temp/indichic` and make the FemDes UI very similar to its design style and structural idea while remaining a light blouse-only version.
 - 2026-07-10T20:23:56Z [USER] Requested adding `web_temp/indichic` as UI inspiration in the current task, specifically a similar but light version, not dark.
@@ -13,6 +15,8 @@
 - 2026-07-06T14:50:40Z [USER] Requested architecture/planning-agent documentation across `AGENTS.md`, `CLAUDE.md`, `docs/architecture.md`, `docs/decisions.md`, and `docs/agent/*`, explicitly without implementing the feature.
 
 ## [DECISIONS]
+- 2026-10-17T14:40:00Z [CODE] T29 adds HomeBanner model (migration 0015), Alpine.js 3 for UI state, server-side ?sort= whitelist, colour/size chips from existing option fields. Visual direction: restrained luxury per docs/agent/design-references/README.md.
+- 2026-10-17T13:30:00Z [CODE] Kept Django server-rendered stack for T28; visual layer = femdes-theme.css + GSAP/ScrollTrigger + Lenis + Swiper 11 via SRI-pinned CDN. Kaira style.css untouched; SmoothScroll.js no longer loaded.
 - 2026-07-11T07:27:19Z [USER] Future `CURRENT_TASK.md` tasks, including TASK-022-FIX, should include a DeepSeek self-validation loop so the implementer reruns fail-first tests, focused/full verification, diff scope audit, and acceptance mapping before claiming completion.
 - 2026-07-10T20:44:30Z [USER] Kaira behavior may be changed for the IndiChic redesign because the owner prefers the IndiChic direction; preserve Django routes/forms/business behavior and test any replacement interactions.
 - 2026-07-10T18:12:06Z [USER] Review policy: if the only remaining failure is documentation sync/drift, do not create a standalone fix task; carry the doc cleanup into the next substantive task.
@@ -115,6 +119,7 @@
 - 2026-07-06T16:47:10Z [CODE] Rewrote `docs/agent/CURRENT_TASK.md` for TASK-005 forms/selectors/services/URLs/views; cleaned stale T4 handoff/test-status text. No application code implemented in this turn.
 
 ## [OUTCOMES]
+- 2026-07-16T10:11:44Z [CODE] Review outcome for commit `3f5b44c` is NEEDS FIXES: focused 134 and full 331 tests, check, migration dry-run, pip check, collectstatic, JavaScript syntax, and diff checks pass, but cart `min="0"` is converted to 1 by `|| 1`, search focus returns to the first/hidden trigger rather than the opener, quantity buttons and stable hooks are not server-rendered, order statuses lack labelled list semantics, client tests only prove script inclusion, and required browser/docs evidence is absent. `CURRENT_TASK.md` now defines narrow TASK-027-FIX.
 - 2026-07-13T14:42:42Z [CODE] Review outcome for commit `1d293a5` is APPROVED WITH FOLLOW-UP TASKS: the direct same-status foreign order-number assertion is present; focused 120 and full 330 tests, check, migration dry-run, pip check, collectstatic, stale-count search, and diff checks pass; no unrelated implementation was added. `CURRENT_TASK.md` now defines TASK-027 with behavior-level progressive-enhancement tests and carries T22-T26 task-board/handoff documentation cleanup per owner policy.
 - 2026-07-13T14:33:12Z [CODE] Review outcome for commit `ea7364c` is NEEDS FIXES: same-status foreign shipped fixture and T27 JS removal are mostly correct, focused 120-test suite, full 330-test suite, check, migration dry-run, pip check, collectstatic, and diff whitespace checks pass, but `test_status_filter_shows_only_matching` still does not directly assert the foreign shipped `order_number` is absent and HANDOFF/TEST_STATUS retain stale `325 tests` current-state text. `docs/agent/CURRENT_TASK.md` now defines TASK-025-FIX3 as a narrow assertion/docs cleanup.
 - 2026-07-13T13:47:19Z [CODE] Re-review found no new implementation commit after `5feba8d`; only reviewer-authored `.agent/CONTINUITY.md` and `docs/agent/CURRENT_TASK.md` edits are dirty. Focused 120-test suite, full 330-test suite, check, migration dry-run, pip check, collectstatic, and diff whitespace checks pass, but TASK-025-FIX2 remains unimplemented: no same-status foreign shipped order exists in `OrderSearchFilterTests`, T27 `store.js` remains included with only a script-tag test, and HANDOFF/TEST_STATUS still report 325 tests. Existing `CURRENT_TASK.md` remains the corrective task.

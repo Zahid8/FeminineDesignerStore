@@ -1,18 +1,28 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %} — Login{% endblock %}
 {% block content %}
 <section class="py-5">
   <div class="container-lg">
-    <div class="row justify-content-center">
-      <div class="col-md-5">
-        <h2 class="mb-4">Sign In</h2>
-        <form method="post">
+    <div class="fd-auth" data-reveal="scale">
+      <div class="fd-auth-visual">
+        <img src="{% static 'store/images/banner-image-2.jpg' %}" alt="" aria-hidden="true">
+        <span class="fd-eyebrow" style="color:var(--fd-gold-soft)">Welcome back</span>
+        <h2>Your wardrobe, <em>remembered.</em></h2>
+        <p>Track orders, reuse your details at checkout and download invoices.</p>
+      </div>
+      <div class="fd-auth-form">
+        {% include "store/partials/auth_tabs.html" with active="email" next=request.GET.next %}
+        <h2 class="mb-2">Sign In</h2>
+        <p class="text-muted mb-4">Good to see you again.</p>
+        <form method="post" class="fd-form">
           {% csrf_token %}
           {{ form.as_p }}
-          <button type="submit" class="btn btn-dark w-100">Sign In</button>
+          <button type="submit" class="btn btn-dark btn-lg w-100 mt-2">Sign In</button>
         </form>
-        <p class="mt-3 text-center">
-          Don't have an account? <a href="{% url 'account_register' %}">Register here</a>.
+        <p class="mt-3 text-center small"><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+        <p class="mt-4 text-center text-muted">
+          Don't have an account? <a href="{% url 'account_register' %}" class="fw-semibold text-dark">Register here</a>.
         </p>
       </div>
     </div>
