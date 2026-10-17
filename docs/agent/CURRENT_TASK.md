@@ -520,3 +520,11 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   femdes.js no longer marks a prevented submit as busy.
 - Checks: `browser-checks/mtm_guard.js` (24/24 desktop+mobile),
   `browser-checks/e2e_mtm.js` (28/28 on a DEBUG=False server), 488 tests OK.
+
+## T38 — Online order bills in the billing app (2026-10-18)
+
+- Billing app (Feminine_Designer 78e17bd): per-order bill PDF in the in-store
+  receipt design, public signed link `/bill/online/{order}/{sig}`, and
+  WhatsApp messages (confirmation / shipped / delivered / payment reminder)
+  carrying the bill link; templates editable in Settings. No webstore changes.
+- Browser check: `docs/agent/browser-checks/billing_bill.js` (12/12).
