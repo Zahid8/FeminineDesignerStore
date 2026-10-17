@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 
 
@@ -5,6 +7,7 @@ class AddToCartForm(forms.Form):
     quantity = forms.IntegerField(min_value=1, max_value=99, initial=1)
     color = forms.CharField(max_length=80, required=False)
     size = forms.CharField(max_length=80, required=False)
+    custom = forms.BooleanField(required=False)
 
 
 class CartUpdateForm(forms.Form):
@@ -76,15 +79,64 @@ class LoginForm(AuthenticationForm):
         self.fields["password"].widget.attrs.update({"autocomplete": "current-password"})
 
 
-class CustomizationForm(forms.Form):
-    customer_name = forms.CharField(max_length=160)
-    customer_phone = forms.CharField(max_length=40)
-    length = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
-    chest = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
-    waist = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
-    armhole = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
-    opening = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
-    bicep = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0.01)
+from store import measurements as mspec
+
+
+class CustomFitForm(forms.Form):
+    """Made-to-measure inputs. Entered in inches or cm (``unit``); cleaned values are inches."""
+
+    unit = forms.ChoiceField(choices=[("in", "inches"), ("cm", "cm")], required=False, initial="in")
+    sleeve_style = forms.ChoiceField(choices=mspec.SLEEVE_STYLES, required=False)
+    notes = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    customer_name = forms.CharField(max_length=160, required=False)
+    customer_phone = forms.CharField(max_length=40, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for key, label, required, _rng, hint in mspec.MEASUREMENTS:
+            self.fields[key] = forms.DecimalField(
+                label=label, required=required, max_digits=6, decimal_places=2, min_value=Decimal("0.01"),
+                widget=forms.NumberInput(attrs={"step": "0.25", "inputmode": "decimal", "placeholder": "0.00"}),
+                help_text=hint,
+            )
+        # keep customer fields at the end for template ordering
+        for name in ("customer_name", "customer_phone", "sleeve_style", "notes", "unit"):
+            self.fields[name] = self.fields.pop(name)
+
+    def measurement_fields(self):
+        return [(self[key], spec) for spec in mspec.MEASUREMENTS for key in [spec[0]]]
+
+    def clean(self):
+        cleaned = super().clean()
+        unit = cleaned.get("unit") or "in"
+        for key, label, _req, (lo, hi), _hint in mspec.MEASUREMENTS:
+            value = cleaned.get(key)
+            if value in (None, ""):
+                continue
+            inches = mspec.cm_to_in(value) if unit == "cm" else mspec.q(value)
+            if not (Decimal(lo) <= inches <= Decimal(hi)):
+                shown = f"{lo}–{hi} in" if unit == "in" else f"{mspec.in_to_cm(lo)}–{mspec.in_to_cm(hi)} cm"
+                self.add_error(key, f"{label} should be between {shown}.")
+            cleaned[key] = inches
+        return cleaned
+
+    def as_custom(self):
+        """Cart/order snapshot (inches as strings)."""
+        d = self.cleaned_data
+        return {
+            "measurements": {k: f"{d[k]:.2f}" for k in mspec.ALL_KEYS if d.get(k) not in (None, "")},
+            "sleeve_style": d.get("sleeve_style") or "",
+            "notes": (d.get("notes") or "").strip(),
+        }
+
+
+class CustomizationForm(CustomFitForm):
+    """Save-and-share customization request: contact details required."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["customer_name"].required = True
+        self.fields["customer_phone"].required = True
 
 
 class ProfileEditForm(forms.Form):

@@ -11,6 +11,16 @@ conda run -n femdes python manage.py check     # PASS (0 issues)
 conda run -n femdes python manage.py test       # PASS (448 tests)
 ```
 
+## T33 Verification — Made-to-measure (2026-10-17)
+
+```bash
+conda run -n femdes python manage.py test   # PASS (466 tests)
+```
+`docs/agent/browser-checks/builder.js`: fills the builder, toggles cm,
+chooses sleeves, reviews, adds to bag; toast and cart line confirmed on
+desktop and mobile with no page errors. Screenshots in
+`docs/agent/screenshots/t33/`.
+
 ## T32 Verification — Component polish (2026-10-17)
 
 ```bash

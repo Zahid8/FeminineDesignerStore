@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load store_extras %}
 {% block title %} — Track Your Order{% endblock %}
 {% block content %}
 {% with currency=site_settings.currency_symbol|default:"$" %}
@@ -34,7 +35,7 @@
       </ol>
       <ul class="list-unstyled mt-4 mb-0">
         {% for item in order.items.all %}
-        <li class="d-flex justify-content-between py-2 border-bottom"><span>{{ item.product_name }} &times; {{ item.quantity }}</span><span>{{ currency }}{{ item.line_total }}</span></li>
+        <li class="d-flex justify-content-between py-2 border-bottom"><span>{{ item.product_name }}{% if item.customization %} <em class="text-muted">(made to measure)</em>{% endif %} &times; {{ item.quantity }}</span><span>{{ currency }}{{ item.line_total }}</span></li>
         {% endfor %}
         <li class="d-flex justify-content-between pt-3"><strong>Total</strong><strong>{{ currency }}{{ order.total }}</strong></li>
       </ul>

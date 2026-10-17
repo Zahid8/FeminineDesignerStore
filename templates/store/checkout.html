@@ -25,7 +25,7 @@
           <h5 class="fd-card-title">Order Summary</h5>
           {% for line in cart.lines %}
           <div class="d-flex justify-content-between align-items-start py-2 border-bottom gap-3">
-            <span><strong class="text-dark fw-semibold">{{ line.product_name }}</strong> <span class="text-muted">x {{ line.quantity }}</span>{% if line.color %}<small class="d-block text-muted">{{ line.color }}{% if line.size %} / {{ line.size }}{% endif %}</small>{% endif %}</span>
+            <span><strong class="text-dark fw-semibold">{{ line.product_name }}</strong> <span class="text-muted">x {{ line.quantity }}</span>{% if line.color or line.size %}<small class="d-block text-muted">{{ line.color }}{% if line.color and line.size %} / {% endif %}{{ line.size }}</small>{% endif %}{% include "store/partials/custom_summary.html" with rows=line.custom_summary compact=True %}</span>
             <span>{{ currency }}{{line.line_total }}</span>
           </div>
           {% endfor %}
@@ -86,6 +86,9 @@
               </fieldset>
               {% for e in form.payment_method.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
             </div>
+            {% with has_custom=cart.lines|dictsort:"custom"|last %}{% if has_custom.custom %}
+            <div class="col-12"><div class="fd-terms"><p class="fd-label mb-1">Made-to-measure terms</p><p class="mb-0 small">{{ site_settings.customization_terms }}</p></div></div>
+            {% endif %}{% endwith %}
             <div class="col-12 mt-2">
               <button type="submit" class="btn btn-dark btn-lg w-100">Place Order</button>
             </div>

@@ -28,7 +28,8 @@
                 {% if line.size %}<span>Size {{ line.size }}</span>{% endif %}
                 <span>{{ currency }}{{ line.unit_price }} each</span>
               </div>
-              {% if line.product.dispatch_note %}<p class="fd-cart-dispatch"><svg width="14" height="14" aria-hidden="true"><use xlink:href="#truck"></use></svg>{{ line.product.dispatch_note }}</p>{% endif %}
+              {% include "store/partials/custom_summary.html" with rows=line.custom_summary notes=line.custom.notes lead=line.lead_time %}
+              {% if line.product.dispatch_note and not line.custom %}<p class="fd-cart-dispatch"><svg width="14" height="14" aria-hidden="true"><use xlink:href="#truck"></use></svg>{{ line.product.dispatch_note }}</p>{% endif %}
               <div class="fd-cart-actions d-md-none">{% include "store/partials/qty_form.html" %}</div>
               <div class="fd-cart-links">
                 <form method="post" action="{% url 'remove_from_cart' line.key %}" class="d-inline">{% csrf_token %}<button type="submit" class="fd-text-btn">Remove</button></form>

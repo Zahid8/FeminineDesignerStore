@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 from store.forms import (
+    CustomFitForm,
     AddToCartForm,
     CartUpdateForm,
     CheckoutForm,
@@ -119,13 +120,49 @@ def product_list(request):
     return render(request, "store/product_list.html", ctx)
 
 
-def product_detail(request, slug):
-    product = selectors.get_product_by_slug(slug)
+def _custom_initial(request, product):
+    """Prefill: the customer's saved measurements, else the product's ready-made defaults."""
+    initial = {}
+    profile = getattr(getattr(request, "user", None), "profile", None) if request.user.is_authenticated else None
+    saved = getattr(profile, "saved_measurements", None) if profile else None
+    token = request.session.get("custom_request_token")
+    pending = CustomizationRequest.objects.filter(token=token).first() if token else None
+    if pending:
+        for key in ("length", "chest", "waist", "armhole", "opening", "bicep"):
+            initial[key] = getattr(pending, key)
+        initial.update(pending.details or {})
+        initial["sleeve_style"] = pending.sleeve_style
+        initial["notes"] = pending.notes
+        initial["customer_name"] = pending.customer_name
+        initial["customer_phone"] = pending.customer_phone
+        initial["_from_request"] = True
+    elif saved:
+        initial.update({k: v for k, v in saved.items() if v not in (None, "")})
+        initial["_from_profile"] = True
+    else:
+        for key, attr in (("length", "default_length"), ("chest", "default_chest"), ("waist", "default_waist"),
+                          ("armhole", "default_armhole"), ("opening", "default_opening"), ("bicep", "default_bicep")):
+            value = getattr(product, attr)
+            if value is not None:
+                initial[key] = value
+    if request.user.is_authenticated:
+        initial.setdefault("customer_name", request.user.get_full_name() or "")
+        if profile and profile.phone:
+            initial.setdefault("customer_phone", profile.phone)
+    return initial
+
+
+def _render_product_detail(request, product, custom_form=None, custom_open=False):
     related = []
     if product.category:
-        related = selectors.filter_products(category_slug=product.category.slug)[:8]
+        related = selectors.filter_products(category_slug=product.category.slug).exclude(pk=product.pk)[:8]
     ctx = _base_context(request)
     site = ctx["site_settings"]
+    initial = _custom_initial(request, product)
+    from_profile = initial.pop("_from_profile", False)
+    from_request = initial.pop("_from_request", False)
+    if custom_form is None:
+        custom_form = CustomFitForm(initial=initial)
     ctx.update(
         {
             "product": product,
@@ -136,17 +173,22 @@ def product_detail(request, slug):
             "product_jsonld": product_jsonld(request, product, site),
             "related_products": related,
             "add_to_cart_form": AddToCartForm(),
-            "customization_form": CustomizationForm(initial={
-                "length": product.default_length,
-                "chest": product.default_chest,
-                "waist": product.default_waist,
-                "armhole": product.default_armhole,
-                "opening": product.default_opening,
-                "bicep": product.default_bicep,
-            }),
+            "custom_form": custom_form,
+            "customization_form": custom_form,  # legacy name used by older templates/tests
+            "custom_open": custom_open or bool(custom_form.errors),
+            "custom_fee": product.custom_fee(site),
+            "custom_total": product.get_effective_price() + product.custom_fee(site),
+            "custom_lead_time": product.custom_lead_time(site),
+            "custom_from_profile": from_profile,
+            "custom_from_request": from_request,
         }
     )
     return render(request, "store/product_detail.html", ctx)
+
+
+def product_detail(request, slug):
+    product = selectors.get_product_by_slug(slug)
+    return _render_product_detail(request, product, custom_open=request.GET.get("fit") == "custom")
 
 
 def cart_detail(request):
@@ -167,6 +209,12 @@ def add_to_cart(request, product_id):
     form = AddToCartForm(request.POST)
     if not form.is_valid():
         return redirect("product_detail", slug=product.slug)
+    custom = None
+    if form.cleaned_data.get("custom"):
+        fit_form = CustomFitForm(request.POST)
+        if not fit_form.is_valid():
+            return _render_product_detail(request, product, custom_form=fit_form, custom_open=True)
+        custom = fit_form.as_custom()
     try:
         services.add_to_cart(
             request,
@@ -174,11 +222,13 @@ def add_to_cart(request, product_id):
             quantity=form.cleaned_data["quantity"],
             color=form.cleaned_data.get("color", ""),
             size=form.cleaned_data.get("size", ""),
+            custom=custom,
         )
     except ValueError as e:
         messages.error(request, str(e))
     else:
-        messages.success(request, f"{product.name} added to your bag.", extra_tags="cart")
+        label = "made-to-measure " if custom else ""
+        messages.success(request, f"{product.name} ({label}fit) added to your bag." if custom else f"{product.name} added to your bag.", extra_tags="cart")
     return redirect("product_detail", slug=product.slug)
 
 
@@ -274,48 +324,79 @@ def buy_now(request, product_id):
 
 
 def customization_create(request, slug):
+    """Save measurements without buying and get a shareable link (advance-payment flow)."""
     product = get_object_or_404(Product, slug=slug, is_active=True)
     if request.method == "POST":
         form = CustomizationForm(request.POST)
         if form.is_valid():
+            custom = form.as_custom()
+            d = form.cleaned_data
             cr = CustomizationRequest.objects.create(
                 product=product,
-                customer_name=form.cleaned_data["customer_name"],
-                customer_phone=form.cleaned_data["customer_phone"],
-                length=form.cleaned_data["length"],
-                chest=form.cleaned_data["chest"],
-                waist=form.cleaned_data["waist"],
-                armhole=form.cleaned_data["armhole"],
-                opening=form.cleaned_data["opening"],
-                bicep=form.cleaned_data["bicep"],
+                customer_name=d["customer_name"],
+                customer_phone=d["customer_phone"],
+                length=d["length"], chest=d["chest"], waist=d["waist"],
+                armhole=d["armhole"], opening=d["opening"], bicep=d["bicep"],
+                sleeve_style=custom["sleeve_style"],
+                notes=custom["notes"],
+                details={k: v for k, v in custom["measurements"].items()
+                         if k in ("sleeve_length", "front_neck", "back_neck")} or None,
             )
+            request.session["custom_request_token"] = str(cr.token)
+            _notify_customization_request(request, cr)
             return redirect("customization_created", token=cr.token)
-    else:
-        form = CustomizationForm(initial={
-            "length": product.default_length,
-            "chest": product.default_chest,
-            "waist": product.default_waist,
-            "armhole": product.default_armhole,
-            "opening": product.default_opening,
-            "bicep": product.default_bicep,
-        })
+        return _render_product_detail(request, product, custom_form=form, custom_open=True)
+    return redirect(f"{product.get_absolute_url()}?fit=custom#customize-section")
+
+
+def _notify_customization_request(request, cr):
+    from django.conf import settings
+    from django.core.mail import send_mail
+
+    if not settings.STORE_NOTIFY_EMAIL:
+        return
+    try:
+        send_mail(
+            f"Fitting request {cr.reference}: {cr.customer_name} — {cr.product.name}",
+            f"{cr.customer_name} · {cr.customer_phone}\n{cr.product.name}\n"
+            + "\n".join(f"{label}: {value}" for label, value in cr.summary_rows())
+            + (f"\nNotes: {cr.notes}" if cr.notes else "")
+            + f"\n\n{request.build_absolute_uri(reverse('customization_detail', args=[cr.token]))}",
+            settings.DEFAULT_FROM_EMAIL, [settings.STORE_NOTIFY_EMAIL],
+        )
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).exception("Fitting request email failed")
+
+
+def _customization_ctx(request, cr):
     ctx = _base_context(request)
-    ctx.update({"product": product, "customization_form": form})
-    return render(request, "store/product_detail.html", ctx)
+    site = ctx["site_settings"]
+    whatsapp = getattr(site, "whatsapp_url", "")
+    ctx.update({
+        "customization": cr,
+        "product": cr.product,
+        "rows": cr.summary_rows(),
+        "lead_time": cr.product.custom_lead_time(site),
+        "whatsapp_link": (
+            f"{whatsapp}?text=" + __import__("urllib.parse").parse.quote(
+                f"Hi, I've saved my measurements for {cr.product.name} (ref {cr.reference}). "
+                "Could you confirm them with me?")
+            if whatsapp else ""
+        ),
+    })
+    return ctx
 
 
 def customization_created(request, token):
     cr = get_object_or_404(CustomizationRequest, token=token)
-    ctx = _base_context(request)
-    ctx.update({"customization": cr, "product": cr.product})
-    return render(request, "store/customization_created.html", ctx)
+    return render(request, "store/customization_created.html", _customization_ctx(request, cr))
 
 
 def customization_detail(request, token):
     cr = get_object_or_404(CustomizationRequest, token=token)
-    ctx = _base_context(request)
-    ctx.update({"customization": cr, "product": cr.product})
-    return render(request, "store/customization_detail.html", ctx)
+    return render(request, "store/customization_detail.html", _customization_ctx(request, cr))
 
 
 # ── Razorpay payment views ──────────────────────────────────────

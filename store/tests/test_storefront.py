@@ -424,10 +424,20 @@ class ProductDetailViewTests(TestCase):
         )
 
     def test_product_detail_shows_related(self):
+        Product.objects.create(
+            category=self.category, name="Linen Dress", slug="linen-dress", sku="SKU-VIEW-003",
+            price=Decimal("59.99"), stock_quantity=2, is_active=True,
+        )
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
         self.assertContains(response, "Related Products")
+        self.assertContains(response, "Linen Dress")
+        # a product is never listed as related to itself
+        content = response.content.decode()
+        start = content.index('id="related-products"')
+        related = content[start:content.index("</section>", start)]
+        self.assertNotIn("Summer Dress", related)
 
     def test_product_detail_related_carousel_kaira_structure(self):
         """Related products carousel uses Kaira product-carousel wrapper with .swiper descendant."""

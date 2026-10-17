@@ -33,7 +33,25 @@ class SiteSettings(models.Model):
     )
     customization_advance_amount = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("500.00"),
-        help_text="Advance payment required for a customization request.",
+        help_text="Legacy: no longer shown to customers; payment is taken at checkout.",
+    )
+    customization_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Extra charge per made-to-measure piece (products can override).",
+    )
+    customization_terms = models.TextField(
+        "Made-to-measure terms",
+        default=(
+            "Made-to-measure pieces are cut and stitched to the measurements you provide, "
+            "so they cannot be exchanged for a different size. Our team will confirm your "
+            "measurements with you before stitching begins, and we will contact you if "
+            "anything needs clarifying."
+        ),
+        help_text="Shown in the customization builder, cart and order pages.",
+    )
+    customization_lead_time = models.CharField(
+        max_length=60, default="3–4 weeks", help_text="Shown as the made-to-measure dispatch time.",
     )
     cod_enabled = models.BooleanField(
         "Cash on delivery available", default=False,
@@ -254,6 +272,17 @@ class Product(models.Model):
         SizeChart, on_delete=models.SET_NULL, blank=True, null=True, related_name="products",
         help_text="Overrides the category/default size chart.",
     )
+    allow_customization = models.BooleanField(
+        "Made to measure available", default=True,
+    )
+    customization_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Overrides the store-wide made-to-measure fee. Blank = store default.",
+    )
+    customization_lead_time = models.CharField(
+        max_length=60, blank=True, help_text="Overrides the store-wide lead time, e.g. 2 weeks.",
+    )
     # Blouse measurement defaults (admin-editable, optional)
     default_length = models.DecimalField(
         max_digits=6, decimal_places=2, blank=True, null=True, default=None
@@ -342,6 +371,14 @@ class Product(models.Model):
             if chart:
                 return chart
         return SizeChart.objects.filter(is_default=True).first()
+
+    def custom_fee(self, site_settings=None):
+        if self.customization_fee is not None:
+            return self.customization_fee
+        return getattr(site_settings, "customization_fee", None) or Decimal("0.00")
+
+    def custom_lead_time(self, site_settings=None):
+        return self.customization_lead_time or getattr(site_settings, "customization_lead_time", "") or "3–4 weeks"
 
     def low_stock_count(self, threshold):
         """Units left when at or below `threshold` (and in stock), else None."""
@@ -736,6 +773,8 @@ class OrderItem(models.Model):
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
     color = models.CharField(max_length=80, blank=True)
     size = models.CharField(max_length=80, blank=True)
+    # Made-to-measure snapshot: {"measurements": {...inches}, "sleeve_style": "", "notes": ""}
+    customization = models.JSONField(blank=True, null=True)
     product = models.ForeignKey(
         Product,
         on_delete=models.SET_NULL,
@@ -782,6 +821,9 @@ class CustomizationRequest(models.Model):
         max_digits=6, decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],
     )
+    sleeve_style = models.CharField(max_length=20, blank=True)
+    notes = models.TextField(blank=True)
+    details = models.JSONField(blank=True, null=True, help_text="Optional measurements (inches).")
     payment_status = models.CharField(
         max_length=20,
         choices=[
@@ -797,6 +839,20 @@ class CustomizationRequest(models.Model):
     payment_notes = models.TextField(blank=True)
     paid_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def reference(self):
+        return "FIT-" + str(self.token).split("-")[0].upper()
+
+    def as_custom(self):
+        measurements = {k: f"{getattr(self, k):.2f}" for k in ("length", "chest", "waist", "armhole", "opening", "bicep")}
+        measurements.update({k: v for k, v in (self.details or {}).items()})
+        return {"measurements": measurements, "sleeve_style": self.sleeve_style, "notes": self.notes}
+
+    def summary_rows(self):
+        from store import measurements as mspec
+
+        return mspec.summary(self.as_custom())
 
     def save(self, *args, **kwargs):
         transitioning_to_paid = self.payment_status == "paid"
@@ -822,6 +878,7 @@ class CustomerProfile(models.Model):
     # Verified number in E.164 form, used for OTP login (one account per number).
     phone_e164 = models.CharField(max_length=20, unique=True, blank=True, null=True)
     phone_verified_at = models.DateTimeField(blank=True, null=True)
+    saved_measurements = models.JSONField(blank=True, null=True, help_text="Last measurements used, in inches.")
     shipping_address = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(
         upload_to="profiles/", blank=True, null=True

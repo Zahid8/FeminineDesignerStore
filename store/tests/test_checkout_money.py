@@ -144,11 +144,12 @@ class CheckoutFlowTests(TestCase):
         order = Order.objects.get()
         self.assertRedirects(response, reverse("order_success", args=[order.order_number]))
 
-    def test_customization_disclaimer_uses_settings(self):
-        self.site.customization_advance_amount = Decimal("750")
+    def test_customization_terms_editable_in_settings(self):
+        self.site.customization_terms = "Custom pieces are final sale."
         self.site.save()
         content = self.client.get(reverse("product_detail", args=[self.product.slug])).content.decode()
-        self.assertIn("₹750 advance payment to UPI shop@okicici", content)
+        self.assertIn("Custom pieces are final sale.", content)
+        self.assertNotIn("advance payment", content)
 
 
 class LegacyOrderMigrationTests(TestCase):

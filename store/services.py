@@ -2,6 +2,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
 
+from store import measurements as mspec
 from store.models import NewsletterSubscriber, Order, OrderItem, Product, SiteSettings
 
 CART_SESSION_KEY = "femdes_cart"
@@ -49,9 +50,18 @@ def compute_totals(gross_subtotal, discount_total, site_settings=None):
     }
 
 
-def _cart_key(product_id, color="", size=""):
-    """Stable key per product/variant combination."""
-    return f"{product_id}_{color.strip().lower()}_{size.strip().lower()}"
+def _cart_key(product_id, color="", size="", custom=None):
+    """Stable key per product/variant (and measurement set) combination."""
+    key = f"{product_id}_{color.strip().lower()}_{size.strip().lower()}"
+    if custom:
+        key += "_c" + mspec.fingerprint(custom)
+    return key
+
+
+def custom_fee_for(product, site_settings=None):
+    if site_settings is None:
+        site_settings = SiteSettings.objects.first()
+    return product.custom_fee(site_settings)
 
 
 def get_cart(request):
@@ -63,16 +73,20 @@ def _save_cart(request, cart):
     request.session.modified = True
 
 
-def add_to_cart(request, product, quantity=1, color="", size=""):
+def add_to_cart(request, product, quantity=1, color="", size="", custom=None):
     if not product.is_active:
         raise ValueError("Product is not active.")
     if product.stock_quantity <= 0:
         raise ValueError("Product is out of stock.")
     if quantity <= 0:
         raise ValueError("Quantity must be positive.")
+    if custom and not product.allow_customization:
+        raise ValueError("This piece is not available made to measure.")
+    if custom:
+        size = "Made to measure"
 
     cart = get_cart(request)
-    key = _cart_key(product.pk, color, size)
+    key = _cart_key(product.pk, color, size, custom)
     current_qty = cart.get(key, {}).get("quantity", 0)
     new_qty = current_qty + quantity
     if new_qty > product.stock_quantity:
@@ -85,6 +99,7 @@ def add_to_cart(request, product, quantity=1, color="", size=""):
         "color": color,
         "size": size,
         "quantity": new_qty,
+        "custom": custom or None,
     }
     _save_cart(request, cart)
 
@@ -128,6 +143,7 @@ def get_cart_summary(request):
     item_count = 0
     gross = Decimal("0.00")
     discount = Decimal("0.00")
+    site = SiteSettings.objects.first()
 
     for key, item in list(cart.items()):
         try:
@@ -139,7 +155,9 @@ def get_cart_summary(request):
             continue
 
         qty = item["quantity"]
-        unit_price = product.get_effective_price()
+        custom = item.get("custom") or None
+        fee = product.custom_fee(site) if custom else Decimal("0.00")
+        unit_price = _q(product.get_effective_price() + fee)
         line_total = _q(unit_price * qty)
 
         lines.append(
@@ -154,11 +172,15 @@ def get_cart_summary(request):
                 "quantity": qty,
                 "unit_price": unit_price,
                 "line_total": line_total,
+                "custom": custom,
+                "custom_summary": mspec.summary(custom),
+                "custom_fee": fee,
+                "lead_time": product.custom_lead_time(site) if custom else "",
             }
         )
         item_count += qty
-        gross += product.price * qty
-        discount += (product.price - unit_price) * qty
+        gross += (product.price + fee) * qty
+        discount += (product.price - product.get_effective_price()) * qty
 
     summary = {"lines": lines, "item_count": item_count}
     summary.update(compute_totals(gross, discount))
@@ -202,6 +224,8 @@ def create_order_from_cart(request, checkout_data):
         gross_subtotal = Decimal("0.00")
         discount_total = Decimal("0.00")
         order_items_data = []
+        site = SiteSettings.objects.first()
+        last_custom = None
 
         for key, item in cart.items():
             product = product_map.get(item["product_id"])
@@ -209,8 +233,12 @@ def create_order_from_cart(request, checkout_data):
                 raise ValueError(f"Product {item['product_id']} no longer exists.")
 
             qty = item["quantity"]
-            unit_price = product.price
-            effective_price = product.get_effective_price()
+            custom = item.get("custom") or None
+            fee = product.custom_fee(site) if custom else Decimal("0.00")
+            if custom:
+                last_custom = custom
+            unit_price = product.price + fee
+            effective_price = product.get_effective_price() + fee
             line_discount = (unit_price - effective_price) * qty
             line_total = effective_price * qty
             line_total = line_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -231,6 +259,7 @@ def create_order_from_cart(request, checkout_data):
                     "quantity": qty,
                     "color": item.get("color", ""),
                     "size": item.get("size", ""),
+                    "customization": custom,
                 }
             )
 
@@ -266,10 +295,20 @@ def create_order_from_cart(request, checkout_data):
                 quantity=item_data["quantity"],
                 color=item_data["color"],
                 size=item_data["size"],
+                customization=item_data["customization"],
             )
             # Decrement stock.
             item_data["product"].stock_quantity -= item_data["quantity"]
             item_data["product"].save(update_fields=["stock_quantity"])
+
+        # Remember measurements for next time.
+        user = getattr(request, "user", None)
+        if last_custom and user is not None and user.is_authenticated:
+            from store.models import CustomerProfile
+
+            profile, _ = CustomerProfile.objects.get_or_create(user=user)
+            profile.saved_measurements = last_custom.get("measurements")
+            profile.save(update_fields=["saved_measurements"])
 
         # Clear cart.
         request.session[CART_SESSION_KEY] = {}

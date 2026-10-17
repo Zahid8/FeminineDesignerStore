@@ -1,0 +1,9 @@
+{% if rows %}
+<div class="fd-custom-summary{% if compact %} is-compact{% endif %}">
+  <span class="fd-custom-tag"><svg width="12" height="12" aria-hidden="true"><use xlink:href="#ruler"></use></svg> Made to measure{% if lead %} · {{ lead }}{% endif %}</span>
+  <ul class="fd-custom-chips">
+    {% for label, value in rows %}<li><span>{{ label }}</span>{{ value }}</li>{% endfor %}
+  </ul>
+  {% if notes %}<p class="fd-custom-notes">“{{ notes }}”</p>{% endif %}
+</div>
+{% endif %}

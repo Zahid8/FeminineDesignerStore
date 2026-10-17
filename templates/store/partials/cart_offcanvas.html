@@ -13,7 +13,8 @@
         <a href="{% url 'product_detail' line.slug %}" class="fd-mini-cart-thumb" tabindex="-1" aria-hidden="true">{% include "store/partials/line_thumb.html" %}</a>
         <div class="fd-mini-cart-info">
           <strong><a href="{% url 'product_detail' line.slug %}">{{ line.product_name }}</a></strong>
-          <small>{% if line.color %}{{ line.color }}{% endif %}{% if line.color and line.size %} · {% endif %}{% if line.size %}Size {{ line.size }}{% endif %}</small>
+          <small>{% if line.color %}{{ line.color }}{% endif %}{% if line.color and line.size %} · {% endif %}{% if line.size %}{% if line.custom %}{{ line.size }}{% else %}Size {{ line.size }}{% endif %}{% endif %}</small>
+          {% include "store/partials/custom_summary.html" with rows=line.custom_summary compact=True %}
           <div class="fd-mini-cart-row">
             {% include "store/partials/qty_form.html" %}
             <span class="fd-mini-cart-price">{{ currency }}{{ line.line_total }}</span>

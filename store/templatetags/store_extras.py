@@ -17,3 +17,11 @@ def percent_off(product):
     if not compare or not price or compare <= price:
         return 0
     return int((compare - price) * 100 / compare)
+
+
+@register.filter
+def custom_rows(customization):
+    """[(label, value)] for an OrderItem.customization snapshot."""
+    from store import measurements
+
+    return measurements.summary(customization)

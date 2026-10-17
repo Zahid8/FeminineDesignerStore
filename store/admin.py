@@ -97,6 +97,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": (
                 "fulfilment", "dispatch_note", "fabric", "care_instructions",
                 "country_of_origin", "occasions", "pairs_with",
+                "allow_customization", "customization_fee", "customization_lead_time",
             ),
         }),
         ("Timestamps", {
@@ -168,9 +169,11 @@ class OrderItemInline(admin.TabularInline):
         "line_total",
         "color",
         "size",
+        "customization",
         "created_at",
     )
     readonly_fields = (
+        "customization",
         "product",
         "product_name",
         "sku",
@@ -281,7 +284,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             "fields": ("instagram_url", "facebook_url", "whatsapp_url"),
         }),
         ("Payments", {
-            "fields": ("upi_id", "customization_advance_amount", "cod_enabled"),
+            "fields": ("upi_id", "cod_enabled", "customization_fee", "customization_lead_time", "customization_terms", "customization_advance_amount"),
         }),
         ("Shipping", {
             "fields": ("shipping_fee", "free_shipping_threshold", "returns_summary"),

@@ -1,5 +1,6 @@
 # Current Task
 
+> **T33 — Made-to-measure redesign: DONE (2026-10-17)** (notes at end).
 > **T32 — Component polish pass: DONE (2026-10-17)** (notes at end).
 > **T31 — Concept A + B styling pass: DONE (2026-10-17)** (notes at end).
 > **T30 — Customer features + phone OTP login: DONE (2026-10-17)** (notes at end).
@@ -367,3 +368,37 @@ Owner asked for every component to be made excellent. Audited every page at
   badge shows on phones.
 - Home editorial uses the product photo only if its file exists on storage
   (`_editorial_image`), otherwise a lifestyle photo.
+
+
+---
+
+## T33 Notes — Made-to-measure redesign (completed 2026-10-17)
+
+Owner asked to redesign product customization (UI and functionality), then
+to replace the unprofessional disclaimer and the "send a link on WhatsApp for
+the advance" step with something customer-friendly.
+
+- Custom fit is now a cart line: `services.add_to_cart(custom=...)` stores
+  `{"measurements": {...inches}, "sleeve_style", "notes"}`; the cart key
+  includes a fingerprint so different measurement sets are separate lines;
+  `OrderItem.customization` snapshots it; unit price = effective price +
+  `Product.customization_fee` (or `SiteSettings.customization_fee`);
+  dispatch shows `customization_lead_time`. Payment happens at checkout.
+- `store/measurements.py` is the single spec (keys, labels, ranges, hints,
+  sleeve styles, cm→in). `CustomFitForm` validates ranges and converts units.
+- PDP: Ready-made / Made-to-measure fit switch; 3-step Alpine builder
+  (measurements with in/cm toggle + inline SVG guide; style + notes; review
+  with price, lead time and terms). Works without JS (all steps visible).
+- Saved measurements: logged-in customers get the last order's measurements
+  prefilled (`CustomerProfile.saved_measurements`).
+- Secondary path "Request a fitting call": saves a `CustomizationRequest`
+  (reference `FIT-XXXXXXXX`, staff email via `STORE_NOTIFY_EMAIL`), confirmation
+  page with next steps, one-tap WhatsApp (prefilled message) and
+  "Add to bag with these measurements" (session prefill). No advance payment
+  or link-copying.
+- `SiteSettings.customization_terms` (admin-editable) replaces the disclaimer
+  on the PDP, cart/checkout and request pages. `customization_advance_amount`
+  is retained but no longer shown.
+- Tests: `store/tests/test_custom_fit.py` (18). Two older tests updated:
+  "Disclaimer" → "Made-to-measure terms"; related products exclude the
+  product itself.

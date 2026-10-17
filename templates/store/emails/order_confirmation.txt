@@ -1,11 +1,11 @@
-{% autoescape off %}{% with currency=site_settings.currency_symbol|default:"$" %}Hello {{ order.customer_name }},
+{% load store_extras %}{% autoescape off %}{% with currency=site_settings.currency_symbol|default:"$" %}Hello {{ order.customer_name }},
 
 Thank you for your order with {{ site_settings.store_name|default:"FemDes" }}.
 
 Order number: {{ order.order_number }}
 Payment method: {{ order.get_payment_method_display }}
 
-{% for item in order.items.all %}- {{ item.product_name }}{% if item.color or item.size %} ({{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}){% endif %} x {{ item.quantity }}: {{ currency }}{{ item.line_total }}
+{% for item in order.items.all %}- {{ item.product_name }}{% if item.color or item.size %} ({{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}){% endif %} x {{ item.quantity }}{% if item.customization %} [made to measure: {% for l, v in item.customization|custom_rows %}{{ l }} {{ v }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if item.customization.notes %}; notes: {{ item.customization.notes }}{% endif %}]{% endif %}: {{ currency }}{{ item.line_total }}
 {% endfor %}
 Subtotal: {{ currency }}{{ order.subtotal }}{% if order.discount_total > 0 %}
 Discount: -{{ currency }}{{ order.discount_total }}{% endif %}{% if order.shipping_total > 0 %}

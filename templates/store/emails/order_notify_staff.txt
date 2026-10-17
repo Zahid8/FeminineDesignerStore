@@ -1,10 +1,10 @@
-{% autoescape off %}{% with currency=site_settings.currency_symbol|default:"$" %}New order {{ order.order_number }}
+{% load store_extras %}{% autoescape off %}{% with currency=site_settings.currency_symbol|default:"$" %}New order {{ order.order_number }}
 
 Customer: {{ order.customer_name }} <{{ order.customer_email }}>{% if order.customer_phone %} · {{ order.customer_phone }}{% endif %}
 Payment: {{ order.get_payment_method_display }} ({{ order.get_payment_status_display }})
 Total: {{ currency }}{{ order.total }}
 
-{% for item in order.items.all %}- {{ item.product_name }}{% if item.sku %} [{{ item.sku }}]{% endif %}{% if item.color or item.size %} ({{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}){% endif %} x {{ item.quantity }}
+{% for item in order.items.all %}- {{ item.product_name }}{% if item.sku %} [{{ item.sku }}]{% endif %}{% if item.color or item.size %} ({{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}){% endif %} x {{ item.quantity }}{% if item.customization %} [made to measure: {% for l, v in item.customization|custom_rows %}{{ l }} {{ v }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if item.customization.notes %}; notes: {{ item.customization.notes }}{% endif %}]{% endif %}
 {% endfor %}
 Ship to:
 {{ order.shipping_address }}

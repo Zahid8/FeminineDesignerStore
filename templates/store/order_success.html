@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load store_extras %}
 
 {% block title %} — Order Confirmed{% endblock %}
 
@@ -49,7 +50,7 @@
               <tbody>
                 {% for item in order.items.all %}
                 <tr>
-                  <td>{{ item.product_name }}{% if item.color %}<br><small class="text-muted">{{ item.color }}{% if item.size %} / {{ item.size }}{% endif %}</small>{% endif %}</td>
+                  <td>{{ item.product_name }}{% if item.color or item.size %}<br><small class="text-muted">{{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}</small>{% endif %}{% include "store/partials/custom_summary.html" with rows=item.customization|custom_rows notes=item.customization.notes compact=True %}</td>
                   <td>{{ item.sku }}</td>
                   <td>{{ item.quantity }}</td>
                   <td>{{ currency }}{{item.unit_price }}</td>

@@ -1,34 +1,30 @@
 {% extends "base.html" %}
-
-{% block title %} — Customization Details{% endblock %}
-
+{% block title %} — Fitting request {{ customization.reference }}{% endblock %}
 {% block content %}
-<section class="fd-section-sm">
+<header class="fd-page-header is-compact">
   <div class="container-lg">
-    <div class="row justify-content-center">
-      <div class="col-lg-7">
-        <div class="card mb-4">
-          <div class="card-header"><span class="fd-eyebrow mb-1">Customization for</span><h4 class="mb-0">{{ product.name }}</h4></div>
-          <div class="card-body">
-            <p><strong>Customer:</strong> {{ customization.customer_name }}</p>
-            <p><strong>Phone:</strong> {{ customization.customer_phone }}</p>
-            <div class="fd-spec-grid">
-              <div><strong>Length</strong> {{ customization.length }} in</div>
-              <div><strong>Chest</strong> {{ customization.chest }} in</div>
-              <div><strong>Waist</strong> {{ customization.waist }} in</div>
-              <div><strong>Armhole</strong> {{ customization.armhole }} in</div>
-              <div><strong>Opening</strong> {{ customization.opening }} in</div>
-              <div><strong>Bicep</strong> {{ customization.bicep }} in</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="fd-note alert alert-info">
-          <svg width="20" height="20" aria-hidden="true"><use xlink:href="#info"></use></svg>
-          <div><strong>Payment Status:</strong> {{ customization.get_payment_status_display }}<br>
-          <strong>Disclaimer:</strong> Customization requires a {{ site_settings.currency_symbol|default:"₹" }}{{ site_settings.customization_advance_amount|default:"500"|floatformat:"-2" }} advance payment to UPI {{ site_settings.upi_id|default:"+919898989898" }}. Please send the UPI payment screenshot through WhatsApp along with your customization link.</div>
-        </div>
+    <span class="fd-eyebrow is-center">Fitting request {{ customization.reference }}</span>
+    <h1>{{ product.name }}</h1>
+    <p>Saved for {{ customization.customer_name }} on {{ customization.created_at|date:"j F Y" }}</p>
+  </div>
+</header>
+<section class="pb-5">
+  <div class="container-lg page-shell">
+    <div class="indichic-card p-4 p-md-5">
+      <p class="fd-label mb-2">Measurements</p>
+      <ul class="fd-custom-chips">
+        {% for label, value in rows %}<li><span>{{ label }}</span>{{ value }}</li>{% endfor %}
+      </ul>
+      {% if customization.notes %}<p class="fd-custom-notes mt-2">“{{ customization.notes }}”</p>{% endif %}
+      <p class="mt-4 mb-2"><strong>Status:</strong> {{ customization.get_payment_status_display }}</p>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a href="{{ product.get_absolute_url }}?fit=custom#customize-section" class="btn btn-dark">Add to Bag with These Measurements</a>
+        {% if whatsapp_link %}<a href="{{ whatsapp_link }}" class="btn btn-wa" target="_blank" rel="noopener"><svg width="16" height="16" class="me-2" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg>Chat with us</a>{% endif %}
       </div>
+    </div>
+    <div class="fd-terms mt-3">
+      <p class="fd-label mb-1">Made-to-measure terms</p>
+      <p class="mb-0 small">{{ site_settings.customization_terms }}</p>
     </div>
   </div>
 </section>

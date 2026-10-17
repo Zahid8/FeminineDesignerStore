@@ -383,7 +383,7 @@ class CustomizationViewMoreTests(TestCase):
         response = self.client.get(
             reverse("product_detail", kwargs={"slug": self.product.slug})
         )
-        self.assertContains(response, "Disclaimer")
+        self.assertContains(response, "Made-to-measure terms")
 
     def test_product_detail_has_measurement_guide(self):
         response = self.client.get(
@@ -420,7 +420,7 @@ class CustomizationViewMoreTests(TestCase):
         self.assertContains(response, "1234567890")
         self.assertContains(response, "24")
         self.assertContains(response, "/customizations/")
-        self.assertContains(response, "Share Your Customization")
+        self.assertContains(response, "What happens next")
 
     def test_customization_created_unknown_token_404(self):
         response = self.client.get(
@@ -440,7 +440,7 @@ class CustomizationViewMoreTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Bob")
-        self.assertContains(response, "Disclaimer")
+        self.assertContains(response, "Made-to-measure terms")
 
     def test_customization_detail_invalid_token_404(self):
         response = self.client.get(
