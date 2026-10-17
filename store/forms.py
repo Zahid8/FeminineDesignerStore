@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from django import forms
 
+from store import addresses
+
 
 class AddToCartForm(forms.Form):
     quantity = forms.IntegerField(min_value=1, max_value=99, initial=1)
@@ -14,11 +16,49 @@ class CartUpdateForm(forms.Form):
     quantity = forms.IntegerField(min_value=0, max_value=99)
 
 
-class CheckoutForm(forms.Form):
+class AddressFieldsMixin(forms.Form):
+    """Indian postal address (see store/addresses.py); composes ``shipping_address``.
+
+    ``shipping_address`` may also be posted directly as free text (API clients,
+    older forms); the structured fields win when any of them is filled.
+    """
+
+    address_line1 = forms.CharField(max_length=160, required=False)
+    address_line2 = forms.CharField(max_length=160, required=False)
+    city = forms.CharField(max_length=80, required=False)
+    state = forms.ChoiceField(choices=addresses.STATE_CHOICES, required=False)
+    pincode = forms.CharField(max_length=10, required=False)
+    country = forms.CharField(max_length=60, required=False, initial=addresses.COUNTRY)
+    shipping_address = forms.CharField(widget=forms.Textarea, required=False)
+
+    address_required = True
+
+    def clean_pincode(self):
+        value = (self.cleaned_data.get("pincode") or "").strip()
+        return addresses.clean_pincode(value) if value else ""
+
+    def clean(self):
+        cleaned = super().clean()
+        parts = {k: (cleaned.get(k) or "").strip() for k in ("address_line1", "address_line2", "city", "state", "pincode")}
+        structured = any(parts.values())
+        legacy = (cleaned.get("shipping_address") or "").strip()
+        if structured or (self.address_required and not legacy):
+            for key, label in (("address_line1", "Address line 1"), ("city", "City"), ("state", "State"), ("pincode", "PIN code")):
+                if not parts[key] and key not in self.errors:
+                    self.add_error(key, f"{label} is required.")
+            cleaned["country"] = (cleaned.get("country") or "").strip() or addresses.COUNTRY
+            cleaned["shipping_address"] = addresses.compose(parts["address_line1"], parts["address_line2"], parts["city"],
+                                                            parts["state"], parts["pincode"], cleaned["country"])
+        else:
+            cleaned["shipping_address"] = legacy
+            cleaned["country"] = (cleaned.get("country") or "").strip() or addresses.COUNTRY
+        return cleaned
+
+
+class CheckoutForm(AddressFieldsMixin):
     customer_name = forms.CharField(max_length=160)
     customer_email = forms.EmailField()
-    customer_phone = forms.CharField(max_length=40, required=False)
-    shipping_address = forms.CharField(widget=forms.Textarea)
+    customer_phone = forms.CharField(max_length=40)
     location_url = forms.CharField(max_length=2000, required=False)
     notes = forms.CharField(widget=forms.Textarea, required=False)
     payment_method = forms.ChoiceField(required=False)
@@ -27,6 +67,12 @@ class CheckoutForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.payment_methods = payment_methods or []
         self.fields["payment_method"].choices = [(m["value"], m["label"]) for m in self.payment_methods]
+        # Contact fields first so error messages read top to bottom.
+        first = ("customer_name", "customer_email", "customer_phone")
+        self.fields = {**{k: self.fields[k] for k in first}, **{k: v for k, v in self.fields.items() if k not in first}}
+
+    def clean_customer_phone(self):
+        return addresses.clean_indian_mobile(self.cleaned_data.get("customer_phone"))
 
     def clean_location_url(self):
         from store.locations import clean_maps_link
@@ -145,14 +191,19 @@ class CustomizationForm(CustomFitForm):
         self.fields["customer_phone"].required = True
 
 
-class ProfileEditForm(forms.Form):
+class ProfileEditForm(AddressFieldsMixin):
     first_name = forms.CharField(max_length=150, required=False)
     last_name = forms.CharField(max_length=150, required=False)
     email = forms.EmailField(required=True)
     phone = forms.CharField(max_length=40, required=False)
-    shipping_address = forms.CharField(widget=forms.Textarea, required=False)
     location_url = forms.CharField(max_length=2000, required=False)
     profile_image = forms.ImageField(required=False)
+
+    address_required = False  # the address is optional on a profile
+
+    def clean_phone(self):
+        value = (self.cleaned_data.get("phone") or "").strip()
+        return addresses.clean_indian_mobile(value) if value else ""
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)

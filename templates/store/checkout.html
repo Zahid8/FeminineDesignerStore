@@ -60,15 +60,12 @@
               {% for e in form.customer_email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-md-6">
-              <label for="id_customer_phone" class="form-label">Phone</label>
-              <input type="text" name="customer_phone" id="id_customer_phone" class="form-control" maxlength="40" autocomplete="tel" inputmode="tel" value="{{ form.customer_phone.value|default:'' }}">
+              <label for="id_customer_phone" class="form-label">Mobile number *</label>
+              <input type="tel" name="customer_phone" id="id_customer_phone" class="form-control{% if form.customer_phone.errors %} is-invalid{% endif %}" maxlength="20" autocomplete="tel" inputmode="numeric" placeholder="10-digit mobile number" required value="{{ form.customer_phone.value|default:'' }}">
+              {% for e in form.customer_phone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-12 mt-4"><span class="fd-eyebrow mb-0">Step 2</span><h5>Shipping Address</h5></div>
-            <div class="col-12">
-              <label for="id_shipping_address" class="form-label">Address *</label>
-              <textarea name="shipping_address" id="id_shipping_address" class="form-control{% if form.shipping_address.errors %} is-invalid{% endif %}" rows="3" required autocomplete="street-address">{{ form.shipping_address.value|default:'' }}</textarea>
-              {% for e in form.shipping_address.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-            </div>
+            {% include "store/partials/address_fields.html" with prefix="id_" required=True %}
             <div class="col-12">
               {% include "store/partials/location_field.html" with field_id="id_location_url" %}
             </div>

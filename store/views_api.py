@@ -132,6 +132,10 @@ def serialize_order(request, order, site=None, order_counts=None):
             "orders_count": order_counts.get((order.customer_email or "").lower(), 1),
         },
         "shipping_address": order.shipping_address,
+        "shipping": {
+            "line1": order.address_line1, "line2": order.address_line2, "city": order.city,
+            "state": order.state, "pincode": order.pincode, "country": order.country or "India",
+        },
         "location_url": order.location_url or None,
         "notes": order.notes,
         "currency": getattr(site, "currency_code", None) or "INR",

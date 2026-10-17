@@ -25,7 +25,7 @@ async function checkout(p, tag) {
   if (await p.inputValue('#id_customer_name') === '') await p.fill('#id_customer_name', 'Asha E2E');
   if (await p.inputValue('#id_customer_email') === '') await p.fill('#id_customer_email', 'asha.e2e@example.com');
   await p.fill('#id_customer_phone', '9876543210');
-  await p.fill('#id_shipping_address', '12 MG Road, Pune 411001');
+  await p.fill('#id_address_line1', '12 MG Road'); await p.fill('#id_city', 'Pune'); await p.selectOption('#id_state', 'Maharashtra'); await p.fill('#id_pincode', '411001');
   const terms = await p.isVisible('.fd-terms');
   await Promise.all([p.waitForNavigation(), p.click('#checkout-form button[type=submit]')]);
   const url = p.url(); const m = url.match(/orders\/([^/]+)\/success/);

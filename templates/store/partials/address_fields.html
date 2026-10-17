@@ -1,0 +1,32 @@
+{# Indian postal address fields. Expects: form, prefix (id prefix), required (bool). #}
+{% load store_extras %}
+<div class="col-12">
+  <label for="{{ prefix }}address_line1" class="form-label">Address line 1{% if required %} *{% endif %}</label>
+  <input type="text" name="address_line1" id="{{ prefix }}address_line1" class="form-control{% if form.address_line1.errors %} is-invalid{% endif %}" maxlength="160" autocomplete="address-line1" placeholder="House / flat no., building, street"{% if required %} required{% endif %} value="{{ form.address_line1.value|default:'' }}">
+  {% for e in form.address_line1.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+</div>
+<div class="col-12">
+  <label for="{{ prefix }}address_line2" class="form-label">Address line 2 <span class="text-muted fw-normal">(optional)</span></label>
+  <input type="text" name="address_line2" id="{{ prefix }}address_line2" class="form-control" maxlength="160" autocomplete="address-line2" placeholder="Area, colony, landmark" value="{{ form.address_line2.value|default:'' }}">
+</div>
+<div class="col-md-6">
+  <label for="{{ prefix }}city" class="form-label">City{% if required %} *{% endif %}</label>
+  <input type="text" name="city" id="{{ prefix }}city" class="form-control{% if form.city.errors %} is-invalid{% endif %}" maxlength="80" autocomplete="address-level2"{% if required %} required{% endif %} value="{{ form.city.value|default:'' }}">
+  {% for e in form.city.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+</div>
+<div class="col-md-6">
+  <label for="{{ prefix }}state" class="form-label">State{% if required %} *{% endif %}</label>
+  <select name="state" id="{{ prefix }}state" class="form-select{% if form.state.errors %} is-invalid{% endif %}" autocomplete="address-level1"{% if required %} required{% endif %}>
+    {% for value, label in form.fields.state.choices %}<option value="{{ value }}"{% if form.state.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  {% for e in form.state.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+</div>
+<div class="col-md-6">
+  <label for="{{ prefix }}pincode" class="form-label">PIN code{% if required %} *{% endif %}</label>
+  <input type="text" name="pincode" id="{{ prefix }}pincode" class="form-control{% if form.pincode.errors %} is-invalid{% endif %}" inputmode="numeric" pattern="[1-9][0-9]{5}" maxlength="6" autocomplete="postal-code" placeholder="6 digits"{% if required %} required{% endif %} value="{{ form.pincode.value|default:'' }}">
+  {% for e in form.pincode.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+</div>
+<div class="col-md-6">
+  <label for="{{ prefix }}country" class="form-label">Country</label>
+  <input type="text" name="country" id="{{ prefix }}country" class="form-control" autocomplete="country-name" value="{{ form.country.value|default:'India' }}" readonly>
+</div>

@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process'); const fs = require('fs');
 const EMAIL = 'meera.' + Date.now() + '@example.com';
-const shop = 'http://127.0.0.1:8766', bill = 'http://127.0.0.1:3011';
+const shop = process.env.SHOP || 'http://127.0.0.1:8766', bill = 'http://127.0.0.1:3011';
 const R = [], I = []; const ok = (n, c, d = '') => { R.push(`${c ? 'PASS' : 'FAIL'}  ${n}${d ? '  — ' + d : ''}`); if (!c) I.push(n); };
 async function addToBag(p) {
   await p.goto(shop + '/products/silk-embroidered-blouse/', { waitUntil: 'load' });
@@ -11,7 +11,7 @@ async function addToBag(p) {
 async function fillCheckout(p, extra = {}) {
   await p.goto(shop + '/checkout/', { waitUntil: 'load' });
   await p.fill('#id_customer_name', 'Meera Location'); await p.fill('#id_customer_email', EMAIL);
-  await p.fill('#id_customer_phone', '9812345678'); await p.fill('#id_shipping_address', 'Flat 4B, Lotus Residency\nBaner Road, Pune 411045');
+  await p.fill('#id_customer_phone', '9812345678'); await p.fill('#id_address_line1', 'Flat 4B, Lotus Residency'); await p.fill('#id_address_line2', 'Baner Road'); await p.fill('#id_city', 'Pune'); await p.selectOption('#id_state', 'Maharashtra'); await p.fill('#id_pincode', '411045');
   await p.fill('#id_notes', 'Call before coming, gate code 2244');
   for (const [k, v] of Object.entries(extra)) await p.fill(k, v);
 }
@@ -49,13 +49,13 @@ async function fillCheckout(p, extra = {}) {
   const gm = await bp.locator('a:has-text("Open in Google Maps")').getAttribute('href');
   ok('billing order: Google Maps button opens the pin', gm === 'https://maps.app.goo.gl/MeeraHome123', gm);
   for (const [label, text] of [
-    ['delivery address', 'Flat 4B, Lotus Residency'], ['second address line', 'Baner Road, Pune 411045'], ['customer note', 'Call before coming, gate code 2244'],
+    ['delivery address', 'Flat 4B, Lotus Residency'], ['second address line', 'Pune, Maharashtra 411045'], ['customer note', 'Call before coming, gate code 2244'],
     ['customer phone', '9812345678'], ['customer email', EMAIL], ['guest checkout', 'Guest checkout'], ['first order', 'First order'],
     ['payment method', 'Manual UPI'], ['balance', 'Balance'], ['placed time', 'Placed'], ['last updated', 'Last updated'],
     ['item SKU', 'SKU'], ['item size', 'Size'], ['item price breakdown', '×'], ['shipping line', 'Shipping'], ['order type', 'Ready-made'],
   ]) ok(`billing order shows ${label}`, main.includes(text), text);
   ok('billing order: product photo or placeholder shown', (await bp.locator('main img[alt], main svg.lucide-package').count()) > 0);
-  ok('billing order: "View on store" product link is absolute', ((await bp.locator('a:has-text("View on store")').first().getAttribute('href')) || '').startsWith('http://127.0.0.1:8766/products/'));
+  ok('billing order: "View on store" product link is absolute', ((await bp.locator('a:has-text("View on store")').first().getAttribute('href')) || '').startsWith(shop + '/products/'));
   await bc.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: bill });
   await bp.click('button:has-text("Copy delivery details")');
   const clip = await bp.evaluate(() => navigator.clipboard.readText());

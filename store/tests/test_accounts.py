@@ -151,7 +151,7 @@ class AuthenticatedCheckoutTests(TestCase):
         # Checkout
         response = self.client.post(reverse("checkout"), {
             "customer_name": "Buyer",
-            "customer_email": "buyer@example.com",
+            "customer_email": "buyer@example.com", "customer_phone": "9876543210",
             "shipping_address": "123 St",
         })
         self.assertEqual(response.status_code, 302)
@@ -166,7 +166,7 @@ class AuthenticatedCheckoutTests(TestCase):
         )
         response = self.client.post(reverse("checkout"), {
             "customer_name": "Guest",
-            "customer_email": "guest@example.com",
+            "customer_email": "guest@example.com", "customer_phone": "9876543210",
             "shipping_address": "456 Ave",
         })
         self.assertEqual(response.status_code, 302)
@@ -290,7 +290,7 @@ class CustomerProfileTests(TestCase):
         self.client.login(username="profileuser", password="Pass123!")
         response = self.client.post(reverse("account_profile_edit"), {
             "first_name": "Jane", "last_name": "Doe",
-            "email": "jane@test.com", "phone": "1234567890",
+            "email": "jane@test.com", "phone": "9123456789",
             "shipping_address": "456 Oak St",
         })
         self.assertRedirects(response, reverse("account_profile"))
@@ -298,7 +298,7 @@ class CustomerProfileTests(TestCase):
         self.assertEqual(self.user.first_name, "Jane")
         self.assertEqual(self.user.email, "jane@test.com")
         profile = CustomerProfile.objects.get(user=self.user)
-        self.assertEqual(profile.phone, "1234567890")
+        self.assertEqual(profile.phone, "9123456789")
 
     def test_checkout_prefill_for_authenticated_user(self):
         from store.models import Category, CustomerProfile, Product
@@ -413,12 +413,12 @@ class ProfileValidationTests(TestCase):
             reverse("add_to_cart", kwargs={"product_id": p.pk}), {"quantity": 1}
         )
         response = self.client.post(reverse("checkout"), {
-            "customer_name": "ManualName", "customer_email": "manual@t.com",
-            "customer_phone": "111", "shipping_address": "ManualAddr",
+            "customer_name": "ManualName", "customer_email": "manual@t.com", "customer_phone": "9876543210",
+            "customer_phone": "9111111111", "shipping_address": "ManualAddr",
         })
         self.assertEqual(response.status_code, 302)
         order = Order.objects.first()
-        self.assertEqual(order.customer_phone, "111")
+        self.assertEqual(order.customer_phone, "9111111111")
         self.assertEqual(order.customer_name, "ManualName")
         self.assertEqual(order.customer_email, "manual@t.com")
         self.assertEqual(order.shipping_address, "ManualAddr")

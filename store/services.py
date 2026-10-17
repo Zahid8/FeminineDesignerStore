@@ -275,6 +275,12 @@ def create_order_from_cart(request, checkout_data):
             customer_email=checkout_data["customer_email"],
             customer_phone=checkout_data.get("customer_phone", ""),
             shipping_address=checkout_data["shipping_address"],
+            address_line1=checkout_data.get("address_line1", "") or "",
+            address_line2=checkout_data.get("address_line2", "") or "",
+            city=checkout_data.get("city", "") or "",
+            state=checkout_data.get("state", "") or "",
+            pincode=checkout_data.get("pincode", "") or "",
+            country=checkout_data.get("country", "") or "India",
             location_url=checkout_data.get("location_url", "") or "",
             notes=checkout_data.get("notes", ""),
             customer_user=(

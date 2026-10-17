@@ -463,3 +463,8 @@ conda run -n femdes python manage.py runserver
 
 - `python manage.py test` — 499 OK (InvoicePageTests, BillingLinkTests; older invoice tests updated to the new layout)
 - `node docs/agent/browser-checks/invoice_check.js` — phone + desktop OK; billing PDF link returns 200 application/pdf
+
+## T42 — Standard address (2026-10-18)
+
+- `python manage.py test` — 504 OK; `makemigrations --check` — 0027 committed
+- `browser-checks/e2e_mtm.js` 28/28, `location_e2e.js` 27/27 on the DEBUG=False server (both fill the new fields)

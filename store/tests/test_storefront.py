@@ -576,7 +576,7 @@ class CheckoutViewTests(TestCase):
             reverse("checkout"),
             {
                 "customer_name": "Alice",
-                "customer_email": "alice@example.com",
+                "customer_email": "alice@example.com", "customer_phone": "9876543210",
                 "shipping_address": "123 Main St",
             },
         )

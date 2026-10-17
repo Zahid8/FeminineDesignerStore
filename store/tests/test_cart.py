@@ -213,7 +213,7 @@ class CheckoutTests(TestCase):
         add_to_cart(request, self.product, quantity=3)
         checkout_data = {
             "customer_name": "Alice",
-            "customer_email": "alice@example.com",
+            "customer_email": "alice@example.com", "customer_phone": "9876543210",
             "customer_phone": "",
             "shipping_address": "123 Main St",
             "notes": "",
@@ -229,7 +229,7 @@ class CheckoutTests(TestCase):
         request = _make_request()
         checkout_data = {
             "customer_name": "Alice",
-            "customer_email": "alice@example.com",
+            "customer_email": "alice@example.com", "customer_phone": "9876543210",
             "shipping_address": "123 Main St",
         }
         with self.assertRaises(ValueError):
@@ -243,7 +243,7 @@ class CheckoutTests(TestCase):
         self.product.save()
         checkout_data = {
             "customer_name": "Alice",
-            "customer_email": "alice@example.com",
+            "customer_email": "alice@example.com", "customer_phone": "9876543210",
             "shipping_address": "123 Main St",
         }
         with self.assertRaises(ValueError):
@@ -257,7 +257,7 @@ class CheckoutTests(TestCase):
         add_to_cart(request, self.product, quantity=2)
         checkout_data = {
             "customer_name": "Bob",
-            "customer_email": "bob@example.com",
+            "customer_email": "bob@example.com", "customer_phone": "9876543210",
             "shipping_address": "456 Oak Ave",
         }
         order = create_order_from_cart(request, checkout_data)
@@ -291,7 +291,7 @@ class MultiVariantCheckoutTests(TestCase):
         add_to_cart(request, self.product, quantity=3, color="Blue", size="L")
         checkout_data = {
             "customer_name": "Alice",
-            "customer_email": "alice@example.com",
+            "customer_email": "alice@example.com", "customer_phone": "9876543210",
             "shipping_address": "123 Main St",
         }
         with self.assertRaises(ValueError):
@@ -313,7 +313,7 @@ class MultiVariantCheckoutTests(TestCase):
         add_to_cart(request, self.product, quantity=1, color="Blue", size="L")
         checkout_data = {
             "customer_name": "Bob",
-            "customer_email": "bob@example.com",
+            "customer_email": "bob@example.com", "customer_phone": "9876543210",
             "shipping_address": "456 Oak Ave",
         }
         order = create_order_from_cart(request, checkout_data)
@@ -338,7 +338,7 @@ class BlankSkuCheckoutTests(TestCase):
         add_to_cart(request, self.product, quantity=1)
         checkout_data = {
             "customer_name": "Alice",
-            "customer_email": "alice@example.com",
+            "customer_email": "alice@example.com", "customer_phone": "9876543210",
             "shipping_address": "123 Main St",
         }
         order = create_order_from_cart(request, checkout_data)
@@ -369,7 +369,7 @@ class BlankSkuCheckoutViewTests(TestCase):
         )
         response = self.client.post(reverse("checkout"), {
             "customer_name": "Alice",
-            "customer_email": "alice@example.com",
+            "customer_email": "alice@example.com", "customer_phone": "9876543210",
             "shipping_address": "123 Main St",
         })
         self.assertNotEqual(response.status_code, 500)

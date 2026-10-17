@@ -27,12 +27,11 @@
           </div>
           <div class="col-md-6">
             <label class="form-label" for="pe-phone">Phone</label>
-            <input type="text" id="pe-phone" name="phone" class="form-control" value="{{ form.phone.value|default:'' }}">
+            <input type="tel" id="pe-phone" name="phone" class="form-control{% if form.phone.errors %} is-invalid{% endif %}" inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile number" value="{{ form.phone.value|default:'' }}">
+            {% for e in form.phone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
           </div>
-          <div class="col-12">
-            <label class="form-label" for="pe-shipping_address">Shipping Address</label>
-            <textarea id="pe-shipping_address" name="shipping_address" class="form-control" rows="3">{{ form.shipping_address.value|default:'' }}</textarea>
-          </div>
+          <div class="col-12 mt-3"><span class="fd-eyebrow mb-0">Delivery address</span></div>
+          {% include "store/partials/address_fields.html" with prefix="pe-" required=False %}
           <div class="col-12">
             {% include "store/partials/location_field.html" with field_id="pe-location_url" %}
           </div>

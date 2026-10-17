@@ -10,7 +10,7 @@ from store import services
 from store.models import Category, Discount, Order, Product, SiteSettings
 
 CHECKOUT = {
-    "customer_name": "Asha", "customer_email": "asha@example.com",
+    "customer_name": "Asha", "customer_email": "asha@example.com", "customer_phone": "9876543210",
     "customer_phone": "9876543210", "shipping_address": "12 MG Road, Pune",
 }
 
@@ -205,7 +205,7 @@ class CheckoutLocationTests(TestCase):
         self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
 
     def checkout(self, **extra):
-        data = {"customer_name": "Asha", "customer_email": "asha@example.com", "shipping_address": "Pune", **extra}
+        data = {"customer_name": "Asha", "customer_email": "asha@example.com", "customer_phone": "9876543210", "shipping_address": "Pune", **extra}
         return self.client.post(reverse("checkout"), data)
 
     def test_location_is_optional(self):
@@ -239,7 +239,71 @@ class CheckoutKeepsInputOnErrorTests(TestCase):
         cat = Category.objects.create(name="Silk", slug="silk-keep", is_active=True)
         p = Product.objects.create(category=cat, name="Rose", slug="rose-keep", sku="K-1", price=Decimal("500"), stock_quantity=5, is_active=True)
         self.client.post(reverse("add_to_cart", args=[p.pk]), {"quantity": "1"})
-        response = self.client.post(reverse("checkout"), {"customer_name": "A", "customer_email": "a@example.com", "shipping_address": "Pune",
+        response = self.client.post(reverse("checkout"), {"customer_name": "A", "customer_email": "a@example.com", "customer_phone": "9876543210", "shipping_address": "Pune",
                                                           "notes": "Gate code 2244", "location_url": "not a link"})
         self.assertContains(response, ">Gate code 2244</textarea>")
         self.assertContains(response, 'value="not a link"')
+
+
+class StructuredAddressTests(TestCase):
+    """Checkout collects an Indian postal address (two lines, city, state, PIN) and a 10-digit mobile."""
+
+    def setUp(self):
+        from store.models import Category, Product
+
+        cat = Category.objects.create(name="Silk", slug="silk-addr", is_active=True)
+        self.p = Product.objects.create(category=cat, name="Rose", slug="rose-addr", sku="ADDR-1", price=Decimal("500"),
+                                        stock_quantity=5, is_active=True)
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
+        self.base = {"customer_name": "Asha", "customer_email": "asha@example.com", "customer_phone": "+91 98765 43210",
+                     "address_line1": "Flat 4B, Lotus Residency", "address_line2": "Baner Road", "city": "Pune",
+                     "state": "Maharashtra", "pincode": "411045"}
+
+    def test_structured_address_is_saved_and_composed(self):
+        self.client.post(reverse("checkout"), self.base)
+        order = Order.objects.get()
+        self.assertEqual((order.address_line1, order.address_line2, order.city, order.state, order.pincode, order.country),
+                         ("Flat 4B, Lotus Residency", "Baner Road", "Pune", "Maharashtra", "411045", "India"))
+        self.assertEqual(order.shipping_address, "Flat 4B, Lotus Residency\nBaner Road\nPune, Maharashtra 411045\nIndia")
+        self.assertEqual(order.customer_phone, "9876543210")
+
+    def test_missing_parts_and_bad_pincode_are_rejected(self):
+        data = {**self.base, "city": "", "pincode": "4110"}
+        response = self.client.post(reverse("checkout"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "City is required.")
+        self.assertContains(response, "Enter a valid 6-digit PIN code.")
+        self.assertEqual(Order.objects.count(), 0)
+        bad_phone = self.client.post(reverse("checkout"), {**self.base, "customer_phone": "12345"})
+        self.assertContains(bad_phone, "Enter a valid 10-digit mobile number.")
+
+    def test_state_dropdown_and_autocomplete_hints_render(self):
+        content = self.client.get(reverse("checkout")).content.decode()
+        self.assertIn('<option value="Maharashtra"', content)
+        self.assertIn('autocomplete="postal-code"', content)
+        self.assertIn('autocomplete="address-line1"', content)
+        self.assertIn('type="tel"', content)
+
+    def test_logged_in_customer_gets_address_remembered_and_prefilled(self):
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user("asha", "asha@example.com", "pw")
+        self.client.force_login(user)
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
+        self.client.post(reverse("checkout"), self.base)
+        user.refresh_from_db()
+        self.assertEqual((user.profile.city, user.profile.pincode, user.profile.phone), ("Pune", "411045", "9876543210"))
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
+        page = self.client.get(reverse("checkout")).content.decode()
+        self.assertIn('value="Flat 4B, Lotus Residency"', page)
+        self.assertIn('<option value="Maharashtra" selected>', page)
+
+    def test_api_exposes_structured_shipping(self):
+        from django.test import override_settings
+
+        self.client.post(reverse("checkout"), self.base)
+        order = Order.objects.get()
+        with override_settings(WEBSTORE_API_TOKEN="t"):
+            data = self.client.get(reverse("api_online_order_detail", args=[order.order_number]), HTTP_AUTHORIZATION="Bearer t").json()
+        self.assertEqual(data["order"]["shipping"], {"line1": "Flat 4B, Lotus Residency", "line2": "Baner Road", "city": "Pune",
+                                                     "state": "Maharashtra", "pincode": "411045", "country": "India"})

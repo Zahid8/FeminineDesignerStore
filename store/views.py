@@ -250,13 +250,22 @@ def remove_from_cart(request, cart_key):
     return redirect("cart_detail")
 
 
-def _remember_location(request, url):
-    """Keep the customer's latest map pin on their profile so checkout prefills it next time."""
-    if not url or not request.user.is_authenticated:
+ADDRESS_PARTS = ("address_line1", "address_line2", "city", "state", "pincode", "country")
+
+
+def _remember_address(request, order):
+    """Keep the customer's latest delivery details on their profile so checkout prefills them next time."""
+    if not request.user.is_authenticated:
         return
     from store.models import CustomerProfile
 
-    CustomerProfile.objects.update_or_create(user=request.user, defaults={"location_url": url})
+    defaults = {k: getattr(order, k) for k in ADDRESS_PARTS}
+    defaults["shipping_address"] = order.shipping_address
+    if order.location_url:
+        defaults["location_url"] = order.location_url
+    if order.customer_phone:
+        defaults["phone"] = order.customer_phone
+    CustomerProfile.objects.update_or_create(user=request.user, defaults=defaults)
 
 
 def checkout(request):
@@ -278,7 +287,7 @@ def checkout(request):
                 messages.error(request, str(e))
                 # Fall through to re-render with error.
             else:
-                _remember_location(request, order.location_url)
+                _remember_address(request, order)
                 services.send_order_emails(order, request)
                 if order.payment_method == "razorpay":
                     return redirect("razorpay_payment", order_number=order.order_number)
@@ -295,6 +304,8 @@ def checkout(request):
                 profile = request.user.profile
                 initial["customer_phone"] = profile.phone or ""
                 initial["shipping_address"] = profile.shipping_address or ""
+                for key in ADDRESS_PARTS:
+                    initial[key] = getattr(profile, key) or ""
                 initial["location_url"] = profile.location_url or ""
             except CustomerProfile.DoesNotExist:
                 pass
@@ -563,6 +574,8 @@ def account_profile_edit(request):
             request.user.save()
             profile.phone = form.cleaned_data.get("phone", "")
             profile.shipping_address = form.cleaned_data.get("shipping_address", "")
+            for key in ADDRESS_PARTS:
+                setattr(profile, key, form.cleaned_data.get(key, "") or ("India" if key == "country" else ""))
             profile.location_url = form.cleaned_data.get("location_url", "")
             if form.cleaned_data.get("profile_image"):
                 profile.profile_image = form.cleaned_data["profile_image"]
@@ -577,6 +590,7 @@ def account_profile_edit(request):
             "phone": profile.phone or "",
             "shipping_address": profile.shipping_address or "",
             "location_url": profile.location_url or "",
+            **{key: getattr(profile, key) or "" for key in ADDRESS_PARTS},
         })
     ctx = _base_context(request)
     ctx["form"] = form

@@ -28,7 +28,7 @@ class RazorpayOffTests(TestCase):
             {"quantity": 1},
         )
         response = self.client.post(reverse("checkout"), {
-            "customer_name": "A", "customer_email": "a@a.com",
+            "customer_name": "A", "customer_email": "a@a.com", "customer_phone": "9876543210",
             "shipping_address": "Addr",
         })
         self.assertRedirects(response, reverse(

@@ -11,7 +11,7 @@ from store.forms import CustomFitForm
 from store.models import Category, CustomerProfile, CustomizationRequest, Order, Product, SiteSettings
 
 MEASURES = {"length": "15", "chest": "36", "waist": "30", "armhole": "16", "opening": "11", "bicep": "13"}
-CHECKOUT = {"customer_name": "Asha", "customer_email": "asha@example.com", "shipping_address": "Pune"}
+CHECKOUT = {"customer_name": "Asha", "customer_email": "asha@example.com", "customer_phone": "9876543210", "shipping_address": "Pune"}
 
 
 class CustomFitFormTests(TestCase):

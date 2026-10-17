@@ -675,7 +675,13 @@ class Order(models.Model):
     customer_name = models.CharField(max_length=160)
     customer_email = models.EmailField()
     customer_phone = models.CharField(max_length=40, blank=True)
-    shipping_address = models.TextField()
+    shipping_address = models.TextField(help_text="Printable address block, composed from the fields below.")
+    address_line1 = models.CharField("Address line 1", max_length=160, blank=True, help_text="House / flat, building, street")
+    address_line2 = models.CharField("Address line 2", max_length=160, blank=True, help_text="Area, landmark (optional)")
+    city = models.CharField(max_length=80, blank=True)
+    state = models.CharField(max_length=60, blank=True)
+    pincode = models.CharField("PIN code", max_length=10, blank=True)
+    country = models.CharField(max_length=60, blank=True, default="India")
     location_url = models.URLField(
         "Google Maps location", max_length=500, blank=True,
         help_text="Optional pin for the delivery address, shared by the customer at checkout.",
@@ -885,6 +891,12 @@ class CustomerProfile(models.Model):
     phone_verified_at = models.DateTimeField(blank=True, null=True)
     saved_measurements = models.JSONField(blank=True, null=True, help_text="Last measurements used, in inches.")
     shipping_address = models.TextField(blank=True, null=True)
+    address_line1 = models.CharField("Address line 1", max_length=160, blank=True, help_text="House / flat, building, street")
+    address_line2 = models.CharField("Address line 2", max_length=160, blank=True, help_text="Area, landmark (optional)")
+    city = models.CharField(max_length=80, blank=True)
+    state = models.CharField(max_length=60, blank=True)
+    pincode = models.CharField("PIN code", max_length=10, blank=True)
+    country = models.CharField(max_length=60, blank=True, default="India")
     location_url = models.URLField("Google Maps location", max_length=500, blank=True, default="")
     profile_image = models.ImageField(
         upload_to="profiles/", blank=True, null=True

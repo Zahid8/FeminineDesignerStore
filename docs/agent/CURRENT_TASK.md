@@ -600,3 +600,19 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   fit tabs); only the two guide images go. Restored: builder back inside
   `.fd-fit`, two fields per row, measurement note + "Not sure? Book a
   fitting…" text under the fields, Continue button right below.
+
+## T42 — Standard Indian address at checkout (2026-10-18)
+
+- `store/addresses.py`: states/UTs list, 6-digit PIN and 10-digit mobile
+  validation (+91 / leading 0 accepted, stored as 10 digits), `compose()`
+  for the printable block.
+- Order and CustomerProfile gain address_line1/2, city, state, pincode,
+  country (migration 0027); `shipping_address` stays as the composed text
+  used by bills, emails, staff pages and the billing app. API adds
+  `shipping` {line1, line2, city, state, pincode, country}.
+- `AddressFieldsMixin` (CheckoutForm, ProfileEditForm): structured fields
+  with proper autocomplete hints; legacy free-text `shipping_address` posts
+  still accepted (API/tests). Checkout mobile number is now required.
+  Logged-in customers get name/phone/address remembered and prefilled.
+- Partial `store/partials/address_fields.html` used by checkout and profile
+  edit. Tests: StructuredAddressTests; older tests given valid mobiles.
