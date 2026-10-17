@@ -86,9 +86,9 @@
               </fieldset>
               {% for e in form.payment_method.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
             </div>
-            {% with has_custom=cart.lines|dictsort:"custom"|last %}{% if has_custom.custom %}
+            {% if cart.has_custom %}
             <div class="col-12"><div class="fd-terms"><p class="fd-label mb-1">Made-to-measure terms</p><p class="mb-0 small">{{ site_settings.customization_terms }}</p></div></div>
-            {% endif %}{% endwith %}
+            {% endif %}
             <div class="col-12 mt-2">
               <button type="submit" class="btn btn-dark btn-lg w-100">Place Order</button>
             </div>

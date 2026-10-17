@@ -198,8 +198,8 @@
 
             {% if can_custom %}
             <noscript><style>#customize-section{display:block!important}</style></noscript>
-            <section class="fd-builder" id="customize-section" x-show="fit === 'custom'"{% if not custom_open %} style="display:none"{% endif %}
-              x-data="{ step: 1, unit: '{{ custom_form.unit.value|default:'in' }}', m: {}, req: ['length', 'chest', 'waist', 'armhole', 'opening', 'bicep'], convert(to) { if (to === this.unit) return; const f = to === 'cm' ? 2.54 : 1 / 2.54; this.$root.querySelectorAll('input[data-measure]').forEach(i => { if (i.value !== '') { i.value = (Math.round(parseFloat(i.value) * f * 100) / 100).toString(); i.dispatchEvent(new Event('input')); } }); this.unit = to; }, missing() { return this.req.filter(k => !this.m[k] && this.m[k] !== 0).length; } }">
+            <section class="fd-builder" id="customize-section" x-show="fit === 'custom'"{% if not custom_open %} style="display:none"{% endif %}{% if custom_form.errors %} x-init="$nextTick(() => $el.scrollIntoView({ block: 'start' }))"{% endif %}
+              x-data="{ step: 1, unit: '{{ custom_form.unit.value|default:'in' }}', m: { {% for field, spec in custom_form.measurement_fields %}{{ field.name }}: '{{ field.value|default_if_none:''|escapejs }}', {% endfor %}sleeve_style: '{{ custom_form.sleeve_style.value|default_if_none:''|escapejs }}', notes: '{{ custom_form.notes.value|default_if_none:''|escapejs }}' }, req: ['length', 'chest', 'waist', 'armhole', 'opening', 'bicep'], convert(to) { if (to === this.unit) return; const f = to === 'cm' ? 2.54 : 1 / 2.54; this.$root.querySelectorAll('input[data-measure]').forEach(i => { if (i.value !== '') { i.value = (Math.round(parseFloat(i.value) * f * 100) / 100).toString(); i.dispatchEvent(new Event('input')); } }); this.unit = to; }, missing() { return this.req.filter(k => !this.m[k] && this.m[k] !== 0).length; } }">
               <header class="fd-builder-head">
                 <div>
                   <span class="fd-eyebrow">Made to measure</span>

@@ -464,3 +464,13 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - Owner decision: made-to-measure is stitched to order, so custom lines skip
   stock checks (add, update, checkout) and do not decrement stock. Ready-made
   lines keep all stock rules. Tests: `MadeToMeasureStockTests`.
+- E2E browser verification (production-like: DEBUG=False, whitenoise, port
+  8770, `docs/agent/browser-checks/e2e_mtm.js`, 28/28 pass) found and fixed:
+  1. Alpine `x-model` with empty `m: {}` blanked every server-prefilled
+     measurement (product defaults, saved measurements, fitting-request
+     prefill, values re-shown after a validation error). `m` is now seeded
+     from the bound form values.
+  2. Checkout hid the made-to-measure terms on mixed carts (`dictsort` on
+     `custom`); now uses `cart.has_custom` from `get_cart_summary`.
+  3. After a validation error the page reloaded at the top; the builder now
+     scrolls itself into view when the form has errors.

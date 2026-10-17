@@ -242,3 +242,35 @@ class MadeToMeasureStockTests(TestCase):
         self.assertEqual(Order.objects.count(), 1)
         self.p.refresh_from_db()
         self.assertEqual(self.p.stock_quantity, 0)
+
+
+class BuilderPrefillAndTermsTests(TestCase):
+    """Alpine state must carry server-prefilled values; checkout terms show for mixed carts."""
+
+    def setUp(self):
+        SiteSettings.objects.create(store_name="FemDes", customization_terms="Custom pieces are final sale.")
+        cat = Category.objects.create(name="Silk", slug="silk-pf", is_active=True)
+        self.p = Product.objects.create(category=cat, name="Rose Blouse", slug="rose-pf", sku="PF-1",
+                                        price=Decimal("1500"), stock_quantity=3, is_active=True,
+                                        default_chest=Decimal("34"))
+
+    def test_alpine_state_seeded_with_prefill(self):
+        content = self.client.get(self.p.get_absolute_url(), {"fit": "custom"}).content.decode()
+        self.assertIn("chest: '34.00'", content)  # x-model would otherwise blank the input
+
+    def test_alpine_state_keeps_values_after_validation_error(self):
+        response = self.client.post(reverse("add_to_cart", args=[self.p.pk]),
+                                    {**MEASURES, "chest": "90", "custom": "1", "quantity": "1", "notes": "deep back"})
+        content = response.content.decode()
+        self.assertIn("waist: '30'", content)
+        self.assertIn("notes: 'deep back'", content)
+        self.assertIn("scrollIntoView", content)
+
+    def test_terms_shown_for_mixed_cart(self):
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {**MEASURES, "custom": "1", "quantity": "1"})
+        self.assertContains(self.client.get(reverse("checkout")), "Custom pieces are final sale.")
+
+    def test_terms_hidden_for_ready_made_only(self):
+        self.client.post(reverse("add_to_cart", args=[self.p.pk]), {"quantity": "1"})
+        self.assertNotContains(self.client.get(reverse("checkout")), "Made-to-measure terms")

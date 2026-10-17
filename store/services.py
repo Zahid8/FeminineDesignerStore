@@ -184,7 +184,7 @@ def get_cart_summary(request):
         gross += (product.price + fee) * qty
         discount += (product.price - product.get_effective_price()) * qty
 
-    summary = {"lines": lines, "item_count": item_count}
+    summary = {"lines": lines, "item_count": item_count, "has_custom": any(line.get("custom") for line in lines)}
     summary.update(compute_totals(gross, discount))
     return summary
 
