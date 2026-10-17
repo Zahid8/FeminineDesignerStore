@@ -371,8 +371,11 @@ def send_order_emails(order, request=None):
     from django.template.loader import render_to_string
 
     site = SiteSettings.objects.first()
+    from store.payments import order_link
+
     ctx = {"order": order, "site_settings": site,
-           "order_url": request.build_absolute_uri(f"/orders/{order.order_number}/success/") if request else ""}
+           "order_url": order_link(order, request=request) if request or settings.SITE_URL else "",
+           "pay_url": order_link(order, "razorpay_payment", request=request) if request or settings.SITE_URL else ""}
     store_name = getattr(site, "store_name", "FemDes")
     try:
         send_mail(

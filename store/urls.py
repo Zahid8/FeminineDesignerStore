@@ -38,7 +38,8 @@ urlpatterns = [
         views.customization_created,
         name="customization_created",
     ),
-    # Razorpay
+    # Razorpay (webhook first: "webhook" would otherwise match <order_number>)
+    path("razorpay/webhook/", views.razorpay_webhook, name="razorpay_webhook"),
     path(
         "razorpay/<str:order_number>/",
         views.razorpay_payment,

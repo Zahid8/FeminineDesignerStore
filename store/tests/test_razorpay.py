@@ -48,10 +48,16 @@ class RazorpayEnabledTests(TestCase):
         )
 
     def _create_order(self, **kwargs):
-        return Order.objects.create(
+        kwargs.setdefault("payment_method", "razorpay")
+        order = Order.objects.create(
             customer_name="A", customer_email="a@a.com",
             shipping_address="Addr", total=Decimal("100"), **kwargs,
         )
+        # The browser that placed the order may open its pages.
+        session = self.client.session
+        session["placed_orders"] = [order.order_number]
+        session.save()
+        return order
 
     @mock.patch("store.views._get_razorpay_client")
     def test_razorpay_payment_creates_order_with_paise(self, mock_fn):
@@ -107,11 +113,13 @@ class RazorpayEnabledTests(TestCase):
                     "razorpay_signature": "sig",
                 },
             )
-            self.assertRedirects(response, reverse(
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.url.startswith(reverse(
                 "order_success", kwargs={"order_number": order.order_number}
-            ))
+            )))
             order.refresh_from_db()
             self.assertEqual(order.payment_status, "paid")
+            self.assertEqual(order.status, "confirmed")
             self.assertEqual(order.payment_method, "razorpay")
             self.assertEqual(order.gateway_payment_id, "pay_ABC")
 

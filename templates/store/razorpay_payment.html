@@ -1,57 +1,81 @@
 {% extends "base.html" %}
-{% block title %} — Pay with Razorpay{% endblock %}
+{% block title %} — Complete payment{% endblock %}
 {% block content %}
+{% with currency=site_settings.currency_symbol|default:"₹" %}
 <section class="fd-section">
   <div class="container-lg">
     <div class="row justify-content-center">
-      <div class="col-lg-6 text-center">
-        <div class="indichic-card p-4 p-md-5">
-        <div class="fd-empty-icon"><svg width="34" height="34" aria-hidden="true"><use xlink:href="#shield"></use></svg></div>
-        <span class="fd-eyebrow is-center">Secure payment</span>
-        <h2>Complete Payment</h2>
-        <p>Order #: <strong>{{ order.order_number }}</strong></p>
-        <p class="fs-4">Amount: <strong class="text-dark" style="font-family:var(--fd-font-display);font-size:2.2rem">{{ site_settings.currency_symbol|default:"₹" }}{{ order.total }}</strong></p>
-        <form id="razorpay-form" method="post" action="{% url 'razorpay_verify' order.order_number %}">
-          {% csrf_token %}
-          <input type="hidden" name="razorpay_order_id" value="{{ razorpay_order_id }}">
-          <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
-          <input type="hidden" name="razorpay_signature" id="razorpay_signature">
-          <button type="button" id="rzp-button" class="btn btn-dark btn-lg w-100">Pay Now</button>
-        </form>
-        <p class="mt-3 text-muted small mb-0">Powered by Razorpay</p>
+      <div class="col-lg-6 col-md-8">
+        <div class="indichic-card p-4 p-md-5 text-center fd-pay-card">
+          <div class="fd-empty-icon"><svg width="34" height="34" aria-hidden="true"><use xlink:href="#shield"></use></svg></div>
+          <span class="fd-eyebrow is-center">Secure payment</span>
+          <h2 class="mb-1">Complete your payment</h2>
+          <p class="text-muted mb-3">Order {{ order.order_number }}</p>
+          <p class="fd-pay-amount mb-4">{{ currency }}{{ order.total }}</p>
+          <div class="fd-pay-status" data-pay-status role="status" aria-live="polite" hidden></div>
+          <form id="razorpay-form" method="post" action="{% url 'razorpay_verify' order.order_number %}">
+            {% csrf_token %}
+            <input type="hidden" name="k" value="{{ order_key }}">
+            <input type="hidden" name="razorpay_order_id" value="{{ razorpay_order_id }}">
+            <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+            <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+            <button type="button" id="rzp-button" class="btn btn-dark btn-lg w-100 rounded-pill">Pay {{ currency }}{{ order.total }}</button>
+          </form>
+          <p class="fd-pay-methods mt-3 mb-1">UPI &middot; Cards &middot; Net banking &middot; Wallets</p>
+          <p class="text-muted small mb-0">Payments are processed by Razorpay. We never see your card or UPI PIN.</p>
+          <hr class="my-4">
+          <p class="small mb-0">Trouble paying?
+            {% if site_settings.whatsapp_url %}<a href="{{ site_settings.whatsapp_url }}" target="_blank" rel="noopener">Message us on WhatsApp</a> or {% endif %}<a href="{{ success_url }}">view your order</a>.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
-
+{% endwith %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-var options = {
-    key: "{{ razorpay_key_id }}",
+(function () {
+  var statusEl = document.querySelector('[data-pay-status]');
+  var button = document.getElementById('rzp-button');
+  function say(text, tone) { statusEl.hidden = false; statusEl.textContent = text; statusEl.className = 'fd-pay-status is-' + tone; }
+  if (typeof Razorpay === 'undefined') { say('The payment window could not load. Check your connection and refresh this page.', 'error'); button.disabled = true; return; }
+  var rzp = new Razorpay({
+    key: "{{ razorpay_key_id|escapejs }}",
     amount: "{{ razorpay_amount }}",
     currency: "INR",
-    name: "{{ site_settings.store_name|default:'FemDes' }}",
-    description: "Order #{{ order.order_number }}",
-    order_id: "{{ razorpay_order_id }}",
-    handler: function(response) {
-        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
-        document.getElementById('razorpay_signature').value = response.razorpay_signature;
-        document.getElementById('razorpay-form').submit();
+    name: "{{ site_settings.store_name|default:'FemDes'|escapejs }}",
+    description: "Order {{ order.order_number|escapejs }}",
+    order_id: "{{ razorpay_order_id|escapejs }}",
+    timeout: 900,
+    retry: { enabled: true },
+    handler: function (response) {
+      say('Payment done. Confirming…', 'ok');
+      button.disabled = true;
+      document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+      document.getElementById('razorpay_signature').value = response.razorpay_signature;
+      document.getElementById('razorpay-form').submit();
     },
     modal: {
-        ondismiss: function() {
-            window.location.href = "{% url 'cart_detail' %}";
-        }
+      confirm_close: true,
+      ondismiss: function () { say('Payment not completed. You have not been charged; tap the button to try again.', 'info'); }
     },
     prefill: {
-        name: "{{ order.customer_name }}",
-        email: "{{ order.customer_email }}",
-        contact: "{{ order.customer_phone }}",
+      name: "{{ order.customer_name|escapejs }}",
+      email: "{{ order.customer_email|escapejs }}",
+      contact: "{{ order.customer_phone|escapejs }}"
     },
-    theme: { color: "#7a2238" }
-};
-var rzp = new Razorpay(options);
-document.getElementById('rzp-button').onclick = function(e) { rzp.open(); e.preventDefault(); };
+    notes: { order_number: "{{ order.order_number|escapejs }}" },
+    theme: { color: "#7d1f36" }
+  });
+  rzp.on('payment.failed', function (r) {
+    say((r && r.error && r.error.description ? r.error.description + ' ' : '') + 'You have not been charged; please try again or use another method.', 'error');
+  });
+  button.addEventListener('click', function (e) { e.preventDefault(); rzp.open(); });
+  // Open straight away the first time; the button stays for retries.
+  if (!sessionStorage.getItem('rzp-opened-{{ order.order_number|escapejs }}')) {
+    sessionStorage.setItem('rzp-opened-{{ order.order_number|escapejs }}', '1');
+    rzp.open();
+  }
+})();
 </script>
 {% endblock %}

@@ -70,6 +70,7 @@
     </div>
 
     <div class="d-flex flex-wrap gap-3">
+      {% if order.payment_method == "razorpay" and order.status != "cancelled" and order.payment_status != "paid" and order.payment_status != "refunded" %}<a href="{% url 'razorpay_payment' order.order_number %}" class="btn btn-dark rounded-pill">Pay {{ site_settings.currency_symbol|default:"₹" }}{{ order.total }} now</a>{% endif %}
       <a href="{% url 'account_order_invoice' order.order_number %}" class="btn btn-dark rounded-pill">View Bill</a>
       <a href="{% url 'account_orders' %}" class="btn btn-outline-dark rounded-pill">Back to Orders</a>
     </div>

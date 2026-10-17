@@ -49,7 +49,7 @@
 
 ## 2026-07-06: Keep Checkout Manual In MVP
 
-**Status:** Accepted.
+**Status:** Superseded on 2026-10-18 (see "Online payments, OTP SMS and Google sign-in").
 
 **Decision:** MVP checkout creates orders for manual fulfillment and does not collect payment card data.
 
@@ -122,3 +122,16 @@
 - Do not create Django project files in this pass.
 - Do not move current `css/`, `js/`, `images/`, `style.css`, or `index.html`.
 - Do not create database models yet.
+
+## 2026-10-18: Online payments, OTP SMS and Google sign-in
+
+**Status:** Accepted (owner asked for Razorpay, real phone OTP and Google login).
+
+**Decision:**
+
+- Razorpay Checkout (already scaffolded) is the online payment method, confirmed by both the browser callback and a signed webhook; UPI-on-delivery/manual options stay.
+- Phone OTP is sent through an Indian DLT-compliant provider (MSG91 backend added; Twilio and console backends remain). The OTP tab is the default sign-in.
+- Google sign-in uses Google Identity Services (ID token) verified server-side; no django-allauth.
+- Every feature is inert until its environment variables are set.
+
+**Consequences:** new env keys (RAZORPAY_*, MSG91_*, GOOGLE_CLIENT_ID); unpaid online orders release their stock after a timeout; order emails for online payments are sent when payment is confirmed.

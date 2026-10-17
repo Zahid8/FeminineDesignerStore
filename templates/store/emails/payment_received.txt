@@ -1,0 +1,12 @@
+{% autoescape off %}{% with currency=site_settings.currency_symbol|default:"₹" %}Hello {{ order.customer_name }},
+
+We have received your online payment of {{ currency }}{{ order.total }} for order {{ order.order_number }}. Thank you!
+
+Payment reference: {{ order.gateway_payment_id }}
+
+We will message you when your order is on its way.{% if order_url %}
+
+View your order: {{ order_url }}{% endif %}
+
+{{ site_settings.store_name|default:"FemDes" }}
+{% endwith %}{% endautoescape %}

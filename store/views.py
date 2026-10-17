@@ -1,5 +1,9 @@
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
+import logging
+
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -22,6 +26,8 @@ from store.forms import (
     RegistrationForm,
 )
 from store.models import CustomizationRequest, Order, Product, SiteSettings
+
+logger = logging.getLogger(__name__)
 
 
 def _get_site_settings():
@@ -269,6 +275,9 @@ def _remember_address(request, order):
 
 
 def checkout(request):
+    from store.payments import release_unpaid_orders_soon
+
+    release_unpaid_orders_soon()
     summary = services.get_cart_summary(request)
     if not summary["lines"]:
         messages.info(request, "Your cart is empty.")
@@ -287,6 +296,9 @@ def checkout(request):
                 messages.error(request, str(e))
                 # Fall through to re-render with error.
             else:
+                from store.payments import remember_order
+
+                remember_order(request, order)
                 _remember_address(request, order)
                 services.send_order_emails(order, request)
                 if order.payment_method == "razorpay":
@@ -317,12 +329,20 @@ def checkout(request):
 
 
 def order_success(request, order_number):
+    from django.conf import settings
     from store.billing_links import online_bill_url
 
-    order = get_object_or_404(Order, order_number=order_number)
+    from store.payments import can_pay_online
+
+    order = _viewable_order_or_404(request, order_number)
     ctx = _base_context(request)
     ctx["order"] = order
     ctx["bill_pdf_url"] = online_bill_url(order.order_number)
+    ctx["pay_now_url"] = (
+        reverse("razorpay_payment", kwargs={"order_number": order.order_number}) + "?k=" + request.GET.get("k", "")
+        if can_pay_online(order) else ""
+    )
+    ctx["release_minutes"] = settings.UNPAID_ORDER_RELEASE_MINUTES
     return render(request, "store/order_success.html", ctx)
 
 
@@ -432,76 +452,128 @@ def _get_razorpay_client():
     return razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 
-def razorpay_payment(request, order_number):
-    """Show Razorpay checkout page for a pending order."""
-    from django.conf import settings
-    import razorpay as rz
+def _viewable_order_or_404(request, order_number):
+    from store.payments import can_view_order
+
     order = get_object_or_404(Order, order_number=order_number)
-    if not (settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET):
-        return redirect("order_success", order_number=order.order_number)
-    # Reuse existing gateway order if already created.
+    if not can_view_order(request, order):
+        raise Http404("Order not found")
+    return order
+
+
+def razorpay_payment(request, order_number):
+    """Razorpay Checkout for an unpaid online order (opens automatically; retryable)."""
+    from django.conf import settings
+    from store.payments import can_pay_online, order_access_key
+
+    order = _viewable_order_or_404(request, order_number)
+    if not (settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET) or not can_pay_online(order):
+        return redirect(_order_success_url(order))
     razorpay_order_id = order.gateway_order_id
     if not razorpay_order_id:
         try:
             client = _get_razorpay_client()
-            amount_paise = int(order.total * 100)
             razorpay_order = client.order.create({
-                "amount": amount_paise,
+                "amount": int(order.total * 100),
                 "currency": "INR",
                 "receipt": order.order_number,
-                "notes": {"order_pk": str(order.pk)},
+                "notes": {"order_pk": str(order.pk), "order_number": order.order_number},
             })
             razorpay_order_id = razorpay_order["id"]
             order.gateway_order_id = razorpay_order_id
             order.save(update_fields=["gateway_order_id"])
-        except Exception as e:
-            messages.error(request, f"Could not initiate payment: {e}")
-            return redirect("cart_detail")
+        except Exception:
+            logger.exception("Razorpay order create failed for %s", order.order_number)
+            messages.error(request, "We could not start the online payment just now. Please try again in a minute, or message us on WhatsApp and we will help you pay.")
+            return redirect(_order_success_url(order))
     ctx = _base_context(request)
     ctx.update({
         "order": order,
         "razorpay_order_id": razorpay_order_id,
         "razorpay_key_id": settings.RAZORPAY_KEY_ID,
         "razorpay_amount": int(order.total * 100),
+        "order_key": order_access_key(order.order_number),
+        "success_url": _order_success_url(order),
     })
     return render(request, "store/razorpay_payment.html", ctx)
 
 
+def _order_success_url(order):
+    from store.payments import order_access_key
+
+    return reverse("order_success", kwargs={"order_number": order.order_number}) + f"?k={order_access_key(order.order_number)}"
+
+
 def razorpay_verify(request, order_number):
-    """Verify Razorpay payment signature server-side."""
-    from django.conf import settings
+    """Browser callback after Checkout: verify the signature, then mark paid."""
     import razorpay as rz
-    order = get_object_or_404(Order, order_number=order_number)
+    from store.payments import mark_paid
+
+    order = _viewable_order_or_404(request, order_number)
     if request.method != "POST":
-        messages.error(request, "Invalid request method.")
         return redirect("razorpay_payment", order_number=order.order_number)
     razorpay_payment_id = request.POST.get("razorpay_payment_id", "")
     razorpay_order_id = request.POST.get("razorpay_order_id", "")
     razorpay_signature = request.POST.get("razorpay_signature", "")
+    retry = reverse("razorpay_payment", kwargs={"order_number": order.order_number}) + f"?k={request.POST.get('k', '')}"
     if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
-        messages.error(request, "Missing payment details.")
-        return redirect("razorpay_payment", order_number=order.order_number)
+        messages.error(request, "The payment did not complete. You have not been charged; please try again.")
+        return redirect(retry)
     if razorpay_order_id != order.gateway_order_id:
-        messages.error(request, "Payment verification failed: order ID mismatch.")
-        return redirect("razorpay_payment", order_number=order.order_number)
+        messages.error(request, "Payment verification failed. If money was deducted, it will be confirmed automatically or refunded; message us with your order number.")
+        return redirect(retry)
     try:
-        client = _get_razorpay_client()
-        client.utility.verify_payment_signature({
+        _get_razorpay_client().utility.verify_payment_signature({
             "razorpay_order_id": razorpay_order_id,
             "razorpay_payment_id": razorpay_payment_id,
             "razorpay_signature": razorpay_signature,
         })
-        order.payment_status = "paid"
-        order.payment_method = "razorpay"
-        order.payment_reference = razorpay_payment_id
-        order.gateway_payment_id = razorpay_payment_id
-        order.gateway_signature = razorpay_signature
-        order.paid_at = timezone.now()
-        order.save()
-        return redirect("order_success", order_number=order.order_number)
     except (rz.errors.SignatureVerificationError, Exception):
-        messages.error(request, "Payment verification failed.")
-        return redirect("razorpay_payment", order_number=order.order_number)
+        logger.warning("Razorpay signature check failed for %s", order.order_number)
+        messages.error(request, "Payment verification failed. If money was deducted, it will be confirmed automatically or refunded; message us with your order number.")
+        return redirect(retry)
+    mark_paid(order.pk, razorpay_payment_id, razorpay_signature, source="checkout")
+    messages.success(request, "Payment received. Thank you!")
+    return redirect(_order_success_url(order))
+
+
+@csrf_exempt
+@require_POST
+def razorpay_webhook(request):
+    """Razorpay server-to-server events (payment.captured / order.paid / payment.failed)."""
+    import json
+
+    from store.payments import mark_failed, mark_paid, webhook_signature_ok
+
+    if not webhook_signature_ok(request.body, request.headers.get("X-Razorpay-Signature", "")):
+        return HttpResponse(status=400)
+    try:
+        event = json.loads(request.body)
+    except ValueError:
+        return HttpResponse(status=400)
+    kind = event.get("event", "")
+    payload = event.get("payload", {})
+    payment = (payload.get("payment") or {}).get("entity") or {}
+    rz_order = (payload.get("order") or {}).get("entity") or {}
+    gateway_order_id = payment.get("order_id") or rz_order.get("id") or ""
+    order = Order.objects.filter(gateway_order_id=gateway_order_id).first() if gateway_order_id else None
+    if order is None:
+        notes = payment.get("notes") or rz_order.get("notes") or {}
+        number = notes.get("order_number") if isinstance(notes, dict) else None
+        order = Order.objects.filter(order_number=number).first() if number else None
+    if order is None:
+        logger.info("Razorpay webhook %s for unknown order %s", kind, gateway_order_id)
+        return HttpResponse("ignored")
+    if kind in ("payment.captured", "order.paid"):
+        amount = payment.get("amount", rz_order.get("amount_paid"))
+        currency = payment.get("currency", rz_order.get("currency", "INR"))
+        if amount != int(order.total * 100) or currency != "INR":
+            logger.error("Razorpay amount mismatch for %s: got %s %s", order.order_number, amount, currency)
+            return HttpResponse("amount mismatch")
+        mark_paid(order.pk, payment.get("id") or order.gateway_payment_id or rz_order.get("id", ""), source="webhook")
+    elif kind == "payment.failed":
+        mark_failed(order.pk, payment.get("error_description") or payment.get("error_reason") or "")
+    return HttpResponse("ok")
 
 
 # ── Account views ──────────────────────────────────────────────

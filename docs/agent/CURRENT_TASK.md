@@ -696,3 +696,20 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   phone frame (straps cut off). Photo now uses `object-fit: contain` and the
   phone frame is square, so the whole blouse shows edge to edge; desktop
   half-column shows the full photo too.
+
+## T50 — Razorpay completed (2026-10-18)
+
+- `store/payments.py`: idempotent `mark_paid` (callback + webhook both safe,
+  one "payment received" email), `mark_failed`, `release_unpaid_orders`
+  (cancel + restock online orders unpaid after UNPAID_ORDER_RELEASE_MINUTES,
+  lazily from checkout/billing API and `manage.py release_unpaid_orders`),
+  late payment after auto-cancel revives the order and re-takes stock.
+- `POST /razorpay/webhook/` (HMAC-SHA256 of raw body with
+  RAZORPAY_WEBHOOK_SECRET; payment.captured / order.paid / payment.failed;
+  amount + currency checked).
+- Order pages (`order_success`, payment, verify) are private: the placing
+  browser (session), the signed-in owner, staff, or a signed `?k=` link
+  (used in emails). Strangers get 404.
+- Payment page opens Checkout automatically, retry button, failure/dismiss
+  messages, 15-min Checkout timeout, WhatsApp help; success page shows
+  "Almost there — Pay now" / "Order cancelled"; account orders get Pay now.

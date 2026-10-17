@@ -1322,3 +1322,9 @@ a.fd-link-underline, a.btn-link.fd-link-underline, .fd-link-underline { border-b
 /* ===== T49 home hero photo: whole blouse, never cropped ===== */
 .fd-hero-split-media img, .fd-hero-split .swiper:not(.swiper-initialized) .fd-hero-split-media img { object-fit: contain; }
 @media (max-width: 991.98px) { .fd-hero-split-media { aspect-ratio: 1 / 1; } }
+/* ===== T50 payment page ===== */
+.fd-pay-amount { font-family: var(--fd-font-display); font-size: 2.6rem; line-height: 1; color: var(--fd-ink); }
+.fd-pay-methods { font-size: 0.68rem; letter-spacing: var(--fd-track); text-transform: uppercase; color: var(--fd-muted); }
+.fd-pay-status { margin: 0 0 1rem; padding: 0.8rem 1rem; border-radius: var(--fd-r-sm); font-size: 0.92rem; text-align: left; background: var(--fd-paper); box-shadow: var(--fd-pressed-sm); }
+.fd-pay-status.is-error { color: #8a1c2b; }
+.fd-pay-status.is-ok { color: #1d6b43; }

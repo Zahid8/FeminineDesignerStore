@@ -41,7 +41,7 @@
             <td data-label="Status"><span class="fd-status-pill">{{ order.get_status_display }}</span></td>
             <td data-label="Payment">{{ order.get_payment_status_display }}</td>
             <td data-label="Total">{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</td>
-            <td data-label=""><a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark rounded-pill">View</a></td>
+            <td data-label=""><div class="d-flex gap-2 flex-wrap">{% if order.payment_method == "razorpay" and order.status != "cancelled" and order.payment_status != "paid" and order.payment_status != "refunded" %}<a href="{% url 'razorpay_payment' order.order_number %}" class="btn btn-sm btn-dark rounded-pill">Pay now</a>{% endif %}<a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark rounded-pill">View</a></div></td>
           </tr>
           {% endfor %}
         </tbody>

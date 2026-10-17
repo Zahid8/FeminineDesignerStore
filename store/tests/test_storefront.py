@@ -593,6 +593,9 @@ class OrderSuccessViewTests(TestCase):
             customer_email="alice@example.com",
             shipping_address="123 Main St",
         )
+        session = self.client.session
+        session["placed_orders"] = [self.order.order_number]
+        session.save()
 
     def test_order_success_renders(self):
         response = self.client.get(

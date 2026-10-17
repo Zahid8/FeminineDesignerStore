@@ -8,8 +8,16 @@
 <section class="fd-page-header">
   <div class="container-lg">
     <div class="fd-success-mark"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    {% if order.payment_method == "razorpay" and order.status == "cancelled" and order.payment_status != "paid" %}
+    <h1 class="display-5">Order cancelled</h1>
+    <p class="lead text-muted">The online payment was not completed in time, so this order was cancelled and nothing was charged.</p>
+    {% elif pay_now_url %}
+    <h1 class="display-5">Almost there</h1>
+    <p class="lead text-muted">Your order is saved. Complete the payment to confirm it.</p>
+    {% else %}
     <h1 class="display-5">Thank You!</h1>
     <p class="lead text-muted">Your order has been placed successfully.</p>
+    {% endif %}
     <p class="fs-5 mb-0">Order #: <strong class="text-dark">{{ order.order_number }}</strong></p>
   </div>
 </section>
@@ -24,6 +32,12 @@
             <h5 class="mb-2">Payment Instructions</h5>
             {% if order.payment_status == "paid" %}
             <p class="mb-0">Payment received &mdash; thank you. We will email you when your order ships.</p>
+            {% elif pay_now_url %}
+            <p class="mb-2">{% if order.payment_status == "failed" %}The last payment attempt did not go through. You have not been charged.{% else %}Pay securely online with UPI, cards, net banking or wallets.{% endif %}</p>
+            <a href="{{ pay_now_url }}" class="btn btn-dark rounded-pill">Pay {{ currency }}{{ order.total }} now</a>
+            <p class="mb-0 mt-2 text-muted small">Unpaid orders are released after {{ release_minutes }} minutes.</p>
+            {% elif order.payment_method == "razorpay" and order.status == "cancelled" %}
+            <p class="mb-0">Want it again? Add the pieces to your bag and check out once more, or message us on WhatsApp.</p>
             {% elif order.payment_method == "cash_on_delivery" %}
             <p class="mb-1">You chose cash on delivery.</p>
             <p class="mb-0">Please keep <strong>{{ currency }}{{ order.total }}</strong> ready when your order arrives.</p>

@@ -164,6 +164,9 @@ def _orders_queryset():
 @require_http_methods(["GET"])
 @api_token_required
 def online_orders(request):
+    from store.payments import release_unpaid_orders_soon
+
+    release_unpaid_orders_soon()
     qs = _orders_queryset()
     status = request.GET.get("status")
     if status:
