@@ -2,14 +2,44 @@
 
 ## Current State
 
-Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T25 complete. 330 tests. PDF deferred. T25-FIX (strengthened search/filter tests) complete. T28 UI revamp and T29 reference-driven redesign complete (351 tests). TASK-027-FIX item 5 (dedicated stepper/search/status tests) is still unwritten.
+Django 5.2.15 project scaffolded, assets migrated, 8 models with migrations, and Django admin configured for all 8 store models. T0 through T25 complete. 330 tests. PDF deferred. T25-FIX (strengthened search/filter tests) complete. T28/T29 redesign and T30 customer features complete (441 tests). TASK-027-FIX item 5 (dedicated stepper/search/status tests) is still unwritten.
 
 Django commands now available:
 
 ```bash
 conda run -n femdes python manage.py check     # PASS (0 issues)
-conda run -n femdes python manage.py test       # PASS (351 tests)
+conda run -n femdes python manage.py test       # PASS (441 tests)
 ```
+
+## T30 Verification — Customer features + phone OTP (2026-10-17)
+
+```bash
+conda run -n femdes python manage.py check                          # PASS
+conda run -n femdes python manage.py test                           # PASS (441 tests)
+conda run -n femdes python manage.py makemigrations --check --dry-run  # No changes detected
+conda run -n femdes python manage.py collectstatic --noinput        # OK
+```
+
+New test modules: `test_phone_otp` (normalisation, OTP expiry/attempts/
+single-use/throttles, account linking, views, proxy IP, Twilio backend,
+password reset, SEO), `test_wishlist`, `test_checkout_money` (totals,
+shipping threshold, payment routing, emails, settings-driven UPI),
+`test_catalog_features` (facets, pagination, product details, size charts,
+stock alerts), `test_content_service` (pages, FAQ, diaries, appointments,
+order tracking).
+
+Bug found by tests: OTP wrong-attempt counter was rolled back by
+`transaction.atomic()` when the error was raised inside the block (unlimited
+guessing). Fixed by raising after the block exits.
+
+Browser walkthrough `docs/agent/browser-checks/features.js` against a copy of
+the dev DB with sample attributes (`/tmp/fd_demo.sqlite3`, server on :8766;
+the real dev DB was not modified): wishlist heart toggles without reload and
+updates the header count; filter drawer submits clean URLs and shows chips;
+size guide dialog opens; cart shows shipping + free-shipping progress;
+checkout lists UPI + COD; FAQ, page, appointment and track-order pages return
+200; full OTP sign-in on mobile using the console SMS code; no page errors.
+Screenshots in `docs/agent/screenshots/t30/`.
 
 ## T29 Verification — Reference-driven redesign (2026-10-17)
 

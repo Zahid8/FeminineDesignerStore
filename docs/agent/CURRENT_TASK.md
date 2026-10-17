@@ -1,5 +1,6 @@
 # Current Task
 
+> **T30 — Customer features + phone OTP login: DONE (2026-10-17)** (notes at end).
 > **T29 — Reference-driven redesign: DONE (2026-10-17)** (notes at end).
 > **T28 — Customer-facing UI revamp: DONE (2026-10-17).** See notes at the end
 > of this file. TASK-027-FIX below is still open: T28 already satisfies its
@@ -257,3 +258,56 @@ pattern → source mapping live in `docs/agent/design-references/README.md`.
 
 Known data issues remain: demo categories have placeholder names and most
 demo products use Kaira stock photos; upload real media in Django admin.
+
+
+---
+
+## T30 Notes — Customer features + phone OTP login (completed 2026-10-17)
+
+Owner request: integrate every necessary feature seen on similar sites, plus
+phone-number OTP login (Indian numbers first, extendable). A Playwright survey
+of Torani, Masaba, Raw Mango, Anita Dongre, Sabyasachi, Zimmermann, Toteme and
+Jaypore decided the scope; the feature × site table and the deliberate skips
+(reviews, gift cards, currency switch) are in
+`docs/agent/design-references/README.md`.
+
+Commits: `e0ca55e` (T28–T30 part 1), `c67ea3e` (A), `d3e05e4` (B), `1b29a30` (C), plus a docs/polish commit.
+
+| Area | What | Where |
+|------|------|-------|
+| Auth | Phone OTP sign-in/verification (hashed single-use codes, 5 min expiry, 5 attempts, resend cooldown, per-phone/per-IP hourly limits); password reset | `store/phone.py`, `store/sms.py`, `store/otp.py`, `store/views_phone.py` |
+| Wishlist | Session for guests, DB for accounts, merged on sign-in; hearts on cards/PDP; `/wishlist/` | `store/wishlist.py`, `store/apps.py` |
+| SEO | sitemap.xml, robots.txt, canonical + OpenGraph, Product and FAQPage JSON-LD, 404/500 | `store/sitemaps.py`, `store/seo.py` |
+| Checkout | Shipping fee + free-shipping threshold, payment choice (Razorpay / UPI / COD), editable UPI + customization advance, order emails; cart and order share `compute_totals()` | `store/services.py` |
+| Catalogue | Filters (availability, price, size, colour, occasion, fabric, ready-to-ship, sale), pagination + load more, occasions, fulfilment + dispatch note, fabric/care, country of origin, complete-the-look, size charts, low-stock, back-in-stock emails | `store/selectors.py`, `store/stock_alerts.py` |
+| Content & service | Policy pages, FAQ, client diaries, appointment booking, guest order tracking, grievance officer / GSTIN display | `store/views_extra.py` |
+
+Bug fixed on the way: orders with sale items stored the discounted amount as
+the subtotal and also showed a discount row, so the discount looked like it
+was never applied. Subtotal is now list price; Subtotal − Discount + Shipping = Total.
+
+### Deploy checklist
+
+1. `python manage.py migrate` (applies 0015–0020).
+2. Set env vars (all listed in `.env.example`):
+   - Email: `DJANGO_EMAIL_HOST`, `DJANGO_EMAIL_PORT`, `DJANGO_EMAIL_HOST_USER`,
+     `DJANGO_EMAIL_HOST_PASSWORD`, `DJANGO_DEFAULT_FROM_EMAIL`, optional
+     `STORE_NOTIFY_EMAIL`. Without a host, emails only print to the console.
+   - SMS: `SMS_BACKEND=store.sms.TwilioSmsBackend` + `TWILIO_ACCOUNT_SID`,
+     `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`. **Indian SMS requires DLT
+     registration of the sender ID and OTP template** with the provider. To use
+     MSG91/Gupshup instead, subclass `store.sms.BaseSmsBackend`.
+   - `PHONE_LOGIN_COUNTRIES` (default `IN`; add e.g. `IN,AE` to extend).
+   - Behind a hosting proxy: `CLIENT_IP_HEADER=HTTP_X_FORWARDED_FOR`
+     (otherwise every visitor shares the proxy IP and the per-IP OTP limit
+     of 20/hour throttles the whole store).
+   - `SITE_URL` for links in background (back-in-stock) emails.
+3. In Django admin fill: Site settings → Payments (UPI ID, advance, COD),
+   Shipping, Product pages (price note, low-stock), Legal & grievance officer;
+   WhatsApp URL; Occasions; Size charts; Pages (shipping, returns, privacy,
+   terms); FAQs; Client diaries; product fabric/care/dispatch/sizes/colours.
+   Nothing was seeded — features stay hidden until content exists.
+
+### Still open
+- TASK-027-FIX item 5 dedicated tests.
+- Demo categories/products still use placeholder names and stock photos.

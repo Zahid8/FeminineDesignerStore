@@ -40,6 +40,7 @@
 | T27 | Ready | Client-side interaction polish | small progressive JS, affected templates, storefront tests, browser notes | storefront tests, full suite, check, collectstatic, browser pass |
 | T28 | Done (2026-10-17) | Customer-facing UI revamp ("Atelier" theme) | femdes-theme.css, all storefront/account templates, femdes.js motion layer, CDN libs (Bootstrap 5.3.8, Swiper 11, GSAP 3.15 + ScrollTrigger, Lenis), branded placeholder, Django messages as toasts | full suite, check, migration dry-run, collectstatic, Playwright desktop+mobile screenshots |
 | T29 | Done (2026-10-17) | Reference-driven storefront redesign ("Maison" v2) | femdes-theme.css rewrite, two-tier header + mega menu, HomeBanner model/admin/migration 0015, PLP sort + density, PDP colour/size chips + WhatsApp + sticky buy bar, live search, Alpine.js, design-reference montages | 351 tests, check, migration dry-run, collectstatic, Playwright desktop+mobile + behaviour script |
+| T30 | Done (2026-10-17) | Customer features from reference-site survey + phone OTP login | phone OTP, password reset, wishlist, SEO, shipping/payment choice/order emails, shop filters + pagination, size charts, stock alerts, product details/compliance, pages/FAQ/client diaries/appointments/order tracking (migrations 0016–0020) | 441+ tests, check, migration dry-run, collectstatic, Playwright walkthrough (features.js) |
 
 ## Dependency Order
 
@@ -84,6 +85,9 @@
   public storefront, using `reference.png` for inspiration only.
 - T21 is an owner-requested light IndiChic-inspired UI pass for the blouse-only
   storefront, using `web_temp/indichic` for layout inspiration only.
+- T30 is the owner-requested feature pass based on a survey of reference
+  fashion sites (table in `docs/agent/design-references/README.md`) plus phone
+  OTP login (India first, extendable).
 - T29 is the owner-requested second pass: study leading fashion sites and
   adopt their best patterns without over-doing drama; use popular frameworks.
   See `docs/agent/design-references/README.md`.

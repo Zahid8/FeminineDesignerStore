@@ -130,3 +130,14 @@ Local development can keep:
 ```env
 DJANGO_MEDIA_STORAGE=local
 ```
+
+
+## Customer features configuration (T30)
+
+After deploying, run `python manage.py migrate`, then configure in Django admin:
+Site settings (UPI ID, cash on delivery, shipping fee and free-shipping
+threshold, price note, grievance officer), Occasions, Size charts, Pages,
+FAQs, Client diaries and Home banners. Email, SMS (phone OTP login) and proxy
+settings are environment variables — see `.env.example` and the deploy
+checklist in `docs/agent/CURRENT_TASK.md`. Indian SMS providers require DLT
+registration of the sender ID and OTP template.

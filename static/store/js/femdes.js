@@ -343,6 +343,17 @@
     });
   }
 
+  // ---- GET filter forms: drop empty fields so URLs stay clean ----
+  function setupStripEmpty() {
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form.matches || !form.matches('form[data-strip-empty]')) return;
+      form.querySelectorAll('input[name], select[name]').forEach(function (el) {
+        if ((el.type === 'number' || el.type === 'text' || el.tagName === 'SELECT') && el.value === '') el.disabled = true;
+      });
+    });
+  }
+
   // ---- Submit feedback ----
   function setupSubmitFeedback() {
     document.addEventListener('submit', function (e) {
@@ -503,6 +514,7 @@
     setupStickyBuy();
     setupAutoSubmit();
     setupSubmitFeedback();
+    setupStripEmpty();
     window.__fdReady = true;
   });
 })();

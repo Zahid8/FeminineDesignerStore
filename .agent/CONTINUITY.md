@@ -1,6 +1,7 @@
 # CONTINUITY
 
 ## [PLANS]
+- 2026-10-17T15:40:00Z [USER] Requested every necessary feature from similar sites plus phone OTP login (India first, extendable). Delivered as T30 in batches A–C with commits after approval to commit.
 - 2026-10-17T14:40:00Z [USER] Requested a second pass modelled on famous fashion sites, explicitly without over-doing drama and using popular CSS/JS frameworks. Delivered as T29.
 - 2026-10-17T13:30:00Z [USER] Requested a complete, "very amazing" customer-facing UI revamp; any popular JS allowed; stack change optional. Delivered as T28 (see docs/agent/CURRENT_TASK.md T28 notes).
 - 2026-07-11T07:09:56Z [USER] Requested inspection of `web_temp/indichic/ECommerceSite-Django` and a tracked implementation-task roadmap for useful missing FemDes features inspired by that reference app.
@@ -15,6 +16,7 @@
 - 2026-07-06T14:50:40Z [USER] Requested architecture/planning-agent documentation across `AGENTS.md`, `CLAUDE.md`, `docs/architecture.md`, `docs/decisions.md`, and `docs/agent/*`, explicitly without implementing the feature.
 
 ## [DECISIONS]
+- 2026-10-17T15:40:00Z [CODE] T30 skips customer reviews (no reference site has them), gift cards and currency switch; order money = subtotal(list) − discount + shipping; SMS via pluggable backends (console/Twilio); no demo content seeded into the real DB.
 - 2026-10-17T14:40:00Z [CODE] T29 adds HomeBanner model (migration 0015), Alpine.js 3 for UI state, server-side ?sort= whitelist, colour/size chips from existing option fields. Visual direction: restrained luxury per docs/agent/design-references/README.md.
 - 2026-10-17T13:30:00Z [CODE] Kept Django server-rendered stack for T28; visual layer = femdes-theme.css + GSAP/ScrollTrigger + Lenis + Swiper 11 via SRI-pinned CDN. Kaira style.css untouched; SmoothScroll.js no longer loaded.
 - 2026-07-11T07:27:19Z [USER] Future `CURRENT_TASK.md` tasks, including TASK-022-FIX, should include a DeepSeek self-validation loop so the implementer reruns fail-first tests, focused/full verification, diff scope audit, and acceptance mapping before claiming completion.

@@ -104,7 +104,7 @@
       <h5 class="offcanvas-title" id="fd-filters-title">Filter</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close filters"></button>
     </div>
-    <form method="get" class="offcanvas-body d-flex flex-column" action="{% url 'product_list' %}">
+    <form method="get" class="offcanvas-body d-flex flex-column" action="{% url 'product_list' %}" data-strip-empty>
       {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
       {% if selected_tag %}<input type="hidden" name="tag" value="{{ selected_tag }}">{% endif %}
       {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}

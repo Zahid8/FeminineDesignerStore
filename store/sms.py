@@ -34,7 +34,8 @@ class ConsoleSmsBackend(BaseSmsBackend):
 
     def send(self, to, message):
         ConsoleSmsBackend.outbox.append({"to": to, "message": message})
-        print(f"[SMS to {to}] {message}")
+        # flush: background/production processes buffer stdout otherwise.
+        print(f"[SMS to {to}] {message}", flush=True)
 
 
 class TwilioSmsBackend(BaseSmsBackend):
