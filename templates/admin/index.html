@@ -1,0 +1,127 @@
+{% extends "admin/index.html" %}
+{% load i18n log fd_admin %}
+
+{% block nav-sidebar %}{% include "admin/nav_sidebar.html" %}{% endblock %}
+{% block coltype %}colM{% endblock %}
+
+{% block content_title %}
+<div class="fd-page-head">
+  <p class="fd-eyebrow">Feminine Designer</p>
+  <h1>{{ title }}</h1>
+  <p class="fd-page-sub">Orders, payments and fittings from the online store at a glance.</p>
+</div>
+{% endblock %}
+
+{% block content %}
+{% fd_dashboard as d %}
+<div id="content-main" class="fd-dash">
+  {% if perms.store.view_order %}
+  <section class="fd-stats" aria-label="Summary">
+    <a class="fd-stat" href="{% url 'admin:store_order_changelist' %}?status__exact=pending" style="--tile: #b45309">
+      <span class="fd-nav-icon">{% fd_icon "receipt" 18 %}</span>
+      <span class="fd-stat-body"><span class="fd-stat-label">Open orders</span><strong class="fd-stat-value">{{ d.open_orders }}</strong><span class="fd-stat-note">Pending, confirmed or in progress</span></span>
+    </a>
+    <a class="fd-stat" href="{% url 'admin:store_order_changelist' %}?payment_status__exact=awaiting_review" style="--tile: #24548f">
+      <span class="fd-nav-icon">{% fd_icon "shield" 18 %}</span>
+      <span class="fd-stat-body"><span class="fd-stat-label">Payments to review</span><strong class="fd-stat-value">{{ d.payments_to_review }}</strong><span class="fd-stat-note">UPI payments awaiting a check</span></span>
+    </a>
+    <a class="fd-stat" href="{% url 'admin:store_order_changelist' %}?payment_status__exact=paid" style="--tile: #12633d">
+      <span class="fd-nav-icon">{% fd_icon "percent" 18 %}</span>
+      <span class="fd-stat-body"><span class="fd-stat-label">Paid this month</span><strong class="fd-stat-value">{{ d.currency }}{{ d.revenue_month|floatformat:"0g" }}</strong><span class="fd-stat-note">{{ d.orders_month }} order{{ d.orders_month|pluralize }} placed this month</span></span>
+    </a>
+    {% if perms.store.view_customizationrequest %}
+    <a class="fd-stat" href="{% url 'admin:store_customizationrequest_changelist' %}" style="--tile: #b84862">
+      <span class="fd-nav-icon">{% fd_icon "scissors" 18 %}</span>
+      <span class="fd-stat-body"><span class="fd-stat-label">Fitting requests</span><strong class="fd-stat-value">{{ d.fitting_requests_week }}</strong><span class="fd-stat-note">In the last 7 days</span></span>
+    </a>
+    {% endif %}
+    {% if perms.store.view_appointment %}
+    <a class="fd-stat" href="{% url 'admin:store_appointment_changelist' %}?status__exact=new" style="--tile: #0f766e">
+      <span class="fd-nav-icon">{% fd_icon "calendar" 18 %}</span>
+      <span class="fd-stat-body"><span class="fd-stat-label">New appointments</span><strong class="fd-stat-value">{{ d.appointments_new }}</strong><span class="fd-stat-note">Waiting to be confirmed</span></span>
+    </a>
+    {% endif %}
+    {% if perms.store.view_product %}
+    <a class="fd-stat" href="{% url 'admin:store_product_changelist' %}?o=5" style="--tile: #7d1f36">
+      <span class="fd-nav-icon">{% fd_icon "package" 18 %}</span>
+      <span class="fd-stat-body"><span class="fd-stat-label">Low stock</span><strong class="fd-stat-value">{{ d.low_stock }}</strong><span class="fd-stat-note">Active products with 2 or fewer left</span></span>
+    </a>
+    {% endif %}
+  </section>
+
+  <div class="fd-dash-grid">
+    <section class="module fd-card">
+      <div class="fd-card-head"><h2>Recent orders</h2><a href="{% url 'admin:store_order_changelist' %}" class="fd-link">View all</a></div>
+      {% if d.recent_orders %}
+      <div class="fd-table-wrap">
+        <table class="fd-table">
+          <thead><tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Status</th><th scope="col">Payment</th><th scope="col" class="fd-num">Total</th></tr></thead>
+          <tbody>
+          {% for o in d.recent_orders %}
+            <tr>
+              <th scope="row"><a href="{% url 'admin:store_order_change' o.pk %}">{{ o.order_number }}</a><span class="fd-cell-sub">{{ o.created_at|date:"j M, g:i a" }}</span></th>
+              <td>{{ o.customer_name }}</td>
+              <td><span class="fd-badge" data-tone="{{ o.status }}">{{ o.get_status_display }}</span></td>
+              <td><span class="fd-badge" data-tone="{{ o.payment_status }}">{{ o.get_payment_status_display }}</span></td>
+              <td class="fd-num">{{ d.currency }}{{ o.total }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="fd-empty">No orders yet. They will appear here as soon as customers check out.</p>
+      {% endif %}
+    </section>
+
+    <div class="fd-dash-side">
+      {% if perms.store.view_customizationrequest %}
+      <section class="module fd-card">
+        <div class="fd-card-head"><h2>Fitting requests</h2><a href="{% url 'admin:store_customizationrequest_changelist' %}" class="fd-link">View all</a></div>
+        {% if d.recent_requests %}
+        <ul class="fd-list">
+          {% for r in d.recent_requests %}
+          <li><a href="{% url 'admin:store_customizationrequest_change' r.pk %}"><strong>{{ r.customer_name }}</strong><span>{{ r.product.name|default:"—" }} · {{ r.created_at|date:"j M" }}</span></a></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="fd-empty">No fitting requests yet.</p>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      <section class="module fd-card" id="recent-actions-module">
+        <div class="fd-card-head"><h2>{% translate 'Recent actions' %}</h2></div>
+        {% get_admin_log 6 as admin_log for_user user %}
+        {% if not admin_log %}
+        <p class="fd-empty">{% translate 'None available' %}</p>
+        {% else %}
+        <ul class="fd-list actionlist">
+          {% for entry in admin_log %}
+          <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+            {% if entry.is_deletion or not entry.get_admin_url %}<strong>{{ entry.object_repr }}</strong>{% else %}<a href="{{ entry.get_admin_url }}"><strong>{{ entry.object_repr }}</strong></a>{% endif %}
+            <span>{% if entry.is_addition %}Added{% elif entry.is_change %}Changed{% else %}Deleted{% endif %} · {% if entry.content_type %}{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}{% endif %}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+  {% endif %}
+
+  <section class="fd-quick" aria-label="Quick actions">
+    {% if perms.store.add_product %}<a class="fd-btn fd-btn--primary" href="{% url 'admin:store_product_add' %}">+ New product</a>{% endif %}
+    {% if perms.store.view_order %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_order_changelist' %}">{% fd_icon "receipt" 16 %}All orders</a>{% endif %}
+    {% if perms.store.add_discount %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_discount_add' %}">{% fd_icon "percent" 16 %}New discount</a>{% endif %}
+    {% if perms.store.add_homebanner %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_homebanner_add' %}">{% fd_icon "image" 16 %}New home banner</a>{% endif %}
+    {% if perms.store.change_sitesettings %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_sitesettings_changelist' %}">{% fd_icon "sliders" 16 %}Store settings</a>{% endif %}
+  </section>
+
+  {% if not perms.store.view_order %}
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

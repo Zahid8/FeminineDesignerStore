@@ -1,24 +1,48 @@
 {% extends "admin/base.html" %}
-{% load static %}
+{% load static fd_admin %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{# Light-only, like the billing app. #}
+{% block dark-mode-vars %}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'store/css/admin-neu.css' %}">
 {% endblock %}
 
+{% block extrahead %}{{ block.super }}
+<script src="{% static 'store/js/admin-fd.js' %}" defer></script>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} fd-admin{% endblock %}
+
 {% block branding %}
+{% if has_permission and is_nav_sidebar_enabled and not is_popup %}
+<button type="button" class="fd-menu-btn" aria-label="Open menu" aria-controls="nav-sidebar" aria-expanded="false" data-fd-menu>{% fd_icon "list" 20 %}</button>
+{% endif %}
 <div id="site-name">
-  <a href="{% url 'admin:index' %}" class="fd-admin-brand">
-    <span class="fd-admin-mark" aria-hidden="true">FD</span>
-    <span>{{ site_header|default:_('Django administration') }}</span>
+  <a href="{% url 'admin:index' %}" class="fd-brand fd-brand--top">
+    <span class="fd-brand-mark">{% fd_icon "scissors" 22 %}</span>
+    <span class="fd-brand-text"><span class="fd-brand-name">{{ site_header|default:_('Django administration') }}</span><span class="fd-brand-sub">Online Store</span></span>
   </a>
 </div>
-{% if user.is_anonymous %}
-  {% include "admin/color_theme_toggle.html" %}
+{% endblock %}
+
+{% block usertools %}
+{% if has_permission %}
+<div id="user-tools" class="fd-usertools">
+  <span class="fd-user-pill">{% fd_icon "user" 16 %}<strong>{% firstof user.get_short_name user.get_username %}</strong></span>
+  {% if site_url %}<a class="fd-btn fd-btn--secondary" href="{{ site_url }}" target="_blank" rel="noopener">{% fd_icon "globe" 16 %}<span>View store</span></a>{% endif %}
+  {% if user.has_usable_password %}<a class="fd-btn fd-btn--ghost fd-hide-sm" href="{% url 'admin:password_change' %}">{% fd_icon "key" 16 %}<span>Password</span></a>{% endif %}
+  {% if perms.store.add_product %}<a class="fd-btn fd-btn--primary fd-hide-sm" href="{% url 'admin:store_product_add' %}">+ <span>New product</span></a>{% endif %}
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="fd-btn fd-btn--secondary">Log out</button>
+  </form>
+</div>
 {% endif %}
 {% endblock %}
 

@@ -474,3 +474,22 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
      `custom`); now uses `cart.has_custom` from `get_cart_summary`.
   3. After a validation error the page reloaded at the top; the builder now
      scrolls itself into view when the form has errors.
+
+## T36 — Admin cloned from the billing app's design (2026-10-17)
+
+- Owner: the neumorphic admin "isn't that good… just like the billing system
+  UI". The admin now mirrors Feminine_Designer's "soft boutique" system:
+  wine-gradient sidebar with a coloured icon tile per section (Sales,
+  Catalogue, Customers, Content, Settings), blush background, Fraunces +
+  Plus Jakarta Sans, raised cards, pressed inputs, wine→rose primary buttons,
+  peach table headers, pill status badges, light-only (no theme toggle).
+- Files: `templates/admin/{base_site,nav_sidebar,index}.html`,
+  `store/templatetags/fd_admin.py` (icons, grouped nav, dashboard stats),
+  `static/store/css/admin-neu.css`, `static/store/js/admin-fd.js` (mobile
+  drawer + status pills on change lists).
+- Dashboard: open orders, payments to review, paid this month, fitting
+  requests (7 days), new appointments, low stock, recent orders, fitting
+  requests, recent actions, quick actions.
+- Sidebar keeps Django's `#nav-sidebar` / `#nav-filter` / `th[scope=row] a`
+  structure so the built-in menu filter still works.
+- Browser check: `docs/agent/browser-checks/admin_theme.js` (no JS errors).

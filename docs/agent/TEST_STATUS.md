@@ -434,3 +434,9 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 482 tests OK (MadeToMeasureStockTests, BuilderPrefillAndTermsTests)
 - `node docs/agent/browser-checks/e2e_mtm.js` (DEBUG=False server, port 8770) — 28/28 PASS, no JS errors
 - `python manage.py makemigrations --check --dry-run` — no changes
+
+## T36 — Billing-style admin (2026-10-17)
+
+- `python manage.py check` — no issues; `makemigrations --check` — no changes
+- `python manage.py test` — 483 tests OK (AdminThemeTests updated + sidebar grouping test)
+- `node docs/agent/browser-checks/admin_theme.js` — login, dashboard, change lists, change forms, mobile drawer; no JS errors

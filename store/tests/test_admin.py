@@ -381,7 +381,8 @@ class AdminThemeTests(TestCase):
         response = Client().get(reverse("admin:login"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "store/css/admin-neu.css")
-        self.assertContains(response, "FemDes Admin")
+        self.assertContains(response, "Feminine Designer")
+        self.assertContains(response, "<title>Log in | FemDes Admin</title>", html=False)
 
     def test_index_uses_store_titles(self):
         user = User.objects.create_superuser("themeadmin", "t@example.com", "pw-12345!")
@@ -390,4 +391,16 @@ class AdminThemeTests(TestCase):
         response = client.get(reverse("admin:index"))
         self.assertContains(response, "admin-neu.css")
         self.assertContains(response, "Store management")
-        self.assertContains(response, 'class="fd-admin-mark"')
+        self.assertContains(response, 'id="nav-sidebar"')  # billing-style sidebar on the dashboard
+        self.assertContains(response, "Open orders")
+        self.assertContains(response, "Recent orders")
+
+    def test_sidebar_groups_models_and_marks_current(self):
+        user = User.objects.create_superuser("navadmin", "n@example.com", "pw-12345!")
+        client = Client()
+        client.force_login(user)
+        content = client.get(reverse("admin:store_order_changelist")).content.decode()
+        for label in ("Sales", "Catalogue", "Customers", "Content", "Settings"):
+            self.assertIn(f"<caption>{label}</caption>", content)
+        self.assertIn('class="model-order current-model"', content)
+        self.assertIn('th scope="row"', content)  # keeps Django's sidebar filter working

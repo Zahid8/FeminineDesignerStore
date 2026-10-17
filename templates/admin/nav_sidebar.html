@@ -1,0 +1,26 @@
+{% load i18n fd_admin %}
+{# Billing-app style sidebar. Keeps Django's ids and th[scope=row] a structure so nav_sidebar.js filtering still works. #}
+<button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="{% translate 'Toggle navigation' %}" hidden></button>
+<nav class="sticky fd-sidebar" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
+  <a href="{% url 'admin:index' %}" class="fd-brand">
+    <span class="fd-brand-mark">{% fd_icon "scissors" 24 %}</span>
+    <span class="fd-brand-text"><span class="fd-brand-name">{{ site_header }}</span><span class="fd-brand-sub">Online Store</span></span>
+  </a>
+  {% url 'admin:index' as index_url %}
+  <a href="{{ index_url }}" class="fd-nav-home{% if request.path == index_url %} is-current{% endif %}"{% if request.path == index_url %} aria-current="page"{% endif %}>
+    <span class="fd-nav-icon" style="--tile: #7d1f36">{% fd_icon "home" 16 %}</span>Dashboard
+  </a>
+  <input type="search" id="nav-filter" placeholder="Search menu…" aria-label="{% translate 'Filter navigation items' %}">
+  {% fd_nav_groups available_apps request.path as groups %}
+  {% for group in groups %}
+  <table class="fd-nav-group">
+    <caption>{{ group.label }}</caption>
+    {% for m in group.items %}
+    <tr class="model-{{ m.key }}{% if m.current %} current-model{% endif %}">
+      <th scope="row"><span class="fd-nav-icon" style="--tile: {{ m.colour }}">{% fd_icon m.icon 16 %}</span>{% if m.url %}<a href="{{ m.url }}"{% if m.current %} aria-current="page"{% endif %}>{{ m.name }}</a>{% else %}<span>{{ m.name }}</span>{% endif %}</th>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endfor %}
+</nav>
+<div class="fd-nav-scrim" data-fd-menu-close hidden></div>
