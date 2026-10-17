@@ -21,7 +21,7 @@
         </select>
       </div>
       <div class="col-md-4">
-        <input type="search" name="search" class="form-control" placeholder="Search by order number..." aria-label="Search by order number" value="{{ order_search }}">
+        <input type="search" name="search" class="form-control" placeholder="Search by order number or product" aria-label="Search orders" value="{{ order_search }}">
       </div>
       <div class="col-md-auto">
         <button type="submit" class="btn btn-outline-dark rounded-pill">Filter</button>
@@ -30,23 +30,26 @@
     </form>
 
     {% if orders %}
-    <div class="indichic-card p-3 p-md-4"><div class="table-responsive">
-      <table class="table fd-stack-table indichic-table align-middle mb-0">
-        <thead><tr><th>Order #</th><th>Date</th><th>Status</th><th>Payment</th><th>Total</th><th></th></tr></thead>
-        <tbody>
-          {% for order in orders %}
-          <tr>
-            <td data-label="Order" class="fw-semibold text-dark">{{ order.order_number }}</td>
-            <td data-label="Date">{{ order.created_at|date:"M j, Y" }}</td>
-            <td data-label="Status"><span class="fd-status-pill">{{ order.get_status_display }}</span></td>
-            <td data-label="Payment">{{ order.get_payment_status_display }}</td>
-            <td data-label="Total">{{ site_settings.currency_symbol|default:"$" }}{{ order.total }}</td>
-            <td data-label=""><div class="d-flex gap-2 flex-wrap">{% if order.payment_method == "razorpay" and order.status != "cancelled" and order.payment_status != "paid" and order.payment_status != "refunded" %}<a href="{% url 'razorpay_payment' order.order_number %}" class="btn btn-sm btn-dark rounded-pill">Pay now</a>{% endif %}<a href="{% url 'account_order_detail' order.order_number %}" class="btn btn-sm btn-outline-dark rounded-pill">View</a></div></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div></div>
+    <ul class="fd-order-list">
+      {% for order in orders %}
+      <li class="fd-order-card">
+        <a href="{% url 'account_order_detail' order.order_number %}" class="fd-order-card-main" aria-label="Order {{ order.order_number }}">
+          <span class="fd-order-thumbs">{% for item in order.preview_items %}<span class="fd-order-thumb">{% include "store/partials/line_thumb.html" with line=item %}</span>{% endfor %}</span>
+          <span class="fd-order-card-text">
+            <strong class="fd-order-headline is-{{ order.status }}">{% include "store/partials/order_headline.html" %}</strong>
+            <span class="fd-order-names">{% for item in order.preview_items %}{{ item.product_name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if order.items.count > 3 %} +{{ order.items.count|add:"-3" }} more{% endif %}</span>
+            <small>{{ order.order_number }} &middot; {{ order.created_at|date:"j M Y" }} &middot; {{ site_settings.currency_symbol|default:"₹" }}{{ order.total }}</small>
+          </span>
+          <svg class="fd-order-chevron" width="18" height="18" aria-hidden="true"><use xlink:href="#arrow-right"></use></svg>
+        </a>
+        {% if order.payment_method == "razorpay" and order.status != "cancelled" and order.payment_status != "paid" and order.payment_status != "refunded" %}
+        <div class="fd-order-card-actions"><a href="{% url 'razorpay_payment' order.order_number %}" class="btn btn-sm btn-dark rounded-pill">Pay now</a></div>
+        {% elif order.status == "shipped" and order.tracking_url %}
+        <div class="fd-order-card-actions"><a href="{{ order.tracking_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-dark rounded-pill">Track parcel</a></div>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
     {% elif status_filter or order_search %}
     <div class="empty-state">
       <h5>No matching orders</h5>

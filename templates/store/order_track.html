@@ -28,17 +28,11 @@
         <span class="fd-status-pill">{{ order.get_status_display }}</span>
       </div>
       <p class="text-muted small mt-1">Placed on {{ order.created_at|date:"F j, Y" }} &middot; Payment: {{ order.get_payment_status_display }}</p>
-      <ol class="fd-steps-track{% if order.status == 'cancelled' %} is-cancelled-order{% endif %}" aria-label="Order status timeline">
-        {% for status_val, status_label in status_timeline %}
-        <li class="{% if status_val == order.status %}is-current{% endif %}{% if status_val == 'cancelled' %} is-cancelled{% endif %}"{% if status_val == order.status %} aria-current="step"{% endif %}>{% if status_val == 'pending' %}Order Placed{% else %}{{ status_label }}{% endif %}</li>
-        {% endfor %}
-      </ol>
-      <ul class="list-unstyled mt-4 mb-0">
-        {% for item in order.items.all %}
-        <li class="d-flex justify-content-between py-2 border-bottom"><span>{{ item.product_name }}{% if item.customization %} <em class="text-muted">(made to measure)</em>{% endif %} &times; {{ item.quantity }}</span><span>{{ currency }}{{ item.line_total }}</span></li>
-        {% endfor %}
-        <li class="d-flex justify-content-between pt-3"><strong>Total</strong><strong>{{ currency }}{{ order.total }}</strong></li>
-      </ul>
+      {% include "store/partials/order_timeline.html" %}
+      <hr>
+      {% include "store/partials/order_items.html" %}
+      <div class="d-flex justify-content-between pt-2"><strong>Total</strong><strong>{{ currency }}{{ order.total }}</strong></div>
+      <a href="{{ manage_url }}" class="btn btn-dark rounded-pill mt-4">Manage this order</a>
     </div>
     {% endif %}
   </div>

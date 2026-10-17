@@ -1,0 +1,28 @@
+{# Customer actions for one order. Expects: order, can_cancel, cancel_reasons, request_options, order_key (optional), site_settings #}
+{% load store_extras %}
+<div class="fd-order-actions">
+  {% if pay_now_url %}<a href="{{ pay_now_url }}" class="btn btn-dark rounded-pill">Pay {{ site_settings.currency_symbol|default:"₹" }}{{ order.total }} now</a>{% endif %}
+  {% if request_options %}
+  <a href="{% url 'order_request' order.order_number %}{% if order_key %}?k={{ order_key }}{% endif %}" class="btn btn-dark rounded-pill">{% if request_options|length == 1 and request_options.0.0 == "exchange" %}Exchange an item{% elif request_options|length == 1 and request_options.0.0 == "alteration" %}Request free alteration{% else %}Exchange, alter or report a problem{% endif %}</a>
+  {% endif %}
+  {% if order.status != "pending" or order.payment_status == "paid" %}
+  <form method="post" action="{% url 'order_buy_again' order.order_number %}" class="d-inline">{% csrf_token %}{% if order_key %}<input type="hidden" name="k" value="{{ order_key }}">{% endif %}<button type="submit" class="btn btn-outline-dark rounded-pill">Buy again</button></form>
+  {% endif %}
+  {% if user.is_authenticated and order.customer_user_id == user.pk %}<a href="{% url 'account_order_invoice' order.order_number %}" class="btn btn-outline-dark rounded-pill">Invoice</a>{% endif %}
+  {% if site_settings.whatsapp_url %}<a href="{{ site_settings.whatsapp_url|wa_link:'Hi, I need help with my order '|add:order.order_number }}" target="_blank" rel="noopener" class="btn btn-outline-dark rounded-pill">Need help?</a>{% endif %}
+</div>
+{% if can_cancel %}
+<details class="fd-cancel mt-3">
+  <summary>Cancel this order</summary>
+  <form method="post" action="{% url 'order_cancel' order.order_number %}" class="fd-form mt-3">
+    {% csrf_token %}{% if order_key %}<input type="hidden" name="k" value="{{ order_key }}">{% endif %}
+    <label for="cancel-reason-{{ order.pk }}">Why are you cancelling?</label>
+    <select name="reason" id="cancel-reason-{{ order.pk }}" class="form-select" required>
+      <option value="">Choose a reason</option>
+      {% for value, label in cancel_reasons %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+    </select>
+    <p class="helptext mt-2">{% if order.payment_status == "paid" %}You will get a full refund of {{ site_settings.currency_symbol|default:"₹" }}{{ order.total }} to your original payment method in 5–7 working days.{% else %}Nothing has been charged, so there is nothing to refund.{% endif %}</p>
+    <button type="submit" class="btn btn-outline-danger rounded-pill">Confirm cancellation</button>
+  </form>
+</details>
+{% endif %}

@@ -25,3 +25,14 @@ def custom_rows(customization):
     from store import measurements
 
     return measurements.summary(customization)
+
+
+@register.filter
+def wa_link(url, text):
+    """WhatsApp link with a pre-filled message (wa.me / api.whatsapp.com URLs)."""
+    from urllib.parse import quote
+
+    if not url:
+        return ""
+    sep = "&" if "?" in url else "?"
+    return f"{url}{sep}text={quote(str(text))}"

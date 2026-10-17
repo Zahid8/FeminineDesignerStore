@@ -1,0 +1,15 @@
+{% load store_extras %}{% with currency=site_settings.currency_symbol|default:"₹" %}
+<ul class="fd-order-items">
+  {% for item in order.items.all %}
+  <li>
+    <a class="fd-order-thumb" href="{% if item.product %}{% url 'product_detail' item.product.slug %}{% else %}#{% endif %}"{% if not item.product %} aria-disabled="true" tabindex="-1"{% endif %}>{% include "store/partials/line_thumb.html" with line=item %}</a>
+    <div class="fd-order-item-body">
+      <strong>{% if item.product %}<a href="{% url 'product_detail' item.product.slug %}">{{ item.product_name }}</a>{% else %}{{ item.product_name }}{% endif %}</strong>
+      <small class="text-muted d-block">{% if item.color %}{{ item.color }}{% endif %}{% if item.color and item.size %} &middot; {% endif %}{% if item.size %}{{ item.size }}{% endif %}{% if item.color or item.size %} &middot; {% endif %}Qty {{ item.quantity }}</small>
+      {% include "store/partials/custom_summary.html" with rows=item.customization|custom_rows notes=item.customization.notes compact=True %}
+      <div class="fd-order-item-price"><b>{{ currency }}{{ item.line_total }}</b>{% if item.discount_amount > 0 %} <s class="text-muted">{{ currency }}{% widthratio item.unit_price 1 item.quantity %}</s>{% endif %}</div>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endwith %}

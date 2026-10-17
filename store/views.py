@@ -338,9 +338,11 @@ def order_success(request, order_number):
 
     from store.payments import can_pay_online
 
+    from store.views_orders import order_context
+
     order = _viewable_order_or_404(request, order_number)
     ctx = _base_context(request)
-    ctx["order"] = order
+    ctx.update(order_context(request, order))
     ctx["bill_pdf_url"] = online_bill_url(order.order_number)
     ctx["pay_now_url"] = (
         reverse("razorpay_payment", kwargs={"order_number": order.order_number}) + "?k=" + request.GET.get("k", "")
@@ -691,8 +693,10 @@ def account_orders(request):
     if status_filter and status_filter in dict(Order.STATUS_CHOICES):
         orders = orders.filter(status=status_filter)
     if order_search:
-        orders = orders.filter(order_number__icontains=order_search)
-    orders = orders.order_by("-created_at")
+        from django.db.models import Q
+
+        orders = orders.filter(Q(order_number__icontains=order_search) | Q(items__product_name__icontains=order_search)).distinct()
+    orders = orders.order_by("-created_at").prefetch_related("items__product__images")
     ctx = _base_context(request)
     ctx.update({
         "orders": orders,
@@ -705,18 +709,11 @@ def account_orders(request):
 
 @login_required
 def account_order_detail(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number, customer_user=request.user)
+    from store.views_orders import order_context
+
+    order = get_object_or_404(Order.objects.prefetch_related("items__product__images", "events"), order_number=order_number, customer_user=request.user)
     ctx = _base_context(request)
-    ctx["order"] = order
-    ctx["status_timeline"] = [
-        ("pending", "Order Placed"),
-        ("confirmed", "Confirmed"),
-        ("processing", "Processing"),
-        ("shipped", "Shipped"),
-        ("delivered", "Delivered"),
-        ("completed", "Completed"),
-        ("cancelled", "Cancelled"),
-    ]
+    ctx.update(order_context(request, order))
     return render(request, "store/account_order_detail.html", ctx)
 
 

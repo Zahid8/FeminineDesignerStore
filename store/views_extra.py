@@ -179,7 +179,13 @@ def order_track(request):
     else:
         form = OrderTrackForm(initial={"order_number": request.GET.get("order", "")})
     ctx = _base_context(request)
-    ctx.update({"form": form, "order": order, "status_timeline": Order.STATUS_CHOICES})
+    ctx.update({"form": form, "order": order})
+    if order is not None:
+        from store.orders import timeline
+        from store.payments import order_link, remember_order
+
+        remember_order(request, order)  # this browser proved it knows the order: let it manage it
+        ctx.update({"steps": timeline(order), "manage_url": order_link(order)})
     return render(request, "store/order_track.html", ctx)
 
 

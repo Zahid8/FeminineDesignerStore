@@ -22,7 +22,9 @@ from store.models import (
     Discount,
     NewsletterSubscriber,
     Order,
+    OrderEvent,
     OrderItem,
+    OrderRequest,
     Product,
     ProductImage,
     ProductTag,
@@ -230,6 +232,51 @@ class OrderAdmin(admin.ModelAdmin):
         "gateway_signature",
     )
     inlines = [OrderItemInline]
+
+    def get_inlines(self, request, obj):
+        return [OrderItemInline, OrderRequestInline, OrderEventInline]
+
+    def save_model(self, request, obj, form, change):
+        from store.orders import restock
+
+        old_status = Order.objects.filter(pk=obj.pk).values_list("status", flat=True).first() if change else None
+        if change and obj.status == "cancelled" and old_status != "cancelled":
+            restock(obj)
+            obj.cancelled_by = obj.cancelled_by or "staff"
+            obj._event_note = "Cancelled by staff (stock returned)"
+        super().save_model(request, obj, form, change)
+
+
+class OrderEventInline(admin.TabularInline):
+    model = OrderEvent
+    extra = 0
+    can_delete = False
+    fields = ("status", "note", "created_at")
+    readonly_fields = ("status", "note", "created_at")
+    verbose_name_plural = "Timeline"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class OrderRequestInline(admin.StackedInline):
+    model = OrderRequest
+    extra = 0
+    fields = ("kind", "reason", "items", "preferred_size", "details", "status", "staff_note", "created_at")
+    readonly_fields = ("kind", "reason", "items", "preferred_size", "details", "created_at")
+    verbose_name_plural = "Exchange / alteration / problem requests"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(OrderRequest)
+class OrderRequestAdmin(admin.ModelAdmin):
+    list_display = ("order", "kind", "reason", "status", "created_at")
+    list_filter = ("kind", "status", "reason")
+    search_fields = ("order__order_number", "order__customer_name", "order__customer_phone")
+    readonly_fields = ("order", "kind", "reason", "items", "preferred_size", "details", "created_at", "updated_at")
+    fields = readonly_fields[:6] + ("status", "staff_note", "created_at", "updated_at")
 
 
 @admin.register(OrderItem)

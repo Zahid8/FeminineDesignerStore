@@ -713,6 +713,16 @@ class Order(models.Model):
     gateway_payment_id = models.CharField(max_length=100, blank=True)
     gateway_signature = models.CharField(max_length=500, blank=True)
     paid_at = models.DateTimeField(blank=True, null=True)
+    # Delivery tracking (filled by staff when the parcel leaves)
+    courier_name = models.CharField(max_length=80, blank=True, help_text="e.g. Delhivery, Blue Dart, India Post")
+    tracking_number = models.CharField("AWB / tracking number", max_length=80, blank=True)
+    tracking_url = models.URLField(max_length=500, blank=True, help_text="Courier tracking page for this parcel.")
+    expected_delivery = models.DateField(blank=True, null=True)
+    shipped_at = models.DateTimeField(blank=True, null=True)
+    delivered_at = models.DateTimeField(blank=True, null=True)
+    cancelled_at = models.DateTimeField(blank=True, null=True)
+    cancel_reason = models.CharField(max_length=200, blank=True)
+    cancelled_by = models.CharField(max_length=20, blank=True, choices=[("customer", "Customer"), ("staff", "Staff"), ("system", "System")])
     customer_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -738,15 +748,43 @@ class Order(models.Model):
     def __str__(self):
         return self.order_number or f"Order #{self.pk}"
 
+    CANCELLABLE_STATUSES = ("pending", "confirmed")
+
+    @property
+    def has_custom(self):
+        return any(i.customization for i in self.items.all())
+
+    @property
+    def preview_items(self):
+        return list(self.items.all())[:3]
+    STATUS_STAMPS = {"shipped": "shipped_at", "delivered": "delivered_at", "cancelled": "cancelled_at"}
+
     def save(self, *args, **kwargs):
         # Auto-set paid_at when payment_status changes to paid.
         transitioning_to_paid = self.payment_status == "paid"
-        if self.pk:
-            old = Order.objects.filter(pk=self.pk).first()
-            if old and old.payment_status == "paid":
-                transitioning_to_paid = False
+        old = Order.objects.filter(pk=self.pk).only("status", "payment_status").first() if self.pk else None
+        if old and old.payment_status == "paid":
+            transitioning_to_paid = False
         if transitioning_to_paid and self.paid_at is None:
             self.paid_at = tz.now()
+        status_changed = old is None or old.status != self.status
+        if status_changed:
+            stamp = self.STATUS_STAMPS.get(self.status)
+            if stamp and getattr(self, stamp) is None:
+                setattr(self, stamp, tz.now())
+            if self.status == "delivered" and self.shipped_at is None:
+                self.shipped_at = self.delivered_at
+        if status_changed:
+            self._log_status = True
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"shipped_at", "delivered_at", "cancelled_at"}
+        self._save_with_number(*args, **kwargs)
+        if getattr(self, "_log_status", False):
+            self._log_status = False
+            OrderEvent.objects.create(order=self, status=self.status, note=getattr(self, "_event_note", "")[:300])
+            self._event_note = ""
+
+    def _save_with_number(self, *args, **kwargs):
         if not self.order_number:
             self.order_number = self._generate_order_number()
             for _ in range(10):
@@ -797,6 +835,63 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
+
+
+class OrderEvent(models.Model):
+    """One step in an order's history (shown as the customer's tracking timeline)."""
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="events")
+    status = models.CharField(max_length=20, choices=Order.STATUS_CHOICES)
+    note = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self):
+        return f"{self.order} → {self.get_status_display()}"
+
+
+class OrderRequest(models.Model):
+    """Customer after-sales request: exchange, alteration or a delivery problem."""
+
+    KINDS = [
+        ("exchange", "Exchange (ready-made)"),
+        ("alteration", "Free alteration (made to measure)"),
+        ("problem", "Damaged / missing / wrong item"),
+    ]
+    REASONS = [
+        ("size", "Size or fit is not right"),
+        ("damaged", "Item arrived damaged"),
+        ("wrong", "Received a different item"),
+        ("missing", "Item missing from the parcel"),
+        ("quality", "Quality not as expected"),
+        ("other", "Something else"),
+    ]
+    STATUSES = [
+        ("requested", "Requested"),
+        ("approved", "Approved"),
+        ("pickup", "Pickup arranged"),
+        ("completed", "Completed"),
+        ("rejected", "Not approved"),
+    ]
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="requests")
+    items = models.ManyToManyField(OrderItem, related_name="requests")
+    kind = models.CharField(max_length=20, choices=KINDS)
+    reason = models.CharField(max_length=20, choices=REASONS)
+    details = models.TextField(blank=True)
+    preferred_size = models.CharField("Size wanted (exchange)", max_length=40, blank=True)
+    status = models.CharField(max_length=20, choices=STATUSES, default="requested")
+    staff_note = models.TextField("Reply to customer", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} for {self.order}"
 
 
 class CustomizationRequest(models.Model):

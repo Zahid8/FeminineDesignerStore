@@ -148,6 +148,23 @@ def serialize_order(request, order, site=None, order_counts=None):
         "order_type": kind,
         "order_type_label": dict(ORDER_TYPES)[kind],
         "items": [serialize_item(i, request) for i in order.items.all()],
+        "tracking": {
+            "courier": order.courier_name, "number": order.tracking_number, "url": order.tracking_url or None,
+            "expected_delivery": order.expected_delivery.isoformat() if order.expected_delivery else None,
+            "shipped_at": order.shipped_at.isoformat() if order.shipped_at else None,
+            "delivered_at": order.delivered_at.isoformat() if order.delivered_at else None,
+        },
+        "cancellation": {
+            "at": order.cancelled_at.isoformat(), "by": order.cancelled_by, "reason": order.cancel_reason,
+            "refund_due": order.payment_status == "paid",
+        } if order.status == "cancelled" and order.cancelled_at else None,
+        "timeline": [{"status": e.status, "label": e.get_status_display(), "note": e.note, "at": e.created_at.isoformat()}
+                     for e in order.events.all()],
+        "requests": [{
+            "id": r.pk, "kind": r.kind, "kind_label": r.get_kind_display(), "reason": r.get_reason_display(),
+            "details": r.details, "preferred_size": r.preferred_size, "status": r.status, "status_label": r.get_status_display(),
+            "items": [i.product_name for i in r.items.all()], "created_at": r.created_at.isoformat(),
+        } for r in order.requests.all()],
         "links": {
             "admin": request.build_absolute_uri(reverse("admin:store_order_change", args=[order.pk])),
             "staff": request.build_absolute_uri(reverse("staff_order_update", args=[order.order_number])),
@@ -157,7 +174,8 @@ def serialize_order(request, order, site=None, order_counts=None):
 
 def _orders_queryset():
     return (Order.objects.select_related("customer_user", "customer_user__profile")
-            .prefetch_related("items__product__images", "items__product__category").order_by("-created_at"))
+            .prefetch_related("items__product__images", "items__product__category", "events", "requests__items")
+            .order_by("-created_at"))
 
 
 @csrf_exempt
@@ -232,8 +250,31 @@ def online_order_detail(request, order_number):
         if status is not None:
             if status not in dict(Order.STATUS_CHOICES):
                 return _error(f"Unknown status '{status}'.", 400)
+            if status == "cancelled" and order.status != "cancelled":
+                from store.orders import restock
+
+                restock(order)  # ready-made stock goes back on the shelf
+                order.cancelled_by = "staff"
+                order.cancel_reason = str(payload.get("cancel_reason") or "")[:200]
+                order._event_note = "Cancelled from the billing app"
             order.status = status
             changes.append("status")
+        for key, field, size in (("courier", "courier_name", 80), ("tracking_number", "tracking_number", 80), ("tracking_url", "tracking_url", 500)):
+            if key in payload:
+                value = str(payload[key] or "").strip()[:size]
+                if field == "tracking_url" and value and not value.startswith(("https://", "http://")):
+                    return _error("Tracking link must start with https://", 400)
+                setattr(order, field, value)
+                changes.append(field)
+        if "expected_delivery" in payload:
+            from datetime import date
+
+            raw = payload["expected_delivery"]
+            try:
+                order.expected_delivery = date.fromisoformat(raw) if raw else None
+            except (TypeError, ValueError):
+                return _error("expected_delivery must be YYYY-MM-DD.", 400)
+            changes.append("expected_delivery")
         payment_status = payload.get("payment_status")
         if payment_status is not None:
             if payment_status not in dict(Order._meta.get_field("payment_status").choices):

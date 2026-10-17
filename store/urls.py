@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from store import views_google, views, views_api, views_extra, views_phone
+from store import views_google, views_orders, views, views_api, views_extra, views_phone
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -87,6 +87,9 @@ urlpatterns = [
     path("accounts/orders/", views.account_orders, name="account_orders"),
     path("accounts/orders/<str:order_number>/", views.account_order_detail, name="account_order_detail"),
     path("accounts/orders/<str:order_number>/invoice/", views.account_order_invoice, name="account_order_invoice"),
+    path("orders/<str:order_number>/cancel/", views_orders.order_cancel, name="order_cancel"),
+    path("orders/<str:order_number>/request/", views_orders.order_request, name="order_request"),
+    path("orders/<str:order_number>/buy-again/", views_orders.order_buy_again, name="order_buy_again"),
     # Staff
     path("staff/", views.staff_dashboard, name="staff_dashboard"),
     path("staff/orders/", views.staff_order_list, name="staff_order_list"),

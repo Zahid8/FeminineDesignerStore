@@ -2,7 +2,7 @@
 {% load store_extras %}
 {% block title %} — Order {{ order.order_number }}{% endblock %}
 {% block content %}
-{% with currency=site_settings.currency_symbol|default:"$" %}
+{% with currency=site_settings.currency_symbol|default:"₹" %}
 <header class="fd-page-header is-compact">
   <div class="container-lg">
     <ol class="fd-crumbs" aria-label="Breadcrumb">
@@ -10,69 +10,61 @@
       <li><a href="{% url 'account_orders' %}">Orders</a></li>
       <li aria-current="page">{{ order.order_number }}</li>
     </ol>
-    <h1 class="mb-3">Order #{{ order.order_number }}</h1>
-    <p class="text-muted">Placed on {{ order.created_at|date:"F j, Y" }}</p>
+    <h1 class="mb-1">{% include "store/partials/order_headline.html" %}</h1>
+    <p class="text-muted mb-0">Order {{ order.order_number }} &middot; placed {{ order.created_at|date:"j M Y" }}</p>
   </div>
 </header>
 <section class="pb-5">
   <div class="container-lg page-shell-wide">
-    <!-- Status Timeline -->
-    <div class="indichic-card p-4 mb-4">
-      <h5>Order Status</h5>
-      <ol class="fd-steps-track{% if order.status == 'cancelled' %} is-cancelled-order{% endif %}" aria-label="Order status timeline">
-        {% for status_val, status_label in status_timeline %}
-        <li class="{% if status_val == order.status %}is-current{% endif %}{% if status_val == 'cancelled' %} is-cancelled{% endif %}"{% if status_val == order.status %} aria-current="step"{% endif %}>{{ status_label }}</li>
-        {% endfor %}
-      </ol>
-    </div>
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="indichic-card p-4 mb-4">
+          {% include "store/partials/order_actions.html" %}
+        </div>
 
-    <!-- Order Items -->
-    <div class="indichic-card p-4 mb-4">
-      <h5>Items</h5>
-      <div class="table-responsive">
-      <table class="table fd-stack-table indichic-table">
-        <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
-        <tbody>
-          {% for item in order.items.all %}
-          <tr>
-            <td data-label="Product">{{ item.product_name }}{% if item.color or item.size %}<br><small class="text-muted">{{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}</small>{% endif %}{% include "store/partials/custom_summary.html" with rows=item.customization|custom_rows notes=item.customization.notes compact=True %}</td>
-            <td data-label="SKU">{{ item.sku }}</td>
-            <td data-label="Qty">{{ item.quantity }}</td>
-            <td data-label="Price">{{ currency }}{{ item.unit_price }}</td>
-            <td data-label="Total">{{ currency }}{{ item.line_total }}</td>
-          </tr>
+        <div class="indichic-card p-4 mb-4">
+          <h5 class="mb-3">Tracking</h5>
+          {% include "store/partials/order_timeline.html" %}
+        </div>
+
+        <div class="indichic-card p-4 mb-4">
+          <h5 class="mb-3">Items ({{ order.items.count }})</h5>
+          {% include "store/partials/order_items.html" %}
+        </div>
+
+        {% if order_requests %}
+        <div class="indichic-card p-4 mb-4">
+          <h5 class="mb-3">Your requests</h5>
+          {% for r in order_requests %}
+          <div class="fd-request{% if not forloop.last %} mb-3 pb-3 border-bottom{% endif %}">
+            <div class="d-flex justify-content-between gap-2 flex-wrap"><strong>{{ r.get_kind_display }}</strong><span class="fd-status-pill">{{ r.get_status_display }}</span></div>
+            <small class="text-muted d-block">{{ r.created_at|date:"j M Y" }} &middot; {{ r.get_reason_display }} &middot; {% for i in r.items.all %}{{ i.product_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
+            {% if r.staff_note %}<p class="mt-2 mb-0"><b>Our reply:</b> {{ r.staff_note }}</p>{% endif %}
+          </div>
           {% endfor %}
-        </tbody>
-      </table>
+        </div>
+        {% endif %}
       </div>
-      <hr>
-      <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ currency }}{{ order.subtotal }}</strong></div>
-      {% if order.discount_total > 0 %}<div class="d-flex justify-content-between text-success"><span>Discount</span><strong>-{{ currency }}{{ order.discount_total }}</strong></div>{% endif %}
-      {% if order.shipping_total > 0 %}<div class="d-flex justify-content-between"><span>Shipping</span><strong>{{ currency }}{{ order.shipping_total }}</strong></div>{% endif %}
-      <div class="d-flex justify-content-between fs-5 mt-2"><span>Total</span><strong>{{ currency }}{{ order.total }}</strong></div>
-    </div>
 
-    <!-- Payment Info -->
-    <div class="indichic-card p-4 mb-4">
-      <h5>Payment</h5>
-      <p><strong>Method:</strong> {{ order.get_payment_method_display }}</p>
-      <p><strong>Status:</strong> {{ order.get_payment_status_display }}</p>
-      {% if order.payment_reference %}<p><strong>Reference:</strong> {{ order.payment_reference }}</p>{% endif %}
-    </div>
-
-    <!-- Shipping -->
-    <div class="indichic-card p-4 mb-4">
-      <h5>Shipping Details</h5>
-      <p><strong>{{ order.customer_name }}</strong><br>
-      {{ order.customer_email }}{% if order.customer_phone %}<br>{{ order.customer_phone }}{% endif %}</p>
-      <p class="mb-0">{{ order.shipping_address|linebreaksbr }}</p>
-      {% include "store/partials/map_link.html" with url=order.location_url %}
-    </div>
-
-    <div class="d-flex flex-wrap gap-3">
-      {% if order.payment_method == "razorpay" and order.status != "cancelled" and order.payment_status != "paid" and order.payment_status != "refunded" %}<a href="{% url 'razorpay_payment' order.order_number %}" class="btn btn-dark rounded-pill">Pay {{ site_settings.currency_symbol|default:"₹" }}{{ order.total }} now</a>{% endif %}
-      <a href="{% url 'account_order_invoice' order.order_number %}" class="btn btn-dark rounded-pill">View Bill</a>
-      <a href="{% url 'account_orders' %}" class="btn btn-outline-dark rounded-pill">Back to Orders</a>
+      <div class="col-lg-5">
+        <div class="indichic-card p-4 mb-4">
+          <h5 class="mb-3">Price details</h5>
+          {% include "store/partials/order_price.html" %}
+        </div>
+        <div class="indichic-card p-4 mb-4">
+          <h5>Payment</h5>
+          <p class="mb-1">{{ order.get_payment_method_display }} &middot; <span class="fd-status-pill">{{ order.get_payment_status_display }}</span></p>
+          {% if order.paid_at %}<p class="small text-muted mb-1">Paid {{ order.paid_at|date:"j M Y, g:i A" }}</p>{% endif %}
+          {% if order.payment_reference %}<p class="small text-muted mb-0">Ref: {{ order.payment_reference }}</p>{% endif %}
+        </div>
+        <div class="indichic-card p-4 mb-4">
+          <h5>Delivery address</h5>
+          <p class="mb-1"><strong>{{ order.customer_name }}</strong>{% if order.customer_phone %} &middot; {{ order.customer_phone }}{% endif %}</p>
+          <p class="mb-0">{{ order.shipping_address|linebreaksbr }}</p>
+          {% include "store/partials/map_link.html" with url=order.location_url %}
+        </div>
+        <a href="{% url 'account_orders' %}" class="btn btn-outline-dark rounded-pill">Back to orders</a>
+      </div>
     </div>
   </div>
 </section>

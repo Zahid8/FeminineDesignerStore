@@ -1,0 +1,10 @@
+{% with currency=site_settings.currency_symbol|default:"₹" %}
+<dl class="fd-price-rows">
+  <div><dt>Items total</dt><dd>{{ currency }}{{ order.subtotal }}</dd></div>
+  {% if order.discount_total > 0 %}<div class="is-saving"><dt>Discount</dt><dd>&minus;{{ currency }}{{ order.discount_total }}</dd></div>{% endif %}
+  <div><dt>Delivery</dt><dd>{% if order.shipping_total > 0 %}{{ currency }}{{ order.shipping_total }}{% else %}<span class="text-success">Free</span>{% endif %}</dd></div>
+  <div class="is-total"><dt>Order total</dt><dd>{{ currency }}{{ order.total }}</dd></div>
+</dl>
+{% if order.discount_total > 0 %}<p class="fd-you-saved mb-0">You saved {{ currency }}{{ order.discount_total }} on this order</p>{% endif %}
+<p class="small text-muted mb-0 mt-2">Prices include applicable taxes.</p>
+{% endwith %}

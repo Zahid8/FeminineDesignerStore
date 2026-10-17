@@ -741,3 +741,23 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
 - OTP screen: auto-submits at 6 digits, WebOTP autofill on Android Chrome
   (needs the SMS to end with "@<domain> #<code>"); brand-new mobile accounts
   go to "add your name and email".
+
+## T53 — Orders like Amazon/Myntra (2026-10-18)
+
+- Order: courier_name, tracking_number (AWB), tracking_url, expected_delivery,
+  shipped/delivered/cancelled timestamps, cancel_reason/cancelled_by
+  (migration 0030, backfills a timeline for existing orders). `OrderEvent`
+  logs every status change (dated tracking timeline). `OrderRequest`:
+  exchange (ready-made, 7 days), free alteration (made to measure, 30 days),
+  damaged/missing/wrong (48 h) — per the online-order terms.
+- `store/orders.py` + `views_orders.py`: customer cancel before processing
+  (reason, restock, refund-due note + emails), request form with item
+  checkboxes, Buy again, timeline builder. Staff cancels (admin, billing
+  API) also restock.
+- Pages: My Orders as cards with photo stack + status headline ("On the way ·
+  arriving by…", "Delivered on…") + Track parcel / Pay now; order detail with
+  actions, vertical dated timeline + courier/AWB/Track parcel, item rows with
+  photos, requests + replies, price details with "You saved"; order
+  confirmation and guest Track Order use the same timeline/items/actions.
+- Billing API: tracking, timeline, cancellation (refund_due), requests;
+  POST accepts courier / tracking_number / tracking_url / expected_delivery.

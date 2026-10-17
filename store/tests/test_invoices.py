@@ -45,8 +45,8 @@ class OrderDetailTrackingTests(TestCase):
         """Timeline renders every supported status label."""
         self.client.login(username="buyer", password="pass")
         response = self.client.get(self.detail_url)
-        for label in ("Order Placed", "Confirmed", "Processing", "Shipped", "Completed", "Cancelled"):
-            self.assertContains(response, label, msg_prefix=f"Timeline missing: {label}")
+        for label in ("Order placed", "Confirmed", "Being prepared", "Shipped", "Delivered"):
+            self.assertContains(response, f"<strong>{label}</strong>", html=False, msg_prefix=f"Timeline missing: {label}")
 
     def test_account_orders_links_to_detail(self):
         """Account orders list links to account_order_detail, not order_success."""
@@ -79,15 +79,15 @@ class OrderDetailAriaTests(TestCase):
 
 
 class TimelineActiveStatusTests(TestCase):
-    """Every Order.STATUS_CHOICES value can be the active/current status."""
+    """Every Order.STATUS_CHOICES value shows exactly one current step in the tracking timeline."""
 
-    TIMELINE_LABELS = {
-        "pending": "Order Placed",
+    CURRENT_LABEL = {
+        "pending": "Order placed",
         "confirmed": "Confirmed",
-        "processing": "Processing",
+        "processing": "Being prepared",
         "shipped": "Shipped",
         "delivered": "Delivered",
-        "completed": "Completed",
+        "completed": "Delivered",
         "cancelled": "Cancelled",
     }
 
@@ -96,8 +96,6 @@ class TimelineActiveStatusTests(TestCase):
         self.user = User.objects.create_user(username="buyer", password="pass")
 
     def test_each_status_is_active(self):
-        """For each status value exactly that step is current (is-current +
-        aria-current="step") and every other step is rendered as a plain step."""
         import re
 
         self.client.login(username="buyer", password="pass")
@@ -107,26 +105,14 @@ class TimelineActiveStatusTests(TestCase):
                 shipping_address="Addr", customer_user=self.user,
                 status=status_val,
             )
-            url = reverse("account_order_detail",
-                          kwargs={"order_number": order.order_number})
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, 200,
-                             msg=f"Detail failed for status={status_val}")
+            response = self.client.get(reverse("account_order_detail", kwargs={"order_number": order.order_number}))
+            self.assertEqual(response.status_code, 200, msg=f"Detail failed for status={status_val}")
             content = response.content.decode()
-            timeline = re.search(
-                r'<ol class="fd-steps-track[^"]*" aria-label="Order status timeline">(.*?)</ol>',
-                content, re.S,
-            )
-            self.assertIsNotNone(timeline, "Order status timeline <ol> missing")
-            steps = re.findall(r'<li class="([^"]*)"([^>]*)>([^<]+)</li>', timeline.group(1))
-            self.assertEqual([label for _, _, label in steps],
-                             list(self.TIMELINE_LABELS.values()))
-            for classes, attrs, label in steps:
-                is_current = label == self.TIMELINE_LABELS[status_val]
-                self.assertEqual("is-current" in classes.split(), is_current,
-                                 msg=f"Step '{label}' current-class mismatch for {status_val}")
-                self.assertEqual('aria-current="step"' in attrs, is_current,
-                                 msg=f"Step '{label}' aria-current mismatch for {status_val}")
+            timeline = re.search(r'<ol class="fd-timeline[^"]*" aria-label="Order tracking">(.*?)</ol>', content, re.S)
+            self.assertIsNotNone(timeline, "Tracking timeline <ol> missing")
+            current = re.findall(r'<li class="[^"]*is-current[^"]*" aria-current="step">.*?<strong>([^<]+)</strong>', timeline.group(1), re.S)
+            self.assertEqual(current, [self.CURRENT_LABEL[status_val]], msg=f"status={status_val}")
+            self.assertEqual(timeline.group(1).count('aria-current="step"'), 1)
             order.delete()
 
 

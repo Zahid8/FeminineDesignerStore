@@ -79,6 +79,10 @@ def mark_paid(order_pk, payment_id, signature="", source="checkout"):
         order.paid_at = timezone.now()
         if order.status in ("pending", "cancelled"):
             order.status = "confirmed"
+            order.cancelled_at = None
+            order.cancel_reason = ""
+            order.cancelled_by = ""
+            order._event_note = "Payment received"
         note = f"Paid online via Razorpay ({source}), payment {payment_id}."
         if revived:
             # Released by the timeout but paid afterwards: take the stock again.
@@ -149,6 +153,9 @@ def release_unpaid_orders(older_than_minutes=None, now=None):
                 if item.product_id and not item.customization:
                     Product.objects.filter(pk=item.product_id).update(stock_quantity=F("stock_quantity") + item.quantity)
             order.status = "cancelled"
+            order.cancelled_by = "system"
+            order.cancel_reason = "Online payment not completed"
+            order._event_note = "Payment not completed in time"
             order.payment_notes = (order.payment_notes + "\n" if order.payment_notes else "") + (
                 f"Auto-cancelled: online payment not completed within {minutes} minutes; stock released.")
             order.save()

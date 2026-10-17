@@ -1,0 +1,24 @@
+{# Vertical order tracking timeline. Expects: order, steps (store.orders.timeline). #}
+<ol class="fd-timeline{% if order.status == 'cancelled' %} is-cancelled{% endif %}" aria-label="Order tracking">
+  {% for step in steps %}
+  <li class="{% if step.done %}is-done{% endif %}{% if step.current %} is-current{% endif %}{% if step.cancelled %} is-cancel{% endif %}"{% if step.current %} aria-current="step"{% endif %}>
+    <span class="fd-timeline-dot" aria-hidden="true"></span>
+    <div>
+      <strong>{{ step.label }}</strong>
+      {% if step.at %}<small>{{ step.at|date:"D, j M Y · g:i A" }}</small>{% elif step.status == "delivered" and order.expected_delivery and order.status != "cancelled" %}<small>Expected by {{ order.expected_delivery|date:"D, j M" }}</small>{% endif %}
+      {% if step.status == "shipped" and step.done and order.tracking_number %}
+      <div class="fd-courier">
+        <span>{{ order.courier_name|default:"Courier" }} · AWB <b>{{ order.tracking_number }}</b></span>
+        {% if order.tracking_url %}<a href="{{ order.tracking_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-dark rounded-pill">Track parcel</a>{% endif %}
+      </div>
+      {% endif %}
+      {% if step.cancelled and order.cancel_reason %}<small>{{ order.cancel_reason }}</small>{% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+{% if order.status == "cancelled" and order.payment_status == "paid" %}
+<p class="fd-note mt-3 mb-0"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#info"></use></svg><span>Your refund of <b>{{ site_settings.currency_symbol|default:"₹" }}{{ order.total }}</b> goes back to the original payment method within 5–7 working days.</span></p>
+{% elif order.status == "cancelled" and order.payment_status == "refunded" %}
+<p class="fd-note mt-3 mb-0"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#info"></use></svg><span>Refunded to your original payment method.</span></p>
+{% endif %}

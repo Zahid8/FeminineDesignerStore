@@ -58,30 +58,18 @@
               <div class="col-sm-6"><strong>Status:</strong> <span class="fd-status-pill">{{ order.get_status_display }}</span></div>
               <div class="col-sm-6"><strong>Date:</strong> {{ order.created_at|date:"F j, Y" }}</div>
             </div>
-            <div class="table-responsive">
-            <table class="table fd-stack-table">
-              <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
-              <tbody>
-                {% for item in order.items.all %}
-                <tr>
-                  <td data-label="Product">{{ item.product_name }}{% if item.color or item.size %}<br><small class="text-muted">{{ item.color }}{% if item.color and item.size %} / {% endif %}{{ item.size }}</small>{% endif %}{% include "store/partials/custom_summary.html" with rows=item.customization|custom_rows notes=item.customization.notes compact=True %}</td>
-                  <td data-label="SKU">{{ item.sku }}</td>
-                  <td data-label="Qty">{{ item.quantity }}</td>
-                  <td data-label="Price">{{ currency }}{{item.unit_price }}</td>
-                  <td data-label="Total">{{ currency }}{{item.line_total }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            </div>
-            <div class="fd-summary-row"><span>Subtotal</span><span>{{ currency }}{{order.subtotal }}</span></div>
-            {% if order.discount_total > 0 %}
-            <div class="fd-summary-row text-success"><span>Discount</span><span>-{{ currency }}{{order.discount_total }}</span></div>
-            {% endif %}
-            {% if order.shipping_total > 0 %}
-            <div class="fd-summary-row"><span>Shipping</span><span>{{ currency }}{{ order.shipping_total }}</span></div>
-            {% endif %}
-            <div class="fd-summary-row is-total"><span>Total</span><strong>{{ currency }}{{order.total }}</strong></div>
+            {% include "store/partials/order_items.html" %}
+            <hr>
+            {% include "store/partials/order_price.html" %}
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header"><h5 class="mb-0">Track &amp; manage</h5></div>
+          <div class="card-body">
+            {% include "store/partials/order_timeline.html" %}
+            <hr>
+            {% include "store/partials/order_actions.html" with pay_now_url="" %}
           </div>
         </div>
 

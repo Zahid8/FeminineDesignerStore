@@ -113,7 +113,9 @@ class OrderTrackTests(TestCase):
 
     def test_found_by_email_case_insensitive(self):
         response = self.track(self.order.order_number.lower(), "asha@example.com")
-        self.assertContains(response, 'aria-current="step">Shipped</li>', html=False)
+        self.assertContains(response, '<li class="is-done is-current" aria-current="step">', html=False)
+        self.assertContains(response, "<strong>Shipped</strong>", html=False)
+        self.assertContains(response, "Manage this order")
         self.assertContains(response, "999.00")
 
     def test_found_by_phone_digits(self):

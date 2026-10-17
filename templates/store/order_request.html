@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load store_extras %}
+{% block title %} — Help with order {{ order.order_number }}{% endblock %}
+{% block content %}
+<header class="fd-page-header is-compact">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{{ back_url }}">Order {{ order.order_number }}</a></li><li aria-current="page">Request</li></ol>
+    <h1>How can we help?</h1>
+    <p>Tell us what's wrong and we will reply within 24 hours.</p>
+  </div>
+</header>
+<section class="pb-5">
+  <div class="container-lg">
+    <div class="row justify-content-center"><div class="col-lg-7">
+      <form method="post" class="fd-card p-4 p-md-5 fd-form" novalidate>
+        {% csrf_token %}<input type="hidden" name="k" value="{{ order_key }}">
+        {% if error %}<div class="alert alert-danger small">{{ error }}</div>{% endif %}
+
+        <fieldset class="mb-4">
+          <legend class="fd-eyebrow">What do you need?</legend>
+          <div class="fd-choice-list">
+            {% for value, label, deadline in options %}
+            <label class="fd-choice"><input type="radio" name="kind" value="{{ value }}"{% if value == kind %} checked{% endif %} onchange="location.search='?kind={{ value }}{% if order_key %}&k={{ order_key }}{% endif %}'"><span><b>{{ label }}</b><small>Open until {{ deadline|date:"D, j M, g:i A" }}</small></span></label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset class="mb-4">
+          <legend class="fd-eyebrow">Which piece?</legend>
+          <ul class="fd-order-items is-selectable">
+            {% for item in items %}
+            <li><label class="w-100 d-flex gap-3 align-items-center">
+              <input type="checkbox" name="items" value="{{ item.pk }}"{% if items|length == 1 or item.pk|stringformat:"d" in posted.items %} checked{% endif %}>
+              <span class="fd-order-thumb">{% include "store/partials/line_thumb.html" with line=item %}</span>
+              <span><strong>{{ item.product_name }}</strong><small class="text-muted d-block">{% if item.size %}{{ item.size }} &middot; {% endif %}Qty {{ item.quantity }}</small></span>
+            </label></li>
+            {% endfor %}
+          </ul>
+        </fieldset>
+
+        <label for="req-reason">Reason</label>
+        <select name="reason" id="req-reason" class="form-select mb-3" required>
+          <option value="">Choose a reason</option>
+          {% for value, label in reasons %}<option value="{{ value }}"{% if posted.reason == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        {% if kind == "exchange" %}
+        <label for="req-size">Size you would like instead</label>
+        <input type="text" name="preferred_size" id="req-size" class="form-control mb-3" maxlength="40" placeholder="e.g. M, or 38" value="{{ posted.preferred_size|default:'' }}">
+        <p class="helptext">Pieces must be unworn and unwashed with tags attached. We arrange pickup and send the new size once it reaches us.</p>
+        {% elif kind == "alteration" %}
+        <p class="helptext">Tell us where it feels tight or loose. If the piece doesn't match the measurements you gave, the alteration is free.</p>
+        {% else %}
+        <p class="helptext">Please message photos of the parcel and the piece on WhatsApp after sending this request.</p>
+        {% endif %}
+        <label for="req-details">Details</label>
+        <textarea name="details" id="req-details" class="form-control" rows="4" maxlength="2000" placeholder="Anything that helps us sort this quickly">{{ posted.details|default:'' }}</textarea>
+        <div class="d-flex gap-2 flex-wrap mt-4">
+          <button type="submit" class="btn btn-dark btn-lg rounded-pill">Send request</button>
+          <a href="{{ back_url }}" class="btn btn-outline-dark btn-lg rounded-pill">Cancel</a>
+        </div>
+      </form>
+    </div></div>
+  </div>
+</section>
+{% endblock %}
