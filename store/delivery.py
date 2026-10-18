@@ -30,8 +30,9 @@ def estimate(pin, custom_lead_text="", today=None):
     if not place:
         return None
     today = today or timezone.localdate()
-    lo = getattr(settings, "DELIVERY_DAYS_MIN", 4)
-    hi = getattr(settings, "DELIVERY_DAYS_MAX", 8)
+    from store.policies import delivery_days
+
+    lo, hi = delivery_days()
     ready_from, ready_by = today + timedelta(days=lo), today + timedelta(days=hi)
     custom_by = today + timedelta(days=_lead_days(custom_lead_text) + hi)
     return {

@@ -58,16 +58,20 @@ ICONS = {
     "sliders": ["M4 21v-7", "M4 10V3", "M12 21v-9", "M12 8V3", "M20 21v-5", "M20 12V3", "M2 14h4", "M10 8h4", "M18 16h4"],
     "globe": [_circle(12, 12, 10), "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", "M2 12h20"],
     "dot": [_circle(12, 12, 3)],
+    "ticket": ["M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z", "M13 5v2", "M13 17v2", "M13 11v2"],
+    "refresh": ["M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", "M21 3v5h-5", "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", "M8 16H3v5"],
+    "pin": ["M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z", _circle(12, 10, 3)],
 }
 
 # (group label, colour, [(model object_name lower, icon)])
 SECTIONS = [
-    ("Sales", "#b45309", [("order", "receipt"), ("orderitem", "list"), ("customizationrequest", "scissors"),
-                          ("appointment", "calendar"), ("discount", "percent")]),
+    ("Sales", "#b45309", [("order", "receipt"), ("orderrequest", "refresh"), ("orderitem", "list"),
+                          ("customizationrequest", "scissors"), ("appointment", "calendar")]),
+    ("Offers", "#be185d", [("coupon", "ticket"), ("discount", "percent")]),
     ("Catalogue", "#7d1f36", [("product", "package"), ("productimage", "image"), ("category", "layers"),
                               ("producttag", "tag"), ("occasion", "star"), ("sizechart", "ruler"),
-                              ("stockalert", "bell")]),
-    ("Customers", "#0f766e", [("customerprofile", "user"), ("user", "users"), ("group", "shield"),
+                              ("productreview", "message"), ("stockalert", "bell")]),
+    ("Customers", "#0f766e", [("customerprofile", "user"), ("address", "pin"), ("user", "users"), ("group", "shield"),
                               ("newslettersubscriber", "mail"), ("feedback", "message"), ("phoneotp", "key")]),
     ("Content", "#4f46e5", [("homebanner", "image"), ("page", "file"), ("faq", "help"), ("clientdiary", "book")]),
     ("Settings", "#475569", [("sitesettings", "sliders")]),

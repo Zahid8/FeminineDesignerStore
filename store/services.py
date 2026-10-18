@@ -408,11 +408,13 @@ def send_order_emails(order, request=None):
     from django.template.loader import render_to_string
 
     site = SiteSettings.objects.first()
+    from store import policies
     from store.payments import order_link
 
     ctx = {"order": order, "site_settings": site,
            "order_url": order_link(order, request=request) if request or settings.SITE_URL else "",
-           "pay_url": order_link(order, "razorpay_payment", request=request) if request or settings.SITE_URL else ""}
+           "pay_url": order_link(order, "razorpay_payment", request=request) if request or settings.SITE_URL else "",
+           "release_minutes": policies.unpaid_release_minutes()}
     store_name = getattr(site, "store_name", "FemDes")
     try:
         send_mail(

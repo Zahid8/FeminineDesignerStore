@@ -113,6 +113,7 @@
   <section class="fd-quick" aria-label="Quick actions">
     {% if perms.store.add_product %}<a class="fd-btn fd-btn--primary" href="{% url 'admin:store_product_add' %}">+ New product</a>{% endif %}
     {% if perms.store.view_order %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_order_changelist' %}">{% fd_icon "receipt" 16 %}All orders</a>{% endif %}
+    {% if perms.store.add_coupon %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_coupon_generate' %}">{% fd_icon "ticket" 16 %}Generate coupon codes</a>{% endif %}
     {% if perms.store.add_discount %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_discount_add' %}">{% fd_icon "percent" 16 %}New discount</a>{% endif %}
     {% if perms.store.add_homebanner %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_homebanner_add' %}">{% fd_icon "image" 16 %}New home banner</a>{% endif %}
     {% if perms.store.change_sitesettings %}<a class="fd-btn fd-btn--secondary" href="{% url 'admin:store_sitesettings_changelist' %}">{% fd_icon "sliders" 16 %}Store settings</a>{% endif %}

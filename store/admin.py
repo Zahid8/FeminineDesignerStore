@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django import forms
 from django.contrib import admin
 from django.db import models
 
@@ -393,7 +396,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             "fields": ("upi_id", "cod_enabled", "customization_fee", "customization_lead_time", "customization_terms", "customization_advance_amount"),
         }),
         ("Shipping", {
-            "fields": ("shipping_fee", "free_shipping_threshold", "returns_summary"),
+            "fields": ("shipping_fee", "free_shipping_threshold", "delivery_days_min", "delivery_days_max", "returns_summary"),
+        }),
+        ("Orders, exchanges & bills", {
+            "fields": ("unpaid_order_release_minutes", "exchange_days", "alteration_days", "problem_report_hours", "online_order_terms"),
         }),
         ("Product pages", {
             "fields": ("price_note", "low_stock_threshold"),
@@ -538,20 +544,117 @@ class AppointmentAdmin(admin.ModelAdmin):
 
 
 
+class CouponGenerateForm(forms.Form):
+    count = forms.IntegerField(label="How many codes", min_value=1, max_value=500, initial=10)
+    prefix = forms.CharField(max_length=12, required=False, initial="FD",
+                             help_text="Letters at the start of every code, e.g. DIWALI → DIWALI-7KQ2MX.")
+    length = forms.IntegerField(label="Random characters", min_value=4, max_value=12, initial=6)
+    description = forms.CharField(max_length=160, required=False, help_text='Shown to customers, e.g. "₹300 off your next order".')
+    discount_type = forms.ChoiceField(choices=Coupon.TYPES, initial="fixed")
+    value = forms.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01"))
+    max_discount = forms.DecimalField(max_digits=10, decimal_places=2, required=False, help_text="Cap for percent coupons.")
+    min_order_amount = forms.DecimalField(max_digits=10, decimal_places=2, initial=Decimal("0"))
+    starts_at = forms.DateTimeField(label="Valid from", required=False, widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+                                    input_formats=["%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%d"])
+    ends_at = forms.DateTimeField(label="Valid until", required=False, widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+                                  input_formats=["%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%d"])
+
+    def clean(self):
+        d = super().clean()
+        if d.get("starts_at") and d.get("ends_at") and d["ends_at"] <= d["starts_at"]:
+            self.add_error("ends_at", "Must be after the start.")
+        if d.get("discount_type") == "percent" and d.get("value") and d["value"] > 100:
+            self.add_error("value", "A percentage can't be more than 100.")
+        return d
+    uses_per_code = forms.IntegerField(min_value=1, initial=1, help_text="1 = each code works once (typical for gift/one-off codes).")
+    first_order_only = forms.BooleanField(required=False)
+    show_in_bag = forms.BooleanField(required=False, initial=False, help_text="Usually off for generated codes (they're private).")
+
+
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ("code", "description", "discount_type", "value", "min_order_amount", "uses", "is_active", "ends_at")
+    list_display = ("code", "description", "discount_type", "value", "min_order_amount", "uses", "is_active", "show_in_bag", "ends_at")
     list_filter = ("is_active", "discount_type", "first_order_only", "show_in_bag")
+    list_editable = ("is_active", "show_in_bag")
     search_fields = ("code", "description")
+    actions = ["activate", "deactivate", "export_csv"]
+    change_list_template = "admin/store/coupon/change_list.html"
     fieldsets = (
-        (None, {"fields": ("code", "description", "is_active", "show_in_bag")}),
-        ("Discount", {"fields": ("discount_type", "value", "max_discount", "min_order_amount")}),
-        ("Limits", {"fields": ("starts_at", "ends_at", "usage_limit", "per_customer_limit", "first_order_only")}),
+        ("Your code", {"description": "Type any code you like (e.g. MEERA500, DIWALI25). Customers enter it in the bag or at checkout.",
+                       "fields": ("code", "description", "is_active", "show_in_bag")}),
+        ("Discount", {"description": "Amount off: a fixed ₹ amount. Percent off: e.g. 10 = 10%, optionally capped.",
+                      "fields": ("discount_type", "value", "max_discount", "min_order_amount")}),
+        ("Valid period", {"description": "Leave empty to start now / never expire.", "fields": ("starts_at", "ends_at")}),
+        ("Usage limits", {"fields": ("usage_limit", "per_customer_limit", "first_order_only")}),
     )
 
     @admin.display(description="Times used")
     def uses(self, obj):
         return Order.objects.filter(coupon_code__iexact=obj.code).exclude(status="cancelled").count()
+
+    @admin.action(description="Turn selected codes on")
+    def activate(self, request, queryset):
+        self.message_user(request, f"{queryset.update(is_active=True)} code(s) turned on.")
+
+    @admin.action(description="Turn selected codes off")
+    def deactivate(self, request, queryset):
+        self.message_user(request, f"{queryset.update(is_active=False)} code(s) turned off.")
+
+    @admin.action(description="Download selected codes (CSV)")
+    def export_csv(self, request, queryset):
+        import csv
+
+        from django.http import HttpResponse
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="coupon-codes.csv"'
+        w = csv.writer(response)
+        w.writerow(["code", "description", "type", "value", "min order", "valid until", "active"])
+        for c in queryset:
+            w.writerow([c.code, c.description, c.get_discount_type_display(), c.value, c.min_order_amount, c.ends_at or "", c.is_active])
+        return response
+
+    def get_urls(self):
+        from django.urls import path
+
+        return [path("generate/", self.admin_site.admin_view(self.generate_view), name="store_coupon_generate")] + super().get_urls()
+
+    def generate_view(self, request):
+        import secrets
+
+        from django.shortcuts import redirect, render
+
+        alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O/1/I mix-ups
+        created = []
+        if request.method == "POST":
+            form = CouponGenerateForm(request.POST)
+            if form.is_valid():
+                d = form.cleaned_data
+                prefix = "".join(ch for ch in (d["prefix"] or "").upper() if ch.isalnum())
+                existing = set(Coupon.objects.values_list("code", flat=True))
+                while len(created) < d["count"]:
+                    code = (prefix + "-" if prefix else "") + "".join(secrets.choice(alphabet) for _ in range(d["length"]))
+                    if code in existing:
+                        continue
+                    existing.add(code)
+                    created.append(Coupon(
+                        code=code, description=d["description"], discount_type=d["discount_type"], value=d["value"],
+                        max_discount=d["max_discount"], min_order_amount=d["min_order_amount"] or Decimal("0"),
+                        starts_at=d["starts_at"], ends_at=d["ends_at"], usage_limit=d["uses_per_code"],
+                        per_customer_limit=1, first_order_only=d["first_order_only"], show_in_bag=d["show_in_bag"],
+                    ))
+                Coupon.objects.bulk_create(created)
+                self.message_user(request, f"Created {len(created)} coupon code(s).")
+                if "download" in request.POST:
+                    return self.export_csv(request, Coupon.objects.filter(code__in=[c.code for c in created]))
+                from django.urls import reverse
+
+                return redirect(reverse("admin:store_coupon_changelist") + (f"?q={prefix}" if prefix else ""))
+        else:
+            form = CouponGenerateForm()
+        ctx = {**self.admin_site.each_context(request), "title": "Generate coupon codes", "form": form,
+               "opts": self.model._meta}
+        return render(request, "admin/store/coupon/generate.html", ctx)
 
 
 @admin.register(Address)

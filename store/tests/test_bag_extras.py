@@ -151,3 +151,84 @@ class DeliveryEstimateTests(TestCase):
     def test_lead_parsing(self):
         from store.delivery import _lead_days
         self.assertEqual((_lead_days("3–4 weeks"), _lead_days("10 days"), _lead_days("")), (28, 10, 28))
+
+
+class CouponAdminTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser("boss", "b@example.com", "pw")
+        self.client.force_login(self.admin)
+
+    def test_sidebar_lists_coupons_reviews_requests_addresses(self):
+        r = self.client.get("/admin/")
+        for label in ("Coupon codes", "Exchange / alteration requests", "Reviews", "Addresses", "Generate coupon codes"):
+            self.assertContains(r, label)
+
+    def test_generate_unique_codes_and_csv(self):
+        url = reverse("admin:store_coupon_generate")
+        self.assertContains(self.client.get(url), "How many codes")
+        data = {"count": 25, "prefix": "diwali", "length": 6, "discount_type": "fixed", "value": "300",
+                "min_order_amount": "1500", "uses_per_code": 1, "description": "₹300 off"}
+        r = self.client.post(url, data)
+        self.assertEqual(r.status_code, 302)
+        codes = list(Coupon.objects.filter(code__startswith="DIWALI-").values_list("code", flat=True))
+        self.assertEqual(len(codes), 25); self.assertEqual(len(set(codes)), 25)
+        c = Coupon.objects.get(code=codes[0])
+        self.assertEqual((c.value, c.usage_limit, c.show_in_bag, len(c.code)), (Decimal("300.00"), 1, False, 13))
+        self.assertTrue(set(c.code[7:]) <= set("ABCDEFGHJKLMNPQRSTUVWXYZ23456789"))
+        r = self.client.post(url, {**data, "count": 3, "download": "1"})
+        self.assertEqual(r["Content-Type"], "text/csv")
+        self.assertEqual(r.content.decode().count("DIWALI-"), 3)
+        self.assertContains(self.client.get(reverse("admin:store_coupon_changelist")), "Generate many codes")
+
+    def test_generator_validates(self):
+        r = self.client.post(reverse("admin:store_coupon_generate"), {"count": 0, "length": 6, "discount_type": "fixed", "uses_per_code": 1})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Coupon.objects.exists())
+
+
+class PolicySettingsTests(TestCase):
+    def test_admin_settings_drive_windows_terms_and_dates(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from store import policies
+        from store.models import OrderItem, SiteSettings
+        from store.orders import request_options
+        SiteSettings.objects.create(store_name="S", exchange_days=14, problem_report_hours=72, delivery_days_min=2, delivery_days_max=3,
+                                    unpaid_order_release_minutes=30)
+        self.assertEqual(policies.delivery_days(), (2, 3))
+        self.assertEqual(policies.unpaid_release_minutes(), 30)
+        self.assertTrue(any("within 14 days" in t for t in policies.online_terms()))
+        self.assertTrue(any("within 72 hours" in t for t in policies.online_terms()))
+        o = Order.objects.create(customer_name="A", customer_email="a@e.com", shipping_address="x", status="delivered")
+        Order.objects.filter(pk=o.pk).update(delivered_at=timezone.now() - timedelta(days=10)); o.refresh_from_db()
+        p = Product.objects.create(name="P", slug="pp", price=Decimal("1"))
+        OrderItem.objects.create(order=o, product=p, product_name="P", unit_price=Decimal("1"), line_total=Decimal("1"), quantity=1)
+        self.assertEqual([k for k, _ in request_options(o)], ["exchange"])  # 10 days < 14
+        SiteSettings.objects.update(online_order_terms="Line one\n\nLine two")
+        self.assertEqual(policies.online_terms(), ["Line one", "Line two"])
+
+
+class CustomCouponFormTests(TestCase):
+    def setUp(self):
+        self.client.force_login(User.objects.create_superuser("boss2", "b2@example.com", "pw"))
+
+    def post(self, **extra):
+        data = {"code": "meera500", "description": "₹500 off", "is_active": "on", "discount_type": "fixed", "value": "500",
+                "min_order_amount": "0", "per_customer_limit": "1",
+                "starts_at_0": "2026-10-20", "starts_at_1": "00:00:00", "ends_at_0": "2026-10-31", "ends_at_1": "23:59:00"}
+        data.update(extra)
+        return self.client.post(reverse("admin:store_coupon_add"), data)
+
+    def test_create_own_code_with_period(self):
+        r = self.post()
+        self.assertEqual(r.status_code, 302, r.content[:2000])
+        c = Coupon.objects.get(code="MEERA500")
+        from django.utils.timezone import localtime
+        self.assertEqual((c.value, localtime(c.starts_at).strftime("%Y-%m-%d %H:%M"), localtime(c.ends_at).strftime("%Y-%m-%d %H:%M")),
+                         (Decimal("500.00"), "2026-10-20 00:00", "2026-10-31 23:59"))
+
+    def test_rejects_bad_period_percent_and_spaces(self):
+        self.assertContains(self.post(ends_at_0="2026-10-10"), "Must be after the start.")
+        self.assertContains(self.post(discount_type="percent", value="150"), "more than 100")
+        self.assertContains(self.post(code="MEERA 500"), "no spaces")
+        self.assertFalse(Coupon.objects.exists())

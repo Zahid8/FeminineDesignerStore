@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from store import policies
 from store import selectors, services
 from store.seo import product_jsonld
 from django.contrib.auth import login as auth_login, logout as auth_logout
@@ -55,6 +56,7 @@ def _base_context(request):
         "has_faq": selectors.has_faq(),
         "google_client_id": getattr(settings, "GOOGLE_CLIENT_ID", ""),
         "catalogue_photos": SimpleLazyObject(selectors.catalogue_photos),
+        "exchange_days": SimpleLazyObject(policies.exchange_days),
     }
     ctx.update(_cart_context(request))
     return ctx
@@ -417,7 +419,9 @@ def order_success(request, order_number):
         reverse("razorpay_payment", kwargs={"order_number": order.order_number}) + "?k=" + request.GET.get("k", "")
         if can_pay_online(order) else ""
     )
-    ctx["release_minutes"] = settings.UNPAID_ORDER_RELEASE_MINUTES
+    from store.policies import unpaid_release_minutes
+
+    ctx["release_minutes"] = unpaid_release_minutes()
     return render(request, "store/order_success.html", ctx)
 
 
@@ -793,11 +797,11 @@ def account_order_invoice(request, order_number):
     order = get_object_or_404(Order, order_number=order_number, customer_user=request.user)
     ctx = _base_context(request)
     ctx["order"] = order
-    from store.terms import ONLINE_ORDER_TERMS
+    from store.policies import online_terms
 
     ctx["has_custom"] = any(i.customization for i in order.items.all())
     ctx["bill_pdf_url"] = online_bill_url(order.order_number)
-    ctx["bill_terms"] = ONLINE_ORDER_TERMS
+    ctx["bill_terms"] = online_terms()
     return render(request, "store/invoice.html", ctx)
 
 

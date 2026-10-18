@@ -149,7 +149,9 @@ def mark_failed(order_pk, reason=""):
 
 # ── Unpaid online orders give their stock back ───────────────────────────
 def release_unpaid_orders(older_than_minutes=None, now=None):
-    minutes = older_than_minutes if older_than_minutes is not None else getattr(settings, "UNPAID_ORDER_RELEASE_MINUTES", 60)
+    from store.policies import unpaid_release_minutes
+
+    minutes = older_than_minutes if older_than_minutes is not None else unpaid_release_minutes()
     cutoff = (now or timezone.now()) - timedelta(minutes=minutes)
     released = []
     candidates = Order.objects.filter(

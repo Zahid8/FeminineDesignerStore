@@ -119,7 +119,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+# Indian store: dates in admin, emails and bills show in IST (stored as UTC).
+TIME_ZONE = os.getenv("DJANGO_TIME_ZONE", "Asia/Kolkata")
 
 USE_I18N = True
 

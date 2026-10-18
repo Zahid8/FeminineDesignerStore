@@ -831,3 +831,19 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   tablets); filters drop below; form labels stack; save buttons full width.
   Order edit page grouped into Order / Customer / Delivery address / Courier
   & tracking / Payment / Money / Cancellation.
+
+## T60 — Coupons & policies fully admin-editable (2026-10-18)
+
+- Sidebar: new Offers group (Coupon codes, Discounts); Exchange / alteration
+  requests under Sales; Reviews under Catalogue; Addresses under Customers.
+- Coupon codes: clearer add form (Your code / Discount / Valid period / Usage
+  limits) with validation (end after start, percent ≤ 100, no spaces);
+  "Generate many codes" page (count, prefix, length, discount, dates, uses per
+  code; unique, no look-alike characters; optional CSV download); list
+  actions: turn on/off, download CSV; inline on/off toggles; dashboard button.
+- Site settings → Shipping / Orders, exchanges & bills: delivery days,
+  unpaid-order cancel minutes, exchange / alteration / damage-report windows,
+  online bill terms (one per line). Used by delivery dates, order requests,
+  payment page, emails, trust rows, shop bill and (via API bill_terms) the
+  billing app's PDF.
+- TIME_ZONE = Asia/Kolkata (admin dates/times in IST).

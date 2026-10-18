@@ -17,6 +17,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from store import policies
 from store import measurements as mspec
 from store.models import Order, SiteSettings, OrderRequest
 
@@ -143,6 +144,7 @@ def serialize_order(request, order, site=None, order_counts=None):
         "discount_total": str(order.discount_total),
         "coupon": {"code": order.coupon_code, "discount": str(order.coupon_discount)} if order.coupon_code else None,
         "gift_message": order.gift_message,
+        "bill_terms": policies.online_terms(),
         "shipping_total": str(order.shipping_total),
         "total": str(order.total),
         "item_count": sum(i.quantity for i in order.items.all()),

@@ -92,6 +92,16 @@ class SiteSettings(models.Model):
     )
 
     # Legal / compliance (Consumer Protection (E-Commerce) Rules, India)
+    # Delivery & policies (used by checkout, order pages and bills)
+    delivery_days_min = models.PositiveSmallIntegerField("Delivery from (days)", default=4, help_text='Ready-made pieces: "Delivery by" dates start this many days after the order.')
+    delivery_days_max = models.PositiveSmallIntegerField("Delivery by (days)", default=8)
+    unpaid_order_release_minutes = models.PositiveIntegerField("Cancel unpaid online orders after (minutes)", default=60,
+                                                                help_text="Online (Razorpay) orders not paid in this time are cancelled and their stock is released.")
+    exchange_days = models.PositiveSmallIntegerField("Exchange window (days)", default=7, help_text="Ready-made pieces can be exchanged this many days after delivery.")
+    alteration_days = models.PositiveSmallIntegerField("Free alteration window (days)", default=30, help_text="Made-to-measure pieces.")
+    problem_report_hours = models.PositiveSmallIntegerField("Report damage within (hours)", default=48)
+    online_order_terms = models.TextField("Online bill terms", blank=True,
+                                          help_text="One term per line, printed on online-order bills. Leave empty for the standard terms.")
     legal_name = models.CharField(max_length=160, blank=True)
     gstin = models.CharField("GSTIN", max_length=20, blank=True)
     grievance_officer_name = models.CharField(max_length=120, blank=True)
@@ -702,11 +712,13 @@ class Coupon(models.Model):
     code = models.CharField(max_length=40, unique=True, help_text="What the customer types, e.g. FESTIVE10 (not case-sensitive).")
     description = models.CharField(max_length=160, blank=True, help_text='Shown in the offers list, e.g. "10% off orders above ₹3,000".')
     discount_type = models.CharField(max_length=10, choices=TYPES, default="percent")
-    value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))],
+                                help_text="₹ off for an amount coupon, or the percentage for a percent coupon.")
     max_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Cap for percent coupons.")
-    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    starts_at = models.DateTimeField(blank=True, null=True)
-    ends_at = models.DateTimeField(blank=True, null=True)
+    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"),
+                                           help_text="Bag total needed before the code works (0 = any order).")
+    starts_at = models.DateTimeField("Valid from", blank=True, null=True)
+    ends_at = models.DateTimeField("Valid until", blank=True, null=True)
     usage_limit = models.PositiveIntegerField(blank=True, null=True, help_text="Total uses across all customers. Blank = unlimited.")
     per_customer_limit = models.PositiveIntegerField(default=1, help_text="0 = unlimited.")
     first_order_only = models.BooleanField(default=False)
@@ -716,6 +728,19 @@ class Coupon(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = "coupon code"
+
+    def clean(self):
+        errors = {}
+        if self.starts_at and self.ends_at and self.ends_at <= self.starts_at:
+            errors["ends_at"] = "Must be after the start."
+        if self.discount_type == "percent" and self.value and self.value > 100:
+            errors["value"] = "A percentage can't be more than 100."
+        code = (self.code or "").strip()
+        if code and not all(ch.isalnum() or ch in "-_" for ch in code):
+            errors["code"] = "Use letters, numbers, - or _ only (no spaces)."
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         self.code = (self.code or "").strip().upper()
@@ -968,6 +993,7 @@ class ProductReview(models.Model):
     class Meta:
         ordering = ["-created_at"]
         constraints = [models.UniqueConstraint(fields=["product", "user"], name="one_review_per_customer_per_product")]
+        verbose_name = "review"
 
     def __str__(self):
         return f"{self.rating}★ {self.product} by {self.author_name}"
@@ -1025,6 +1051,7 @@ class OrderRequest(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = "exchange / alteration request"
 
     def __str__(self):
         return f"{self.get_kind_display()} for {self.order}"

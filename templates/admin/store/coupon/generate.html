@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">{% translate 'Home' %}</a> &rsaquo; <a href="{% url 'admin:store_coupon_changelist' %}">Coupon codes</a> &rsaquo; Generate</div>{% endblock %}
+{% block content %}
+<div id="content-main">
+  <p class="help">Create a batch of unique codes with the same discount, e.g. for gift cards, influencers or WhatsApp customers. Codes avoid look-alike characters (0/O, 1/I).</p>
+  <form method="post" novalidate>{% csrf_token %}
+    <fieldset class="module aligned">
+      {% for field in form %}
+      <div class="form-row field-{{ field.name }}">
+        <div>
+          <div class="flex-container{% if field.field.widget.input_type == 'checkbox' %} checkbox-row{% endif %}">
+            {% if field.field.widget.input_type == 'checkbox' %}{{ field }} {{ field.label_tag }}{% else %}{{ field.label_tag }} {{ field }}{% endif %}
+          </div>
+          {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+          {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </fieldset>
+    <div class="submit-row">
+      <input type="submit" class="default" value="Generate codes">
+      <input type="submit" name="download" value="Generate &amp; download CSV">
+    </div>
+  </form>
+</div>
+{% endblock %}

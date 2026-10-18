@@ -120,6 +120,9 @@ def request_options(order, now=None):
     now = now or timezone.now()
     if order.status not in ("delivered", "completed"):
         return []
+    from store import policies
+
+    EXCHANGE_DAYS, ALTERATION_DAYS, PROBLEM_HOURS = policies.exchange_days(), policies.alteration_days(), policies.problem_hours()
     delivered = order.delivered_at or order.updated_at
     items = list(order.items.all())
     open_kinds = []
