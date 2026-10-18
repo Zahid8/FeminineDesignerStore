@@ -753,3 +753,15 @@ class FlashMessageToastTests(TestCase):
             follow=True,
         )
         self.assertContains(response, 'class="fd-toast is-error"')
+
+
+class HeroProductTests(TestCase):
+    def test_chosen_hero_product_comes_first(self):
+        from decimal import Decimal
+        from store.models import Category, Product, SiteSettings
+        cat = Category.objects.create(name="Blouses", slug="blouses")
+        a = Product.objects.create(name="Featured A", slug="fa", price=Decimal("1"), stock_quantity=1, is_featured=True, category=cat)
+        hero = Product.objects.create(name="Silver Paisley", slug="sp", price=Decimal("1"), stock_quantity=1, category=cat)
+        SiteSettings.objects.create(store_name="S", hero_product=hero)
+        r = self.client.get(reverse("home"))
+        self.assertEqual([p.pk for p in r.context["hero_products"]], [hero.pk, a.pk])

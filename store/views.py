@@ -73,9 +73,19 @@ def _editorial_image(products):
     return None
 
 
+def _hero_products(ctx):
+    """Main banner: the chosen hero product first, then featured (or new) products."""
+    rest = list((ctx.get("featured") or ctx.get("new_arrivals") or [])[:6])
+    hero = getattr(ctx.get("site_settings"), "hero_product", None)
+    if hero is not None and hero.is_active:
+        rest = [hero] + [p for p in rest if p.pk != hero.pk]
+    return rest[:5]
+
+
 def home(request):
     ctx = _base_context(request)
     ctx.update(selectors.get_homepage_products())
+    ctx["hero_products"] = _hero_products(ctx)
     ctx["editorial_image"] = _editorial_image(ctx.get("featured") or ctx.get("new_arrivals"))
     ctx["banners"] = selectors.get_home_banners("hero")
     ctx["promo_banners"] = selectors.get_home_banners("promo")

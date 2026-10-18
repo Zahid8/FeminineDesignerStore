@@ -17,6 +17,10 @@ class SiteSettings(models.Model):
     store_name = models.CharField(max_length=120, default="FemDes")
     logo = models.ImageField(upload_to="site/", blank=True, null=True)
     tagline = models.CharField(max_length=255, blank=True)
+    hero_product = models.ForeignKey(
+        "Product", on_delete=models.SET_NULL, blank=True, null=True, related_name="+",
+        help_text="Shown first in the home page's main banner (then featured / new products).",
+    )
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=40, blank=True)
     address = models.TextField(blank=True)

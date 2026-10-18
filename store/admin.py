@@ -374,10 +374,11 @@ class OrderItemAdmin(admin.ModelAdmin):
 class SiteSettingsAdmin(admin.ModelAdmin):
     list_display = ("store_name", "currency_code", "contact_email", "updated_at")
     search_fields = ("store_name", "contact_email", "contact_phone")
+    autocomplete_fields = ("hero_product",)
     readonly_fields = ("created_at", "updated_at")
     fieldsets = (
         (None, {
-            "fields": ("store_name", "logo", "tagline", "announcement_text", "announcement_url"),
+            "fields": ("store_name", "logo", "tagline", "hero_product", "announcement_text", "announcement_url"),
         }),
         ("Contact", {
             "fields": ("contact_email", "contact_phone", "address"),

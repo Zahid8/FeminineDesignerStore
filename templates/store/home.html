@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-{% with currency=site_settings.currency_symbol|default:"$" hero_products=featured|default:new_arrivals %}
+{% with currency=site_settings.currency_symbol|default:"$" %}
 
 {% if banners %}
 <!-- Hero: full-bleed campaign banners (Django admin > Home banners) -->
