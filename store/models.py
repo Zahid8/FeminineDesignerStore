@@ -121,10 +121,26 @@ class Category(models.Model):
     slug = models.SlugField(max_length=140, unique=True)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to="categories/", blank=True, null=True)
+    cover_product = models.ForeignKey(
+        "Product", on_delete=models.SET_NULL, blank=True, null=True, related_name="+",
+        help_text="Used for the home page tile when no category image is uploaded.",
+    )
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def tile_image_url(self):
+        """Uploaded category image, else the cover product's main photo."""
+        if self.image:
+            return self.image.url
+        product = self.cover_product
+        if product is not None and product.is_active:
+            primary = product.primary_image
+            if primary and primary.image:
+                return primary.image.url
+        return ""
 
     class Meta:
         verbose_name_plural = "Categories"

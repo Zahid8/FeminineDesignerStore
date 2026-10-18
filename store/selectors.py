@@ -5,7 +5,8 @@ from store.models import Category, HomeBanner, Product, ProductTag
 
 
 def get_active_categories():
-    return Category.objects.filter(is_active=True).order_by("sort_order", "name")
+    return (Category.objects.filter(is_active=True).select_related("cover_product")
+            .prefetch_related("cover_product__images").order_by("sort_order", "name"))
 
 
 def get_active_products():

@@ -4,6 +4,8 @@
     <div class="category-image overflow-hidden">
       {% if category.image %}
       <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid" loading="lazy">
+      {% elif category.tile_image_url %}
+      <img src="{{ category.tile_image_url }}" alt="{{ category.name }}" class="img-fluid is-product-photo" loading="lazy">
       {% else %}
       <span class="fd-cat-fallback" aria-hidden="true">{{ category.name|first }}</span>
       {% endif %}

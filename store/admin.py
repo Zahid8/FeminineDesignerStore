@@ -138,6 +138,7 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ("name", "description")
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
+    autocomplete_fields = ("cover_product",)
 
 
 @admin.register(Discount)
