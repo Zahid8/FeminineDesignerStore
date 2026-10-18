@@ -46,10 +46,11 @@ class ImagePreviewWidget(AdminFileWidget):
     template_name = "admin/widgets/image_preview.html"
 
 
-def thumb(image, size=56):
+def thumb(image, size=36):
     if not image:
-        return format_html('<span class="fd-thumb is-empty" style="width:{0}px;height:{0}px"></span>', size)
-    return format_html('<img src="{}" alt="" class="fd-thumb" width="{}" height="{}" loading="lazy">', image.url, size, size)
+        return format_html('<span class="fd-thumb is-empty" style="display:inline-block;width:{0}px;height:{0}px"></span>', size)
+    return format_html('<img src="{}" alt="" class="fd-thumb" width="{}" height="{}" loading="lazy" '
+                       'style="width:{}px;height:{}px;max-width:{}px;object-fit:cover">', image.url, size, size, size, size, size)
 
 
 class ProductImageInline(admin.TabularInline):
@@ -99,7 +100,7 @@ class ProductAdmin(admin.ModelAdmin):
     @admin.display(description="Photo")
     def photo(self, obj):
         primary = obj.primary_image
-        return thumb(primary.image if primary else None, 48)
+        return thumb(primary.image if primary else None)
 
     @admin.display(description="Tags")
     def tag_list(self, obj):
@@ -152,7 +153,7 @@ class ProductImageAdmin(admin.ModelAdmin):
 
     @admin.display(description="Image")
     def preview(self, obj):
-        return thumb(obj.image, 64)
+        return thumb(obj.image)
     list_filter = ("is_primary", "product")
     search_fields = ("product__name", "alt_text")
 

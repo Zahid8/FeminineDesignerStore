@@ -1,7 +1,7 @@
 <div class="fd-image-field">
   {% if widget.is_initial %}
-  <a href="{{ widget.value.url }}" target="_blank" rel="noopener" class="fd-image-preview" title="Open full size">
-    <img src="{{ widget.value.url }}" alt="Current image" loading="lazy">
+  <a href="{{ widget.value.url }}" target="_blank" rel="noopener" class="fd-image-preview" title="Open full size" style="flex:none;display:block;width:40px;height:40px;border-radius:8px;overflow:hidden">
+    <img src="{{ widget.value.url }}" alt="Current image" width="40" height="40" loading="lazy" style="width:40px;height:40px;max-width:40px;object-fit:cover;display:block">
   </a>
   {% endif %}
   <div class="fd-image-controls">

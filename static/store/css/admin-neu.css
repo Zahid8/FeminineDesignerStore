@@ -553,8 +553,8 @@ body.fd-admin #changelist .actions label { display: inline-flex; align-items: ce
 /* ---------- Image previews (product images) ---------- */
 .fd-thumb { display: inline-block; object-fit: cover; border-radius: 10px; background: #f3e9e3; box-shadow: 0 2px 6px rgba(60, 25, 35, 0.12); vertical-align: middle; }
 .fd-thumb.is-empty { background: repeating-linear-gradient(45deg, #f6eee9, #f6eee9 6px, #efe3dc 6px, #efe3dc 12px); }
-.fd-image-field { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.fd-image-preview { flex: none; display: block; width: 76px; height: 76px; border-radius: 12px; overflow: hidden; background: #f3e9e3; box-shadow: 0 2px 8px rgba(60, 25, 35, 0.14); }
+.fd-image-field { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.fd-image-preview { flex: none; display: block; width: 40px; height: 40px; border-radius: 8px; overflow: hidden; background: #f3e9e3; box-shadow: 0 2px 8px rgba(60, 25, 35, 0.14); }
 .fd-image-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fd-image-controls { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .fd-image-name { font-size: 0.8rem; color: var(--fd-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 22rem; }
@@ -589,7 +589,6 @@ body.fd-admin .inline-group .tabular tr.has_original td { padding-top: 12px; }
 @media (max-width: 575.98px) {
   body.fd-admin table.fd-stackable td[data-label]::before { flex-basis: 40%; max-width: 40%; }
   .fd-image-field { align-items: flex-start; }
-  .fd-image-preview { width: 64px; height: 64px; }
   .fd-image-name { max-width: 11rem; }
   body.fd-admin .aligned .form-row, body.fd-admin .aligned .form-row > div { display: block; }
   body.fd-admin .aligned label { display: block; width: auto; float: none; padding: 0 0 4px; }
@@ -599,7 +598,6 @@ body.fd-admin .inline-group .tabular tr.has_original td { padding-top: 12px; }
 }
 @media (min-width: 1024px) {
   body.fd-admin .inline-group fieldset.module { overflow-x: auto; }
-  body.fd-admin .inline-group .tabular .field-image { width: 40%; }
   .fd-image-name { max-width: 15rem; }
   .fd-image-controls input[type=file] { width: 15rem; }
 }
