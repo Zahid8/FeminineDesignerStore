@@ -605,3 +605,90 @@ body.fd-admin .inline-group .tabular tr.has_original td { padding-top: 12px; }
   body.fd-admin #result_list.fd-stackable tbody { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 12px; }
   body.fd-admin #result_list.fd-stackable tr { margin: 0; }
 }
+
+/* ---------- Phones/tablets: nothing wider than its box (end-to-end audit fixes) ---------- */
+@media (max-width: 1023.98px) {
+  /* Django's responsive.css sizes rows to 100vw - 30px; our padded cards need "fill the box" instead. */
+  body.fd-admin .aligned .form-row > div, body.fd-admin .form-row > div { width: auto !important; max-width: 100% !important; min-width: 0; }
+  body.fd-admin .form-row .flex-container { width: auto; max-width: 100%; min-width: 0; flex-wrap: wrap; }
+  body.fd-admin .form-row { overflow: visible; }
+  body.fd-admin .form-row input[type=text], body.fd-admin .form-row input[type=email], body.fd-admin .form-row input[type=url], body.fd-admin .form-row input[type=number], body.fd-admin .form-row input[type=password], body.fd-admin .form-row input[type=tel], body.fd-admin .form-row select, body.fd-admin .form-row textarea, body.fd-admin .form-row .vTextField, body.fd-admin .form-row .vLargeTextField, body.fd-admin .form-row .vURLField { width: 100% !important; max-width: 100%; min-width: 0; box-sizing: border-box; }
+  body.fd-admin .form-row .related-widget-wrapper { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; min-width: 0; }
+  body.fd-admin .form-row .related-widget-wrapper select { flex: 1 1 12rem; width: auto !important; }
+  body.fd-admin .form-row p.datetime, body.fd-admin .form-row p.file-upload { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; white-space: normal; }
+  body.fd-admin .form-row p.datetime input { width: auto !important; flex: 1 1 8rem; }
+  body.fd-admin .form-row input[type=file] { max-width: 100%; min-width: 0; font-size: 0.85rem; }
+  body.fd-admin .form-row .readonly { overflow-wrap: anywhere; max-width: 100%; }
+  body.fd-admin .form-row .help, body.fd-admin .timezonewarning { white-space: normal; max-width: 100%; }
+  body.fd-admin .selector { display: flex; flex-direction: column; width: 100% !important; max-width: 100%; }
+  body.fd-admin .selector .selector-available, body.fd-admin .selector .selector-chosen { width: 100% !important; max-width: 100%; }
+  body.fd-admin .selector select { width: 100% !important; }
+  body.fd-admin .selector ul.selector-chooser { display: flex; flex-direction: row; justify-content: center; gap: 12px; width: auto; margin: 8px 0; }
+  /* Search bar + actions wrap instead of running off the card */
+  body.fd-admin #changelist-search > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  body.fd-admin #changelist #toolbar #searchbar, body.fd-admin #changelist-search input[type=text] { flex: 1 1 12rem; min-width: 0 !important; width: auto !important; max-width: 100%; }
+  body.fd-admin #changelist #toolbar { padding: 12px 14px 4px; }
+  /* Cards: values wrap, never force the card wider */
+  body.fd-admin table.fd-stackable td, body.fd-admin table.fd-stackable th { white-space: normal !important; overflow-wrap: anywhere; }
+  body.fd-admin table.fd-stackable td > *, body.fd-admin table.fd-stackable th > * { min-width: 0; }
+  body.fd-admin #changelist .changelist-form-container, body.fd-admin #changelist form#changelist-form, body.fd-admin #changelist .results { min-width: 0; max-width: 100%; }
+  body.fd-admin #changelist { min-width: 0; }
+  /* Touch targets */
+  body.fd-admin .related-widget-wrapper-link { display: inline-grid; place-items: center; min-width: 40px; min-height: 40px; border-radius: 10px; background: #fff; box-shadow: 0 2px 6px rgba(60, 25, 35, 0.12); }
+  body.fd-admin .related-widget-wrapper-link img { width: 16px; height: 16px; }
+  body.fd-admin ul.selector-chooser li button, body.fd-admin ul.selector-chooser a { box-sizing: content-box !important; width: 24px !important; height: 24px !important; padding: 8px !important; background-origin: content-box !important; background-clip: content-box !important; }
+  body.fd-admin .inline-deletelink { display: inline-block; width: 32px !important; height: 32px !important; background-size: 22px !important; }
+  body.fd-admin #result_list th a, body.fd-admin #result_list td a { display: inline-flex; align-items: center; min-height: 32px; }
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  body.fd-admin #result_list.fd-stackable tbody { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Image field never wider than its row */
+.fd-image-field { flex-wrap: wrap; max-width: 100%; }
+.fd-image-controls { flex: 1 1 12rem; max-width: 100%; }
+@media (max-width: 1023.98px) { .fd-image-controls input[type=file] { width: 100%; } }
+/* 1024–1279 (iPad landscape, small laptops): search shares the card with the filter sidebar */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  body.fd-admin #changelist-search > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  body.fd-admin #changelist #toolbar #searchbar, body.fd-admin #changelist-search input[type=text] { flex: 1 1 12rem; min-width: 0 !important; width: auto !important; }
+  body.fd-admin #changelist-filter { flex-basis: 220px; }
+}
+/* Any touch screen, any width: finger-sized controls */
+@media (pointer: coarse) {
+  body.fd-admin .related-widget-wrapper-link { display: inline-grid; place-items: center; min-width: 40px; min-height: 40px; border-radius: 10px; }
+  body.fd-admin ul.selector-chooser li button, body.fd-admin ul.selector-chooser a { box-sizing: content-box !important; width: 24px !important; height: 24px !important; padding: 8px !important; background-origin: content-box !important; background-clip: content-box !important; }
+  body.fd-admin .inline-deletelink { display: inline-block; width: 32px !important; height: 32px !important; background-size: 22px !important; }
+  body.fd-admin #result_list th a, body.fd-admin #result_list td a { display: inline-flex; align-items: center; min-height: 36px; }
+}
+body.fd-admin .selector .selector-chosen-title, body.fd-admin .selector .selector-chosen-title label, body.fd-admin .selector .selector-chosen h2 { color: #fff !important; }
+body.fd-admin .selector .selector-chosen-title .helptext { color: rgba(255, 255, 255, 0.9) !important; }
+/* Dashboard tables: stack into rows on phones instead of scrolling sideways */
+@media (max-width: 575.98px) {
+  .fd-table-wrap { overflow: visible; }
+  .fd-table thead { display: none; }
+  .fd-table, .fd-table tbody, .fd-table tr { display: block; width: 100%; }
+  .fd-table tr { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 16px; border-bottom: 1px solid var(--fd-line-soft, #efe3dc); }
+  .fd-table th[scope=row], .fd-table td { display: block; padding: 0 !important; border: 0 !important; text-align: left; }
+  .fd-table th[scope=row] { grid-column: 1; }
+  .fd-table td:nth-of-type(1) { grid-column: 1; color: var(--fd-muted); font-size: 0.85rem; }
+  .fd-table td.fd-num { grid-column: 2; grid-row: 1; text-align: right; font-weight: 700; }
+  .fd-table td:has(.fd-badge) { grid-column: 1 / -1; display: inline-flex; gap: 6px; }
+  .fd-table tr td:has(.fd-badge) + td:has(.fd-badge) { margin-top: -2px; }
+}
+@media (max-width: 575.98px) {
+  .fd-table tr { box-sizing: border-box; grid-template-columns: minmax(0, 1fr) auto; }
+  .fd-table td:has(.fd-badge) { grid-column: auto; display: block; }
+  .fd-table td:has(.fd-badge) + td:has(.fd-badge) { margin-top: 0; text-align: right; }
+  .fd-table th[scope=row] { white-space: normal; overflow-wrap: anywhere; }
+}
+@media (max-width: 575.98px) {
+  .fd-table tr { grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; }
+  .fd-table th[scope=row] { grid-column: 1 / 3; grid-row: 1; }
+  .fd-table td.fd-num { grid-column: 3; grid-row: 1; }
+  .fd-table td:nth-of-type(1) { grid-column: 1; grid-row: 2; }
+  .fd-table td:has(.fd-badge) { grid-row: 2; text-align: right; }
+  .fd-table td:nth-of-type(2) { grid-column: 2; }
+  .fd-table td:nth-of-type(3) { grid-column: 3; }
+  body.fd-admin .submit-row a.deletelink, body.fd-admin .submit-row .deletelink-box a { display: flex; align-items: center; justify-content: center; box-sizing: border-box; height: auto; min-height: 48px; padding: 12px 16px; width: 100%; margin: 0; }
+  body.fd-admin .submit-row .deletelink-box { width: 100%; margin: 0; float: none; }
+}

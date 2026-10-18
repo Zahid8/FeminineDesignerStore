@@ -512,3 +512,9 @@ conda run -n femdes python manage.py runserver
 
 - `python manage.py test` — 610 OK (test_reviews)
 - qa_design (5 widths, all pages incl. bag/checkout/orders/addresses): only demo-image 404s, local fake-Google-ID console errors, and radios/checkboxes inside 44px labels remain
+
+## T59 — End-to-end responsive audit (2026-10-18)
+
+- `browser-checks/admin_qa.js` (new): all 71 admin pages (dashboard + every model's list, add and first change page) checked for sideways scroll, elements past the screen edge, content clipped by a box, and tap targets. Before: 1,959 issues. After: 0 at 360/390/412/768/820 and at 1024/1180 on touch; desktop 1280/1440 only reports Django's small mouse icons (no layout issues).
+- `browser-checks/qa_design.js` now 8 widths (360, 390, 412, 768, 820, 1024, 1280, 1440) and the newer pages (reviews, addresses, delivered order, exchange request, review form): no layout issues; only demo-DB missing images, local fake Google ID console errors, and radios/checkboxes inside 44px labels.
+- `python manage.py test` — 612 OK

@@ -1550,3 +1550,8 @@ img.fd-catalogue-photo { object-position: 50% 18%; }
 body:has(.fd-account-menu.is-open) .fd-whatsapp-float, body:has(.fd-account-menu.is-open) .fd-to-top { opacity: 0; pointer-events: none; }
 .fd-account-head small { white-space: normal; }
 .fd-account-cta .btn { white-space: nowrap; letter-spacing: 0.08em; }
+/* Bigger touch targets for chips and form controls */
+.fd-rating-chip { min-height: 44px; }
+.fd-pay-option input, .fd-address-card input, .fd-choice input, .fd-order-items.is-selectable input[type=checkbox] { width: 22px; height: 22px; flex: none; }
+.fd-check input { width: 24px; height: 24px; }
+@media (max-width: 575.98px) { .fd-pay-option, .fd-address-card, .fd-choice { min-height: 56px; } }

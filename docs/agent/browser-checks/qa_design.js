@@ -23,10 +23,15 @@ const PAGES = [
   ['fitting-created', `/customizations/${TOKEN}/created/`], ['fitting-detail', `/customizations/${TOKEN}/`],
   ['contact', '/contact/'], ['faq', '/faq/'], ['appointment', '/book-appointment/'],
   ['track', '/track-order/'], ['diaries', '/client-diaries/'], ['page', '/pages/shipping-policy/'], ['404', '/no-such-page/'],
+  ['pdp-reviews', '/products/rani-pink-floral-brocade-blouse/'],
+  ['addresses', '/accounts/addresses/'], ['address-new', '/accounts/addresses/new/'],
+  ...(process.env.DELIVERED ? [['order-delivered', `/accounts/orders/${process.env.DELIVERED}/`], ['order-request', `/orders/${process.env.DELIVERED}/request/`]] : []),
+  ...(process.env.REVIEW ? [['review-form', `/products/${process.env.REVIEW}/review/`]] : []),
 ];
 const VIEWPORTS = [
   ['m360', { width: 360, height: 780 }, true], ['m390', { width: 390, height: 844 }, true],
-  ['t768', { width: 768, height: 1024 }, true], ['d1024', { width: 1024, height: 768 }, false], ['d1440', { width: 1440, height: 900 }, false],
+  ['m412', { width: 412, height: 915 }, true], ['t768', { width: 768, height: 1024 }, true], ['t820', { width: 820, height: 1180 }, true],
+  ['d1024', { width: 1024, height: 768 }, false], ['d1280', { width: 1280, height: 800 }, false], ['d1440', { width: 1440, height: 900 }, false],
 ];
 
 function audit() {

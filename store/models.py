@@ -114,6 +114,21 @@ class SiteSettings(models.Model):
         super().save(*args, **kwargs)
 
 
+def _image_file_exists(field_file):
+    """True when the stored file is really there (cached; never raises)."""
+    from django.core.cache import cache
+
+    key = "femdes:img-exists:" + field_file.name
+    hit = cache.get(key)
+    if hit is None:
+        try:
+            hit = field_file.storage.exists(field_file.name)
+        except Exception:
+            hit = False
+        cache.set(key, hit, 600)
+    return hit
+
+
 class Category(models.Model):
     """Active product grouping for storefront filters and homepage sections."""
 
@@ -135,14 +150,15 @@ class Category(models.Model):
         """Uploaded category image, else the cover product's main photo."""
         if self.image:
             return self.image.url
-        product = self.cover_product
-        if product is None or not product.is_active:
-            # No cover chosen: the newest product in this category that has a photo.
-            product = (self.products.filter(is_active=True, images__isnull=False)
-                       .order_by("-created_at").prefetch_related("images").first())
-        if product is not None:
+        candidates = []
+        if self.cover_product is not None and self.cover_product.is_active:
+            candidates.append(self.cover_product)
+        # Otherwise the newest products in this category that have a photo on disk.
+        candidates += list(self.products.filter(is_active=True, images__isnull=False).distinct()
+                           .order_by("-created_at").prefetch_related("images")[:5])
+        for product in candidates:
             primary = product.primary_image
-            if primary and primary.image:
+            if primary and primary.image and _image_file_exists(primary.image):
                 return primary.image.url
         return ""
 
