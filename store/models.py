@@ -655,6 +655,73 @@ class NewsletterSubscriber(models.Model):
         return self.email
 
 
+class Coupon(models.Model):
+    """Promo code a customer types at the bag or checkout."""
+
+    TYPES = [("percent", "Percent off"), ("fixed", "Amount off")]
+    code = models.CharField(max_length=40, unique=True, help_text="What the customer types, e.g. FESTIVE10 (not case-sensitive).")
+    description = models.CharField(max_length=160, blank=True, help_text='Shown in the offers list, e.g. "10% off orders above ₹3,000".')
+    discount_type = models.CharField(max_length=10, choices=TYPES, default="percent")
+    value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    max_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Cap for percent coupons.")
+    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    starts_at = models.DateTimeField(blank=True, null=True)
+    ends_at = models.DateTimeField(blank=True, null=True)
+    usage_limit = models.PositiveIntegerField(blank=True, null=True, help_text="Total uses across all customers. Blank = unlimited.")
+    per_customer_limit = models.PositiveIntegerField(default=1, help_text="0 = unlimited.")
+    first_order_only = models.BooleanField(default=False)
+    show_in_bag = models.BooleanField("Show in the bag's offers list", default=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        self.code = (self.code or "").strip().upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.code
+
+
+class Address(models.Model):
+    """A saved delivery address in the customer's address book."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="addresses")
+    label = models.CharField(max_length=30, blank=True, help_text="Home, Work, Mom's…")
+    name = models.CharField(max_length=160)
+    phone = models.CharField(max_length=20)
+    address_line1 = models.CharField(max_length=160)
+    address_line2 = models.CharField(max_length=160, blank=True)
+    city = models.CharField(max_length=80)
+    state = models.CharField(max_length=60)
+    pincode = models.CharField(max_length=10)
+    country = models.CharField(max_length=60, default="India")
+    location_url = models.URLField(max_length=500, blank=True)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_default", "-updated_at"]
+        verbose_name_plural = "addresses"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.is_default:
+            Address.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
+
+    @property
+    def block(self):
+        from store.addresses import compose
+
+        return compose(self.address_line1, self.address_line2, self.city, self.state, self.pincode, self.country)
+
+    def __str__(self):
+        return f"{self.label or self.name}: {self.address_line1}, {self.city} {self.pincode}"
+
+
 class Order(models.Model):
     """Manual fulfillment checkout record."""
 
@@ -723,6 +790,10 @@ class Order(models.Model):
     cancelled_at = models.DateTimeField(blank=True, null=True)
     cancel_reason = models.CharField(max_length=200, blank=True)
     cancelled_by = models.CharField(max_length=20, blank=True, choices=[("customer", "Customer"), ("staff", "Staff"), ("system", "System")])
+    coupon_code = models.CharField(max_length=40, blank=True)
+    coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"),
+                                          help_text="Included in the discount total.")
+    gift_message = models.CharField(max_length=300, blank=True, help_text="Printed on a card in the parcel; prices left off the packing slip.")
     customer_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

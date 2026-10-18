@@ -1,0 +1,10 @@
+{% with currency=site_settings.currency_symbol|default:"₹" %}
+<dl class="fd-price-rows">
+  <div><dt>Total MRP</dt><dd>{{ currency }}{{ cart.mrp_total }}</dd></div>
+  {% if cart.mrp_discount > 0 %}<div class="is-saving"><dt>Discount on MRP</dt><dd>&minus;{{ currency }}{{ cart.mrp_discount }}</dd></div>{% endif %}
+  {% if cart.coupon_discount > 0 %}<div class="is-saving"><dt>Coupon ({{ cart.coupon_code }})</dt><dd>&minus;{{ currency }}{{ cart.coupon_discount }}</dd></div>{% endif %}
+  <div><dt>Delivery</dt><dd>{% if cart.shipping > 0 %}{{ currency }}{{ cart.shipping }}{% else %}<span class="text-success">Free</span>{% endif %}</dd></div>
+  <div class="is-total"><dt>Total amount</dt><dd>{{ currency }}{{ cart.total }}</dd></div>
+</dl>
+{% if cart.you_save > 0 %}<p class="fd-you-saved">You save {{ currency }}{{ cart.you_save }} on this order</p>{% endif %}
+{% endwith %}

@@ -36,3 +36,17 @@ def wa_link(url, text):
         return ""
     sep = "&" if "?" in url else "?"
     return f"{url}{sep}text={quote(str(text))}"
+
+
+@register.filter
+def pct_off(mrp, price):
+    """Whole-number percent saved going from ``mrp`` to ``price``."""
+    from decimal import Decimal, ROUND_HALF_UP
+
+    try:
+        mrp, price = Decimal(str(mrp)), Decimal(str(price))
+    except Exception:
+        return 0
+    if mrp <= 0 or price >= mrp:
+        return 0
+    return int(((mrp - price) / mrp * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))

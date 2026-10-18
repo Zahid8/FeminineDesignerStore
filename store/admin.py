@@ -21,6 +21,8 @@ from store.models import (
     PhoneOTP,
     Discount,
     NewsletterSubscriber,
+    Address,
+    Coupon,
     Order,
     OrderEvent,
     OrderItem,
@@ -482,3 +484,27 @@ class AppointmentAdmin(admin.ModelAdmin):
     search_fields = ("name", "phone", "email", "notes")
     date_hierarchy = "preferred_date"
     readonly_fields = ("created_at", "user")
+
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ("code", "description", "discount_type", "value", "min_order_amount", "uses", "is_active", "ends_at")
+    list_filter = ("is_active", "discount_type", "first_order_only", "show_in_bag")
+    search_fields = ("code", "description")
+    fieldsets = (
+        (None, {"fields": ("code", "description", "is_active", "show_in_bag")}),
+        ("Discount", {"fields": ("discount_type", "value", "max_discount", "min_order_amount")}),
+        ("Limits", {"fields": ("starts_at", "ends_at", "usage_limit", "per_customer_limit", "first_order_only")}),
+    )
+
+    @admin.display(description="Times used")
+    def uses(self, obj):
+        return Order.objects.filter(coupon_code__iexact=obj.code).exclude(status="cancelled").count()
+
+
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ("user", "label", "name", "city", "pincode", "is_default")
+    search_fields = ("user__username", "user__email", "name", "phone", "pincode", "city")
+    list_filter = ("state", "is_default")

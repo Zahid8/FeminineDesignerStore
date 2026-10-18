@@ -6,7 +6,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from store import stock_alerts, wishlist
 from store.models import FAQ, Appointment, ClientDiary, Order, Page, Product
-from store.views import _base_context
+from store.views import _base_context, _get_site_settings
 
 
 def _wants_json(request):
@@ -201,3 +201,16 @@ def pincode_lookup(request, pin):
     response = JsonResponse({"found": True, **result})
     response["Cache-Control"] = "public, max-age=86400"
     return response
+
+
+def delivery_estimate(request, pin):
+    """GET /api/delivery/<pin>/ → delivery dates for ready-made and made-to-measure pieces."""
+    from django.http import JsonResponse
+
+    from store.delivery import estimate
+
+    site = _get_site_settings()
+    result = estimate(pin, getattr(site, "customization_lead_time", "") or "")
+    if not result:
+        return JsonResponse({"found": False}, status=404)
+    return JsonResponse({"found": True, **result})

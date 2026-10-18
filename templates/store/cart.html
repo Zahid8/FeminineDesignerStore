@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% block title %} — Cart{% endblock %}
+{% load store_extras %}
+{% block title %} — Bag{% endblock %}
 {% block content %}
-{% with currency=site_settings.currency_symbol|default:"$" %}
+{% with currency=site_settings.currency_symbol|default:"₹" %}
 <header class="fd-page-header is-compact">
   <div class="container-lg">
-    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{% url 'home' %}">Home</a></li><li aria-current="page">Cart</li></ol>
-    <h1>Shopping Cart</h1>
-    {% if cart.lines %}<p>{{ cart.item_count }} item{{ cart.item_count|pluralize }} in your bag</p>{% endif %}
+    {% include "store/partials/checkout_steps.html" with step=1 %}
+    <h1>My Bag</h1>
+    {% if cart.lines %}<p>{{ cart.item_count }} item{{ cart.item_count|pluralize }}{% if cart.you_save > 0 %} &middot; <span class="text-success">you save {{ currency }}{{ cart.you_save }}</span>{% endif %}</p>{% endif %}
   </div>
 </header>
 
@@ -15,6 +16,7 @@
     {% if cart.lines %}
     <div class="row g-4 g-lg-5">
       <div class="col-lg-8">
+        {% include "store/partials/delivery_check.html" %}
         <div class="fd-cart-list">
           <div class="fd-cart-head d-none d-md-grid"><span>Item</span><span>Quantity</span><span class="text-end">Total</span></div>
           {% for line in cart.lines %}
@@ -26,54 +28,84 @@
               <div class="fd-cart-meta">
                 {% if line.color %}<span>{{ line.color }}</span>{% endif %}
                 {% if line.size %}<span>Size {{ line.size }}</span>{% endif %}
-                <span>{{ currency }}{{ line.unit_price }} each</span>
+              </div>
+              <div class="fd-cart-price">
+                <b>{{ currency }}{{ line.unit_price }}</b>
+                {% if line.mrp_unit > line.unit_price %}<s>{{ currency }}{{ line.mrp_unit }}</s><span class="fd-off">{{ line.mrp_unit|pct_off:line.unit_price }}% off</span>{% endif %}
               </div>
               {% include "store/partials/custom_summary.html" with rows=line.custom_summary notes=line.custom.notes lead=line.lead_time %}
-              {% if line.product.dispatch_note and not line.custom %}<p class="fd-cart-dispatch"><svg width="14" height="14" aria-hidden="true"><use xlink:href="#truck"></use></svg>{{ line.product.dispatch_note }}</p>{% endif %}
+              <p class="fd-cart-dispatch" data-eta-line data-made-to-measure="{% if line.custom %}1{% endif %}"><svg width="14" height="14" aria-hidden="true"><use xlink:href="#truck"></use></svg><span>{% if line.custom %}Made to measure &middot; {{ line.lead_time|default:"3–4 weeks" }}{% elif line.product.dispatch_note %}{{ line.product.dispatch_note }}{% else %}Ships in 2–3 days{% endif %}</span></p>
               <div class="fd-cart-actions d-md-none">{% include "store/partials/qty_form.html" %}</div>
               <div class="fd-cart-links">
                 <form method="post" action="{% url 'remove_from_cart' line.key %}" class="d-inline">{% csrf_token %}<button type="submit" class="fd-text-btn">Remove</button></form>
-                <form method="post" action="{% url 'wishlist_toggle' line.product_id %}" class="d-inline" data-wishlist-move><input type="hidden" name="next" value="{% url 'cart_detail' %}">{% csrf_token %}<button type="submit" class="fd-text-btn">Move to wishlist</button></form>
+                <form method="post" action="{% url 'cart_save_for_later' line.key %}" class="d-inline">{% csrf_token %}<button type="submit" class="fd-text-btn">Save for later</button></form>
+                <form method="post" action="{% url 'cart_move_to_wishlist' line.key %}" class="d-inline">{% csrf_token %}<button type="submit" class="fd-text-btn">Move to wishlist</button></form>
               </div>
             </div>
             <div class="fd-cart-qty d-none d-md-block">{% include "store/partials/qty_form.html" %}</div>
-            <div class="fd-line-total">{{ currency }}{{ line.line_total }}</div>
+            <div class="fd-line-total">{{ currency }}{{ line.line_total }}{% if line.mrp_total > line.line_total %}<s class="d-block">{{ currency }}{{ line.mrp_total }}</s>{% endif %}</div>
           </article>
           {% endfor %}
         </div>
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
           <a href="{% url 'product_list' %}" class="fd-link-underline">&larr; Continue shopping</a>
           <div class="fd-trust-row m-0">
-            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#shield"></use></svg>Secure checkout</div>
+            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#shield"></use></svg>100% secure payments</div>
             <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#needle"></use></svg>Handcrafted to order</div>
+            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#truck"></use></svg>Easy 7-day exchange</div>
           </div>
         </div>
       </div>
 
       <aside class="col-lg-4">
-        <div class="fd-summary fd-sticky">
-          <h5 class="fd-card-title">Order Summary</h5>
+        <div class="fd-summary fd-sticky" id="bag-summary">
+          {% include "store/partials/coupon_box.html" %}
           {% include "store/partials/free_shipping.html" %}
-          <p class="fd-summary-row"><span>Subtotal:</span> <strong>{{ currency }}{{cart.subtotal }}</strong></p>
-          {% if cart.discount_total > 0 %}<p class="fd-summary-row text-success"><span>Discount:</span> <strong>-{{ currency }}{{cart.discount_total }}</strong></p>{% endif %}
-          <p class="fd-summary-row"><span>Shipping:</span> <strong>{% if cart.shipping > 0 %}{{ currency }}{{ cart.shipping }}{% else %}Free{% endif %}</strong></p>
-          <p class="fd-summary-row is-total"><span>Total:</span> <strong>{{ currency }}{{cart.total }}</strong></p>
+          <h5 class="fd-card-title mt-3">Price details ({{ cart.item_count }} item{{ cart.item_count|pluralize }})</h5>
+          {% include "store/partials/cart_price.html" %}
           {% if site_settings.price_note %}<p class="small text-muted mb-3">{{ site_settings.price_note }}</p>{% endif %}
           <a href="{% url 'checkout' %}" class="btn btn-dark btn-lg w-100">Proceed to Checkout</a>
-          {% if site_settings.whatsapp_url %}<a href="{{ site_settings.whatsapp_url }}" class="btn btn-wa w-100 mt-2" target="_blank" rel="noopener"><svg width="16" height="16" class="me-2" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg>Order on WhatsApp</a>{% endif %}
-          <div class="fd-pay-icons d-flex justify-content-center gap-2 mt-4 opacity-75">
-            {% load static %}<img src="{% static 'store/images/visa-card.png' %}" alt="Visa"><img src="{% static 'store/images/master-card.png' %}" alt="Mastercard"><img src="{% static 'store/images/paypal-card.png' %}" alt="PayPal">
-          </div>
+          {% if site_settings.whatsapp_url %}<a href="{{ site_settings.whatsapp_url|wa_link:'Hi, I would like to order from my bag.' }}" class="btn btn-wa w-100 mt-2" target="_blank" rel="noopener"><svg width="16" height="16" class="me-2" aria-hidden="true"><use xlink:href="#whatsapp"></use></svg>Order on WhatsApp</a>{% endif %}
+          <p class="fd-pay-methods text-center mt-3 mb-0">UPI &middot; Cards &middot; Net banking &middot; Wallets{% if site_settings.cod_enabled %} &middot; Cash on delivery{% endif %}</p>
         </div>
       </aside>
+    </div>
+
+    <div class="fd-sticky-pay d-lg-none" data-sticky-pay>
+      <div><b>{{ currency }}{{ cart.total }}</b><a href="#bag-summary">View price details</a></div>
+      <a href="{% url 'checkout' %}" class="btn btn-dark rounded-pill">Checkout</a>
     </div>
     {% else %}
     <div class="empty-state">
       <div class="fd-empty-icon"><svg width="34" height="34" aria-hidden="true"><use xlink:href="#shopping-bag"></use></svg></div>
-      <h4>Your cart is empty</h4>
-      <p class="text-muted">Add some products to get started!</p>
-      <a href="{% url 'product_list' %}" class="btn btn-dark rounded-pill mt-2">Continue Shopping</a>
+      <h4>Your bag is empty</h4>
+      <p class="text-muted">{% if saved_items %}Your saved pieces are below.{% else %}Find something you love — it will wait for you here.{% endif %}</p>
+      <div class="d-flex gap-2 justify-content-center flex-wrap mt-2">
+        <a href="{% url 'product_list' %}" class="btn btn-dark rounded-pill">Continue shopping</a>
+        {% if wishlist_count %}<a href="{% url 'wishlist' %}" class="btn btn-outline-dark rounded-pill">View wishlist ({{ wishlist_count }})</a>{% endif %}
+      </div>
     </div>
+    {% endif %}
+
+    {% if saved_items %}
+    <section class="fd-saved mt-5" aria-labelledby="saved-heading">
+      <h3 id="saved-heading" class="h5">Saved for later ({{ saved_items|length }})</h3>
+      <ul class="fd-order-items fd-saved-list">
+        {% for s in saved_items %}
+        <li>
+          <a class="fd-order-thumb" href="{% url 'product_detail' s.slug %}">{% include "store/partials/line_thumb.html" with line=s %}</a>
+          <div class="fd-order-item-body">
+            <strong><a href="{% url 'product_detail' s.slug %}">{{ s.product_name }}</a></strong>
+            <small class="text-muted d-block">{% if s.size %}{{ s.size }} &middot; {% endif %}{{ currency }}{{ s.unit_price }}{% if not s.in_stock or not s.active %} &middot; <span class="text-danger">Out of stock</span>{% endif %}</small>
+            <div class="fd-cart-links mt-1">
+              {% if s.in_stock and s.active %}<form method="post" action="{% url 'saved_move_to_bag' s.key %}" class="d-inline">{% csrf_token %}<button type="submit" class="fd-text-btn is-strong">Move to bag</button></form>{% endif %}
+              <form method="post" action="{% url 'saved_remove' s.key %}" class="d-inline">{% csrf_token %}<button type="submit" class="fd-text-btn">Remove</button></form>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
     {% endif %}
   </div>
 </section>

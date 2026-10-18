@@ -13,7 +13,7 @@ def _q(value):
     return value.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
-def compute_totals(gross_subtotal, discount_total, site_settings=None):
+def compute_totals(gross_subtotal, discount_total, site_settings=None, coupon_discount=Decimal("0.00")):
     """Order money maths shared by the cart and order creation.
 
     subtotal (list prices) - discount (per-item sale prices) + shipping = total.
@@ -23,7 +23,9 @@ def compute_totals(gross_subtotal, discount_total, site_settings=None):
     if site_settings is None:
         site_settings = SiteSettings.objects.first()
     gross_subtotal = _q(gross_subtotal)
-    discount_total = _q(discount_total)
+    sale_discount = _q(discount_total)
+    coupon_discount = _q(coupon_discount or Decimal("0.00"))
+    discount_total = sale_discount + coupon_discount
     merchandise = gross_subtotal - discount_total
     fee = getattr(site_settings, "shipping_fee", None) or Decimal("0.00")
     threshold = getattr(site_settings, "free_shipping_threshold", None)
@@ -42,6 +44,8 @@ def compute_totals(gross_subtotal, discount_total, site_settings=None):
     return {
         "subtotal": gross_subtotal,
         "discount_total": discount_total,
+        "sale_discount": sale_discount,
+        "coupon_discount": coupon_discount,
         "shipping": shipping,
         "total": _q(merchandise + shipping),
         "free_shipping_threshold": threshold,
@@ -145,6 +149,7 @@ def get_cart_summary(request):
     item_count = 0
     gross = Decimal("0.00")
     discount = Decimal("0.00")
+    mrp = Decimal("0.00")
     site = SiteSettings.objects.first()
 
     for key, item in list(cart.items()):
@@ -183,10 +188,33 @@ def get_cart_summary(request):
         item_count += qty
         gross += (product.price + fee) * qty
         discount += (product.price - product.get_effective_price()) * qty
+        mrp_unit = _q(max(product.compare_at_price or Decimal("0"), product.price) + fee)
+        lines[-1]["mrp_unit"] = mrp_unit
+        lines[-1]["mrp_total"] = _q(mrp_unit * qty)
+        mrp += mrp_unit * qty
 
     summary = {"lines": lines, "item_count": item_count, "has_custom": any(line.get("custom") for line in lines)}
-    summary.update(compute_totals(gross, discount))
+    summary.update(_with_coupon(request, gross, discount, site))
+    summary["mrp_total"] = _q(mrp)
+    summary["mrp_discount"] = _q(mrp - (gross - discount))  # compare-at + sale savings
+    summary["you_save"] = _q(summary["mrp_discount"] + summary["coupon_discount"])
     return summary
+
+
+def _with_coupon(request, gross, sale_discount, site=None, email=""):
+    """Totals with the session's coupon applied (dropped with a reason if it no longer qualifies)."""
+    from store import coupons
+
+    code = request.session.get(coupons.SESSION_KEY, "")
+    coupon_discount, coupon_error = Decimal("0.00"), ""
+    if code:
+        try:
+            _, coupon_discount = coupons.check(code, _q(gross - sale_discount), getattr(request, "user", None), email)
+        except coupons.CouponError as exc:
+            coupon_error = str(exc)
+    totals = compute_totals(gross, sale_discount, site, coupon_discount=coupon_discount)
+    totals.update({"coupon_code": code if code and not coupon_error else "", "coupon_error": coupon_error, "coupon_tried": code})
+    return totals
 
 
 def create_order_from_cart(request, checkout_data):
@@ -267,7 +295,12 @@ def create_order_from_cart(request, checkout_data):
                 }
             )
 
-        totals = compute_totals(gross_subtotal, discount_total)
+        totals = _with_coupon(request, gross_subtotal, discount_total, email=checkout_data.get("customer_email", ""))
+        if totals["coupon_error"]:
+            from store import coupons
+
+            request.session.pop(coupons.SESSION_KEY, None)
+            raise ValueError(f"{totals['coupon_error']} We removed the coupon; please check the new total and place the order again.")
         payment_method = checkout_data.get("payment_method") or "manual_upi"
 
         order = Order.objects.create(
@@ -292,6 +325,9 @@ def create_order_from_cart(request, checkout_data):
             shipping_total=totals["shipping"],
             total=totals["total"],
             payment_method=payment_method,
+            coupon_code=totals["coupon_code"],
+            coupon_discount=totals["coupon_discount"],
+            gift_message=(checkout_data.get("gift_message") or "")[:300],
         )
 
         for item_data in order_items_data:
@@ -322,8 +358,9 @@ def create_order_from_cart(request, checkout_data):
             profile.saved_measurements = last_custom.get("measurements")
             profile.save(update_fields=["saved_measurements"])
 
-        # Clear cart.
+        # Clear cart (and the coupon used on it).
         request.session[CART_SESSION_KEY] = {}
+        request.session.pop("coupon_code", None)
         request.session.modified = True
         return order
 

@@ -1405,3 +1405,49 @@ a.fd-link-underline, a.btn-link.fd-link-underline, .fd-link-underline { border-b
 .fd-choice b { display: block; color: var(--fd-ink); font-weight: 600; }
 .fd-choice small { color: var(--fd-muted); }
 @media (max-width: 575.98px) { .fd-order-thumbs .fd-order-thumb { width: 48px; height: 60px; } .fd-order-thumbs .fd-order-thumb + .fd-order-thumb { margin-left: -26px; } }
+/* ===== T54 bag & checkout: steps, price, coupon, offers, delivery check, sticky pay, saved ===== */
+.fd-checkout-steps { list-style: none; display: flex; justify-content: center; gap: 0; margin: 0 auto 1.1rem; padding: 0; max-width: 420px; counter-reset: step; }
+.fd-checkout-steps li { flex: 1; position: relative; text-align: center; font-size: 0.66rem; letter-spacing: var(--fd-track); text-transform: uppercase; color: var(--fd-muted); padding-top: 1.6rem; counter-increment: step; }
+.fd-checkout-steps li::before { content: counter(step); position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.7rem; letter-spacing: 0; background: var(--fd-paper); box-shadow: var(--fd-pressed-sm); color: var(--fd-muted); z-index: 1; }
+.fd-checkout-steps li::after { content: ""; position: absolute; top: 10px; left: calc(-50% + 14px); right: calc(50% + 14px); height: 2px; background: var(--fd-line); }
+.fd-checkout-steps li:first-child::after { display: none; }
+.fd-checkout-steps li.is-done::before { content: "✓"; background: var(--fd-wine); color: #fff; box-shadow: none; }
+.fd-checkout-steps li.is-current::before { background: linear-gradient(135deg, var(--fd-wine), var(--fd-rose)); color: #fff; box-shadow: 0 0 0 4px rgba(125, 31, 54, 0.14); }
+.fd-checkout-steps li.is-current, .fd-checkout-steps li.is-done { color: var(--fd-ink); }
+.fd-checkout-steps li.is-done::after, .fd-checkout-steps li.is-current::after { background: var(--fd-wine); }
+.fd-checkout-steps a { color: inherit; text-decoration: none; }
+.fd-cart-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.45rem; margin: 0.15rem 0 0.35rem; }
+.fd-cart-price b { color: var(--fd-ink); font-weight: 600; }
+.fd-cart-price s, .fd-line-total s { color: var(--fd-muted); font-size: 0.82rem; }
+.fd-off { color: #c25b1f; font-size: 0.78rem; font-weight: 600; }
+.fd-coupon { margin-bottom: 0.4rem; }
+.fd-coupon-form { display: flex; gap: 0.5rem; }
+.fd-coupon-form .form-control { text-transform: uppercase; letter-spacing: 0.08em; }
+.fd-coupon-form .form-control::placeholder { text-transform: none; letter-spacing: 0; }
+.fd-coupon-applied { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0.9rem; border-radius: var(--fd-r-sm); background: rgba(29, 107, 67, 0.08); color: #1d6b43; }
+.fd-coupon-applied > div { flex: 1; color: var(--fd-ink); }
+.fd-coupon-applied small { display: block; color: #1d6b43; }
+.fd-offers { list-style: none; margin: 0.7rem 0 0; padding: 0; display: grid; gap: 0.45rem; }
+.fd-offers li { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.55rem 0.8rem; border: 1px dashed rgba(125, 31, 54, 0.35); border-radius: var(--fd-r-sm); background: var(--fd-paper); }
+.fd-offers b { letter-spacing: 0.08em; color: var(--fd-wine); font-size: 0.85rem; }
+.fd-offers small { display: block; color: var(--fd-muted); font-size: 0.76rem; }
+.fd-text-btn.is-strong { color: var(--fd-wine); font-weight: 600; }
+.fd-deliver-to { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.8rem; padding: 0.8rem 1rem; margin-bottom: 1rem; border-radius: var(--fd-r); background: var(--fd-surface); border: var(--fd-edge); box-shadow: var(--fd-raised-sm); color: var(--fd-wine); }
+.fd-deliver-form { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 220px; }
+.fd-deliver-label { font-size: 0.66rem; letter-spacing: var(--fd-track); text-transform: uppercase; color: var(--fd-ink); white-space: nowrap; margin: 0; }
+.fd-deliver-form .form-control { max-width: 9rem; min-height: 40px; padding: 0.35rem 0.9rem; }
+.fd-deliver-result { flex-basis: 100%; margin: 0; font-size: 0.86rem; color: var(--fd-ink); }
+.fd-deliver-result:empty { display: none; }
+.fd-deliver-result small { display: block; color: var(--fd-muted); }
+.fd-pdp-info .fd-deliver-to { margin: 0.4rem 0 1.2rem; }
+.fd-sticky-pay { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1030; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom)); background: rgba(250, 247, 242, 0.96); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 -10px 30px -18px rgba(70, 28, 42, 0.35); }
+.fd-sticky-pay b { display: block; font-size: 1.1rem; color: var(--fd-ink); }
+.fd-sticky-pay a:not(.btn) { font-size: 0.76rem; color: var(--fd-wine); }
+.fd-sticky-pay .btn { min-width: 9.5rem; min-height: 46px; }
+@media (max-width: 991.98px) { body:has(.fd-sticky-pay) { padding-bottom: 76px; } body:has(.fd-sticky-pay) .fd-whatsapp-float, body:has(.fd-sticky-pay) .fd-to-top { bottom: 88px; } }
+.fd-saved h3 { font-family: var(--fd-font-display); }
+.fd-saved-list { padding: 0.4rem 1.1rem; border-radius: var(--fd-r); background: var(--fd-surface); border: var(--fd-edge); box-shadow: var(--fd-raised-sm); }
+.fd-saved-list > li:first-child { padding-top: 0.85rem; }
+.fd-saved-list > li:last-child { padding-bottom: 0.85rem; }
+.fd-coupon-form .form-control { flex: 1 1 auto; min-width: 0; width: auto; }
+.fd-coupon-form .btn { flex: 0 0 auto; width: auto; padding-inline: 1.3rem; }

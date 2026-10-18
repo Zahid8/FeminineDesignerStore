@@ -1,0 +1,28 @@
+{# Coupon entry + available offers. Expects: cart, offers (optional), request #}
+<div class="fd-coupon" id="coupon">
+  {% if cart.coupon_code %}
+  <div class="fd-coupon-applied">
+    <svg width="18" height="18" aria-hidden="true"><use xlink:href="#tag"></use></svg>
+    <div><b>{{ cart.coupon_code }}</b> applied<small>You save {{ site_settings.currency_symbol|default:"₹" }}{{ cart.coupon_discount }}</small></div>
+    <form method="post" action="{% url 'cart_coupon' %}">{% csrf_token %}<input type="hidden" name="action" value="remove"><input type="hidden" name="next" value="{{ request.path }}"><button type="submit" class="fd-text-btn">Remove</button></form>
+  </div>
+  {% else %}
+  <form method="post" action="{% url 'cart_coupon' %}" class="fd-coupon-form">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}">
+    <label for="coupon-code" class="visually-hidden">Coupon code</label>
+    <input type="text" name="code" id="coupon-code" class="form-control" placeholder="Enter coupon code" autocomplete="off" autocapitalize="characters" maxlength="40" value="{% if cart.coupon_error %}{{ cart.coupon_tried }}{% endif %}">
+    <button type="submit" class="btn btn-outline-dark rounded-pill">Apply</button>
+  </form>
+  {% if cart.coupon_error %}<p class="text-danger small mt-2 mb-0" role="alert">{{ cart.coupon_error }}</p>{% endif %}
+  {% if offers %}
+  <ul class="fd-offers">
+    {% for c in offers %}
+    <li>
+      <div><b>{{ c.code }}</b><small>{{ c.description|default:"" }}{% if c.min_order_amount > 0 and not c.description %}On orders above {{ site_settings.currency_symbol|default:"₹" }}{{ c.min_order_amount }}{% endif %}</small></div>
+      <form method="post" action="{% url 'cart_coupon' %}">{% csrf_token %}<input type="hidden" name="code" value="{{ c.code }}"><input type="hidden" name="next" value="{{ request.path }}"><button type="submit" class="fd-text-btn is-strong">Apply</button></form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endif %}
+</div>

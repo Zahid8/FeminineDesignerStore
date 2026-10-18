@@ -1,0 +1,5 @@
+<ol class="fd-checkout-steps" aria-label="Checkout progress">
+  <li class="{% if step == 1 %}is-current{% elif step > 1 %}is-done{% endif %}"{% if step == 1 %} aria-current="step"{% endif %}>{% if step > 1 %}<a href="{% url 'cart_detail' %}">Bag</a>{% else %}Bag{% endif %}</li>
+  <li class="{% if step == 2 %}is-current{% elif step > 2 %}is-done{% endif %}"{% if step == 2 %} aria-current="step"{% endif %}>Address</li>
+  <li class="{% if step == 3 %}is-current{% endif %}"{% if step == 3 %} aria-current="step"{% endif %}>Payment</li>
+</ol>

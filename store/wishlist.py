@@ -40,6 +40,12 @@ def toggle(request, product):
     return saved
 
 
+def add(request, product):
+    """Save `product` (no-op if already saved)."""
+    if product.pk not in product_ids(request):
+        toggle(request, product)
+
+
 def products(request):
     """Saved products that are still for sale, newest first."""
     from store import selectors

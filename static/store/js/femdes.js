@@ -459,6 +459,38 @@
     });
   }
 
+  // ---- "Deliver to" PIN check → delivery dates on the bag / product page ----
+  function setupDeliveryCheck() {
+    var box = document.querySelector('[data-delivery-check]');
+    if (!box) return;
+    var input = box.querySelector('[data-delivery-pin]'), out = box.querySelector('[data-delivery-result]');
+    var url = box.getAttribute('data-url');
+    function show(pin) {
+      if (!/^[1-9][0-9]{5}$/.test(pin)) { out.textContent = 'Enter a valid 6-digit PIN code.'; return; }
+      out.textContent = 'Checking…';
+      fetch(url.replace('000000', pin), { headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.found) { out.textContent = 'We could not find this PIN code. Please check it.'; return; }
+          try { localStorage.setItem('fd-pin', pin); } catch (e) {}
+          out.innerHTML = '';
+          var strong = document.createElement('b'); strong.textContent = (d.city ? d.city + ', ' : '') + d.state;
+          out.appendChild(strong);
+          out.appendChild(document.createTextNode(' · ' + d.ready));
+          if (box.hasAttribute('data-show-custom')) { var c = document.createElement('small'); c.textContent = d.custom; out.appendChild(c); }
+          document.querySelectorAll('[data-eta-line]').forEach(function (row) {
+            var span = row.querySelector('span'); if (!span) return;
+            span.textContent = row.getAttribute('data-made-to-measure') ? d.custom : d.ready;
+          });
+        })
+        .catch(function () { out.textContent = ''; });
+    }
+    box.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); show(input.value.replace(/\D/g, '')); });
+    var saved = box.getAttribute('data-default-pin');
+    try { saved = saved || localStorage.getItem('fd-pin') || ''; } catch (e) {}
+    if (saved) { input.value = saved; show(saved); }
+  }
+
   // ---- Sticky mobile buy bar ----
   function setupStickyBuy() {
     var bar = document.querySelector('[data-sticky-buy]');
@@ -652,6 +684,7 @@
     setupReveals();
     setupGallery();
     setupPinLookup();
+    setupDeliveryCheck();
     setupStickyBuy();
     setupAutoSubmit();
     setupSubmitFeedback();

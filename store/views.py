@@ -193,12 +193,23 @@ def _render_product_detail(request, product, custom_form=None, custom_open=False
             "custom_from_request": from_request,
         }
     )
+    ctx["default_pin"] = _default_pin(request)
     return render(request, "store/product_detail.html", ctx)
 
 
 def product_detail(request, slug):
     product = selectors.get_product_by_slug(slug)
     return _render_product_detail(request, product, custom_open=request.GET.get("fit") == "custom")
+
+
+def _default_pin(request):
+    if not request.user.is_authenticated:
+        return ""
+    addr = request.user.addresses.order_by("-is_default", "-updated_at").first()
+    if addr:
+        return addr.pincode
+    profile = getattr(request.user, "profile", None)
+    return getattr(profile, "pincode", "") or ""
 
 
 def cart_detail(request):
@@ -209,6 +220,12 @@ def cart_detail(request):
         .order_by("-is_best_seller", "-is_recommended", "-created_at")[:4]
     )
     ctx["cart_update_form"] = CartUpdateForm()
+    from store import coupons
+    from store.views_cart import saved_items
+
+    ctx["saved_items"] = saved_items(request)
+    ctx["default_pin"] = _default_pin(request)
+    ctx["offers"] = coupons.visible_offers()
     return render(request, "store/cart.html", ctx)
 
 

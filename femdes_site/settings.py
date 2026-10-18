@@ -183,6 +183,9 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
 RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
 # Unpaid online orders are cancelled and their stock released after this many minutes.
 UNPAID_ORDER_RELEASE_MINUTES = int(os.getenv("UNPAID_ORDER_RELEASE_MINUTES", "60"))
+# Delivery estimates for ready-made pieces (calendar days from today).
+DELIVERY_DAYS_MIN = int(os.getenv("DELIVERY_DAYS_MIN", "4"))
+DELIVERY_DAYS_MAX = int(os.getenv("DELIVERY_DAYS_MAX", "8"))
 
 # Email (order confirmations, password reset, back-in-stock alerts).
 # Development default prints emails to the console; set DJANGO_EMAIL_HOST for SMTP.

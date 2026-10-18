@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from store import views_google, views_orders, views, views_api, views_extra, views_phone
+from store import views_cart, views_google, views_orders, views, views_api, views_extra, views_phone
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -11,6 +11,11 @@ urlpatterns = [
     path("cart/add/<int:product_id>/", views.add_to_cart, name="add_to_cart"),
     path("cart/update/<str:cart_key>/", views.update_cart, name="update_cart"),
     path("cart/remove/<str:cart_key>/", views.remove_from_cart, name="remove_from_cart"),
+    path("cart/coupon/", views_cart.cart_coupon, name="cart_coupon"),
+    path("cart/wishlist/<str:cart_key>/", views_cart.cart_move_to_wishlist, name="cart_move_to_wishlist"),
+    path("cart/save/<str:cart_key>/", views_cart.cart_save_for_later, name="cart_save_for_later"),
+    path("cart/saved/<str:saved_key>/to-bag/", views_cart.saved_move_to_bag, name="saved_move_to_bag"),
+    path("cart/saved/<str:saved_key>/remove/", views_cart.saved_remove, name="saved_remove"),
     path("checkout/", views.checkout, name="checkout"),
     path(
         "orders/<str:order_number>/success/",
@@ -39,6 +44,7 @@ urlpatterns = [
         name="customization_created",
     ),
     path("api/pincode/<str:pin>/", views_extra.pincode_lookup, name="pincode_lookup"),
+    path("api/delivery/<str:pin>/", views_extra.delivery_estimate, name="delivery_estimate"),
     # Razorpay (webhook first: "webhook" would otherwise match <order_number>)
     path("razorpay/webhook/", views.razorpay_webhook, name="razorpay_webhook"),
     path(

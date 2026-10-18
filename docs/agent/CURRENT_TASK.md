@@ -761,3 +761,21 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   confirmation and guest Track Order use the same timeline/items/actions.
 - Billing API: tracking, timeline, cancellation (refund_due), requests;
   POST accepts courier / tracking_number / tracking_url / expected_delivery.
+
+## T54 — Bag like Myntra/Amazon (2026-10-18)
+
+- Coupons (`Coupon`, `store/coupons.py`, admin with "times used"): percent
+  (with cap) or amount off, minimum order, dates, total + per-customer
+  limits, first-order-only, offers list in the bag. Code kept in session,
+  re-checked on every total and at order time (order stores coupon_code +
+  coupon_discount, included in discount_total). Migration 0031 also adds the
+  address book (`Address`, seeded from profile addresses) and gift message.
+- Bag: checkout steps (Bag → Address → Payment), MRP struck through + % off
+  per line, price details (Total MRP / Discount on MRP / Coupon / Delivery /
+  Total / You save), coupon box + offers, Save for later (session) with Move
+  to bag, Move to wishlist now really moves, sticky mobile Checkout bar,
+  trust row, UPI/cards/net banking/wallets line (PayPal logo removed).
+- Delivery estimates: `store/delivery.py` + `/api/delivery/<pin>/`; "Deliver
+  to" PIN check on the bag and product page (remembers the PIN, prefilled
+  from the default address) updates each line's "Delivery by …"; made-to-
+  measure dates add the stitching lead time. DELIVERY_DAYS_MIN/MAX settings.

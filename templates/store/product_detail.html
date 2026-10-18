@@ -91,6 +91,7 @@
             <svg width="16" height="16" aria-hidden="true"><use xlink:href="#truck"></use></svg>
             <span><strong>{{ product.get_fulfilment_display }}</strong>{% if product.dispatch_note %} &middot; {{ product.dispatch_note }}{% endif %}</span>
           </p>
+          {% include "store/partials/delivery_check.html" with show_custom=product.allow_customization %}
           {% if occasions %}
           <p class="fd-pdp-occasions">Perfect for {% for o in occasions %}<a href="{% url 'product_list' %}?occasion={{ o.slug }}">{{ o.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
           {% endif %}
