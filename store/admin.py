@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import models
 
 admin.site.site_header = "Feminine Designer"
 admin.site.site_title = "FemDes Admin"
@@ -35,15 +36,34 @@ from store.models import (
 )
 
 
+from django.contrib.admin.widgets import AdminFileWidget
+from django.utils.html import format_html
+
+
+class ImagePreviewWidget(AdminFileWidget):
+    """File input with a real thumbnail of the current image instead of just its path."""
+
+    template_name = "admin/widgets/image_preview.html"
+
+
+def thumb(image, size=56):
+    if not image:
+        return format_html('<span class="fd-thumb is-empty" style="width:{0}px;height:{0}px"></span>', size)
+    return format_html('<img src="{}" alt="" class="fd-thumb" width="{}" height="{}" loading="lazy">', image.url, size, size)
+
+
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
     fields = ("image", "alt_text", "is_primary", "sort_order")
+    formfield_overrides = {models.ImageField: {"widget": ImagePreviewWidget}}
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    list_display_links = ("photo", "name")
     list_display = (
+        "photo",
         "name",
         "sku",
         "category",
@@ -72,6 +92,14 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
     inlines = [ProductImageInline]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("category").prefetch_related("images", "tags")
+
+    @admin.display(description="Photo")
+    def photo(self, obj):
+        primary = obj.primary_image
+        return thumb(primary.image if primary else None, 48)
 
     @admin.display(description="Tags")
     def tag_list(self, obj):
@@ -117,7 +145,14 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ("product", "image", "alt_text", "is_primary", "sort_order")
+    list_display = ("preview", "product", "alt_text", "is_primary", "sort_order")
+    list_display_links = ("preview", "product")
+    formfield_overrides = {models.ImageField: {"widget": ImagePreviewWidget}}
+    list_select_related = ("product",)
+
+    @admin.display(description="Image")
+    def preview(self, obj):
+        return thumb(obj.image, 64)
     list_filter = ("is_primary", "product")
     search_fields = ("product__name", "alt_text")
 
@@ -236,6 +271,18 @@ class OrderAdmin(admin.ModelAdmin):
         "gateway_signature",
     )
     inlines = [OrderItemInline]
+    fieldsets = (
+        ("Order", {"fields": ("order_number", "status", "created_at", "updated_at")}),
+        ("Customer", {"fields": ("customer_name", "customer_phone", "customer_email", "customer_user")}),
+        ("Delivery address", {"fields": ("address_line1", "address_line2", "city", "state", "pincode", "country",
+                                         "shipping_address", "location_url", "notes", "gift_message")}),
+        ("Courier & tracking", {"fields": ("courier_name", "tracking_number", "tracking_url", "expected_delivery",
+                                           "shipped_at", "delivered_at")}),
+        ("Payment", {"fields": ("payment_method", "payment_status", "payment_reference", "payment_notes", "paid_at",
+                                "gateway_order_id", "gateway_payment_id", "gateway_signature")}),
+        ("Money", {"fields": ("subtotal", "discount_total", "coupon_code", "coupon_discount", "shipping_total", "total")}),
+        ("Cancellation", {"classes": ("collapse",), "fields": ("cancelled_at", "cancel_reason", "cancelled_by")}),
+    )
 
     def get_inlines(self, request, obj):
         return [OrderItemInline, OrderRequestInline, OrderEventInline]

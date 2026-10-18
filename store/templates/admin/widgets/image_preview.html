@@ -1,0 +1,15 @@
+<div class="fd-image-field">
+  {% if widget.is_initial %}
+  <a href="{{ widget.value.url }}" target="_blank" rel="noopener" class="fd-image-preview" title="Open full size">
+    <img src="{{ widget.value.url }}" alt="Current image" loading="lazy">
+  </a>
+  {% endif %}
+  <div class="fd-image-controls">
+    {% if widget.is_initial %}
+    <span class="fd-image-name">{{ widget.value.name|cut:"products/" }}</span>
+    {% if not widget.required %}<label class="fd-image-clear"><input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}"{% if widget.attrs.disabled %} disabled{% endif %}{% if widget.checked %} checked{% endif %}> {{ widget.clear_checkbox_label }}</label>{% endif %}
+    <span class="fd-image-change">{{ widget.input_text }}:</span>
+    {% endif %}
+    <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+  </div>
+</div>

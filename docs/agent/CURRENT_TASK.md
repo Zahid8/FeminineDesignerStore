@@ -818,3 +818,16 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   named slots): sign-in/register visuals, home editorial + made-to-measure,
   hero fallback, menu tiles. Categories without an image/cover use their
   newest product's photo. Stock template photos remain only as fallbacks.
+
+## T58 — Admin thumbnails + responsive admin (2026-10-18)
+
+- Product images show real thumbnails: `ImagePreviewWidget`
+  (store/templates/admin/widgets/image_preview.html) in the product's image
+  rows and the Product images page; Photo column in the product list,
+  Image column in the product-images list. Django's "Image for …" caption
+  (which overlapped Choose file) is hidden.
+- Tablets/phones: change lists and tabular inlines become labelled cards
+  (admin-fd.js copies column names into data-labels; two cards per row on
+  tablets); filters drop below; form labels stack; save buttons full width.
+  Order edit page grouped into Order / Customer / Delivery address / Courier
+  & tracking / Payment / Money / Cancellation.

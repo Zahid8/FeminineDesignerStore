@@ -101,7 +101,7 @@ class ProductImageAdminConfigTests(TestCase):
 
     def test_list_display(self):
         self.assertIn("product", ProductImageAdmin.list_display)
-        self.assertIn("image", ProductImageAdmin.list_display)
+        self.assertIn("preview", ProductImageAdmin.list_display)  # thumbnail instead of the raw file path
         self.assertIn("alt_text", ProductImageAdmin.list_display)
         self.assertIn("is_primary", ProductImageAdmin.list_display)
         self.assertIn("sort_order", ProductImageAdmin.list_display)
@@ -492,3 +492,32 @@ class AdminDeletesCascadeCleanlyTests(TestCase):
             self.assertEqual(after, [])
             detail = self.client.get(reverse("api_online_order_detail", args=[self.order.order_number]), HTTP_AUTHORIZATION="Bearer t")
             self.assertEqual(detail.status_code, 404)
+
+
+
+class AdminThumbnailTests(TestCase):
+    def test_product_list_and_image_inline_show_thumbnails(self):
+        import shutil
+        import tempfile
+        from decimal import Decimal
+        from io import BytesIO
+
+        from django.contrib.auth.models import User
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.test import override_settings
+        from PIL import Image
+
+        from store.models import Product, ProductImage
+
+        media = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, media, True)
+        with override_settings(MEDIA_ROOT=media):
+            buf = BytesIO(); Image.new("RGB", (10, 10), "red").save(buf, "JPEG")
+            p = Product.objects.create(name="Thumb Blouse", slug="thumb-blouse", price=Decimal("1"))
+            ProductImage.objects.create(product=p, image=SimpleUploadedFile("t.jpg", buf.getvalue(), "image/jpeg"), is_primary=True)
+            admin = User.objects.create_superuser("boss", "b@example.com", "pw")
+            self.client.force_login(admin)
+            self.assertContains(self.client.get("/admin/store/product/"), 'class="fd-thumb"')
+            page = self.client.get(f"/admin/store/product/{p.pk}/change/")
+            self.assertContains(page, 'class="fd-image-preview"')
+            self.assertContains(self.client.get("/admin/store/productimage/"), 'class="fd-thumb"')

@@ -549,3 +549,61 @@ body.fd-admin #changelist .actions label { display: inline-flex; align-items: ce
   body.fd-admin #changelist .actions label { flex: 1 1 0; min-width: 0; }
   body.fd-admin #changelist .actions select { flex: 1 1 auto; min-width: 0; width: 100%; max-width: none; margin: 0; }
 }
+
+/* ---------- Image previews (product images) ---------- */
+.fd-thumb { display: inline-block; object-fit: cover; border-radius: 10px; background: #f3e9e3; box-shadow: 0 2px 6px rgba(60, 25, 35, 0.12); vertical-align: middle; }
+.fd-thumb.is-empty { background: repeating-linear-gradient(45deg, #f6eee9, #f6eee9 6px, #efe3dc 6px, #efe3dc 12px); }
+.fd-image-field { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.fd-image-preview { flex: none; display: block; width: 76px; height: 76px; border-radius: 12px; overflow: hidden; background: #f3e9e3; box-shadow: 0 2px 8px rgba(60, 25, 35, 0.14); }
+.fd-image-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fd-image-controls { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fd-image-name { font-size: 0.8rem; color: var(--fd-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 22rem; }
+.fd-image-change { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fd-label, #8a6f74); }
+.fd-image-clear { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; }
+.fd-image-controls input[type=file] { max-width: 100%; font-size: 0.82rem; }
+/* Django prints "Image for <product>" over each saved inline row; the thumbnail already says it. */
+body.fd-admin .inline-group .tabular td.original p { display: none; }
+body.fd-admin .inline-group .tabular td.original { padding: 0; width: 0; }
+body.fd-admin .inline-group .tabular tr.has_original td { padding-top: 12px; }
+
+/* ---------- Tablets & phones: lists and tabular inlines become labelled cards ---------- */
+@media (max-width: 1023.98px) {
+  body.fd-admin #changelist { flex-direction: column; }
+  body.fd-admin #changelist-filter { flex: none; width: 100%; order: 2; }
+  body.fd-admin .inline-group { overflow: visible; }
+  body.fd-admin table.fd-stackable, body.fd-admin table.fd-stackable tbody, body.fd-admin table.fd-stackable tr, body.fd-admin table.fd-stackable td, body.fd-admin table.fd-stackable th { display: block; width: auto; }
+  body.fd-admin table.fd-stackable thead { display: none; }
+  body.fd-admin table.fd-stackable tr { position: relative; margin: 10px 12px; padding: 10px 14px; border-radius: 16px; background: #fff; border: 1px solid var(--fd-line-soft, #efe3dc); box-shadow: 0 6px 16px -10px rgba(60, 25, 35, 0.25); }
+  body.fd-admin table.fd-stackable tr.empty-form, body.fd-admin table.fd-stackable tr.hidden { display: none; }
+  body.fd-admin table.fd-stackable td, body.fd-admin table.fd-stackable th { display: flex; align-items: center; gap: 12px; padding: 6px 0 !important; border: 0 !important; text-align: left !important; background: transparent !important; min-width: 0; }
+  body.fd-admin table.fd-stackable td[data-label]::before, body.fd-admin table.fd-stackable th[data-label]::before { content: attr(data-label); flex: 0 0 34%; max-width: 34%; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fd-label, #8a6f74); white-space: normal; }
+  body.fd-admin table.fd-stackable td.action-checkbox { position: absolute; top: 10px; right: 12px; padding: 0 !important; }
+  body.fd-admin table.fd-stackable td.action-checkbox::before { display: none; }
+  body.fd-admin table.fd-stackable td.field-photo::before, body.fd-admin table.fd-stackable td.field-preview::before { display: none; }
+  body.fd-admin table.fd-stackable td.original { display: none; }
+  body.fd-admin table.fd-stackable td > *:not(.fd-image-field) { min-width: 0; max-width: 100%; }
+  body.fd-admin table.fd-stackable td input[type=text], body.fd-admin table.fd-stackable td input[type=number], body.fd-admin table.fd-stackable td select, body.fd-admin table.fd-stackable td textarea { width: 100%; }
+  body.fd-admin table.fd-stackable td.delete { justify-content: flex-start; }
+  body.fd-admin #changelist .results { overflow: visible; }
+}
+@media (max-width: 575.98px) {
+  body.fd-admin table.fd-stackable td[data-label]::before { flex-basis: 40%; max-width: 40%; }
+  .fd-image-field { align-items: flex-start; }
+  .fd-image-preview { width: 64px; height: 64px; }
+  .fd-image-name { max-width: 11rem; }
+  body.fd-admin .aligned .form-row, body.fd-admin .aligned .form-row > div { display: block; }
+  body.fd-admin .aligned label { display: block; width: auto; float: none; padding: 0 0 4px; }
+  body.fd-admin .aligned .help, body.fd-admin .aligned p.help, body.fd-admin form .aligned div.help { margin-left: 0 !important; padding-left: 0 !important; }
+  body.fd-admin .submit-row { flex-direction: column; align-items: stretch; }
+  body.fd-admin .submit-row input, body.fd-admin .submit-row a.deletelink { width: 100%; margin: 0 0 8px; text-align: center; }
+}
+@media (min-width: 1024px) {
+  body.fd-admin .inline-group fieldset.module { overflow-x: auto; }
+  body.fd-admin .inline-group .tabular .field-image { width: 40%; }
+  .fd-image-name { max-width: 15rem; }
+  .fd-image-controls input[type=file] { width: 15rem; }
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  body.fd-admin #result_list.fd-stackable tbody { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 12px; }
+  body.fd-admin #result_list.fd-stackable tr { margin: 0; }
+}

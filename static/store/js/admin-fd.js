@@ -32,5 +32,23 @@
       td.appendChild(span);
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', badges); else badges();
+  // Column names on every cell, so lists and tabular inlines can stack into labelled cards on small screens.
+  function labelCells() {
+    document.querySelectorAll('#result_list, .inline-group .tabular table').forEach(function (table) {
+      var heads = Array.prototype.map.call(table.querySelectorAll('thead th'), function (th) { return th.textContent.trim(); });
+      table.classList.add('fd-stackable');
+      table.querySelectorAll('tbody tr').forEach(function (tr) {
+        var i = 0;
+        Array.prototype.forEach.call(tr.children, function (cell) {
+          var colspan = parseInt(cell.getAttribute('colspan') || '1', 10);
+          if (heads[i] && !cell.hasAttribute('data-label')) cell.setAttribute('data-label', heads[i]);
+          i += colspan;
+        });
+      });
+    });
+  }
+  function ready() { badges(); labelCells(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+  // New inline rows ("Add another …") get labels too.
+  document.addEventListener('formset:added', labelCells);
 })();
