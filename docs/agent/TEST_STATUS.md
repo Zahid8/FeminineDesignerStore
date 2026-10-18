@@ -507,3 +507,8 @@ conda run -n femdes python manage.py runserver
 - `python manage.py test` — 604 OK (test_order_actions, test_bag_extras, test_checkout_addresses)
 - Billing: vitest 242 OK, tsc OK, eslint OK
 - Browser (390px): orders_shots, bag_e2e 13/13, checkout_e2e (saved address, ETA, coupon, gift, place order), billing_orders_e2e 11/11
+
+## T56 — Reviews (2026-10-18)
+
+- `python manage.py test` — 610 OK (test_reviews)
+- qa_design (5 widths, all pages incl. bag/checkout/orders/addresses): only demo-image 404s, local fake-Google-ID console errors, and radios/checkboxes inside 44px labels remain

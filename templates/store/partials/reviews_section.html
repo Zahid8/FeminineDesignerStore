@@ -1,0 +1,30 @@
+{# Ratings & reviews on the product page. Expects: product, rating, reviews, can_review #}
+<section class="fd-reviews" id="reviews" aria-labelledby="reviews-heading">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h2 id="reviews-heading" class="fd-reviews-title">Ratings &amp; reviews</h2>
+    {% if can_review %}<a href="{% url 'write_review' product.slug %}" class="btn btn-sm btn-outline-dark rounded-pill">Write a review</a>{% endif %}
+  </div>
+  {% if rating.count %}
+  <div class="fd-rating-summary">
+    <div class="fd-rating-big"><b>{{ rating.average }}</b><span aria-hidden="true">★</span><small>{{ rating.count }} verified rating{{ rating.count|pluralize }}</small></div>
+    <ul class="fd-rating-bars" aria-label="Rating breakdown">
+      {% for bar in rating.bars %}
+      <li><span>{{ bar.stars }}★</span><span class="fd-bar"><i style="width: {{ bar.pct }}%"></i></span><span>{{ bar.count }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% if rating.fit_line %}<p class="fd-fit-line"><svg width="14" height="14" aria-hidden="true"><use xlink:href="#ruler"></use></svg>{{ rating.fit_line }}</p>{% endif %}
+  <ul class="fd-review-list">
+    {% for r in reviews %}
+    <li class="fd-review">
+      <div class="fd-review-head"><span class="fd-stars-chip is-{{ r.rating }}">{{ r.rating }} ★</span>{% if r.title %}<b>{{ r.title }}</b>{% endif %}</div>
+      {% if r.body %}<p>{{ r.body|linebreaksbr }}</p>{% endif %}
+      {% if r.photo %}<a href="{{ r.photo.url }}" target="_blank" rel="noopener" class="fd-review-photo"><img src="{{ r.photo.url }}" alt="Photo from {{ r.author_name }}" loading="lazy"></a>{% endif %}
+      <small>{{ r.author_name }}{% if r.verified_purchase %} &middot; <span class="fd-verified">✓ Verified buyer</span>{% endif %}{% if r.fit %} &middot; {{ r.get_fit_display }}{% endif %} &middot; {{ r.created_at|date:"j M Y" }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted mb-0">No reviews yet.{% if can_review %} Be the first to share how it fits.{% else %} Customers who buy this piece can review it after delivery.{% endif %}</p>
+  {% endif %}
+</section>

@@ -43,6 +43,7 @@
       {% endif %}
       {% endfor %}
     </div>
+    {% if product.review_count %}<span class="fd-card-rating" aria-label="Rated {{ product.review_avg|floatformat:1 }} out of 5 from {{ product.review_count }} reviews">{{ product.review_avg|floatformat:1 }} <span aria-hidden="true">★</span> <small>({{ product.review_count }})</small></span>{% endif %}
     {% with colors=product.color_choices %}{% if colors|length > 1 %}<span class="fd-card-colours">{{ colors|length }} colours</span>{% endif %}{% endwith %}
     <div class="product-price">
       <span class="fd-price{% if product.is_on_sale %} is-sale{% endif %}">{{ site_settings.currency_symbol|default:"$" }}{{ product.get_effective_price }}</span>

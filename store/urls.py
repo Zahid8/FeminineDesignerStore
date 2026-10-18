@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from store import views_addresses, views_cart, views_google, views_orders, views, views_api, views_extra, views_phone
+from store import views_addresses, views_reviews, views_cart, views_google, views_orders, views, views_api, views_extra, views_phone
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -12,6 +12,7 @@ urlpatterns = [
     path("cart/update/<str:cart_key>/", views.update_cart, name="update_cart"),
     path("cart/remove/<str:cart_key>/", views.remove_from_cart, name="remove_from_cart"),
     path("cart/coupon/", views_cart.cart_coupon, name="cart_coupon"),
+    path("products/<slug:slug>/review/", views_reviews.write_review, name="write_review"),
     path("cart/wishlist/<str:cart_key>/", views_cart.cart_move_to_wishlist, name="cart_move_to_wishlist"),
     path("cart/save/<str:cart_key>/", views_cart.cart_save_for_later, name="cart_save_for_later"),
     path("cart/saved/<str:saved_key>/to-bag/", views_cart.saved_move_to_bag, name="saved_move_to_bag"),

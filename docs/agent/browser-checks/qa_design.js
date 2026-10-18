@@ -84,6 +84,7 @@ function audit() {
     const range = document.createRange(); range.selectNodeContents(n);
     const rects = [...range.getClientRects()].filter(r => r.width > 1 && r.height > 1); if (!rects.length) continue;
     const box = nearestBox(el); const label = n.textContent.trim().replace(/\s+/g, ' ').slice(0, 40);
+    if ([el, el.parentElement].some(x => x && getComputedStyle(x).textOverflow === "ellipsis")) continue; // truncated on purpose
     for (const r of rects) {
       texts.push({ r, el, fixed: isFixed(el), label });
       if (box && !(["auto", "scroll"].includes(getComputedStyle(box).overflowX))) { // scrollers (category bar) clip by design

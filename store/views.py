@@ -173,6 +173,9 @@ def _render_product_detail(request, product, custom_form=None, custom_open=False
     from_request = initial.pop("_from_request", False)
     if custom_form is None:
         custom_form = CustomFitForm(initial=initial)
+    from store.reviews import can_review, summary
+
+    rating = summary(product)
     ctx.update(
         {
             "product": product,
@@ -180,7 +183,10 @@ def _render_product_detail(request, product, custom_form=None, custom_open=False
             "complete_the_look": selectors.get_active_products().filter(pk__in=product.pairs_with.values("pk")),
             "low_stock": product.low_stock_count(getattr(site, "low_stock_threshold", 3)),
             "occasions": product.occasions.filter(is_active=True),
-            "product_jsonld": product_jsonld(request, product, site),
+            "product_jsonld": product_jsonld(request, product, site, rating=rating),
+            "rating": rating,
+            "reviews": product.reviews.filter(is_published=True).select_related("user")[:12],
+            "can_review": can_review(request.user, product),
             "related_products": related,
             "add_to_cart_form": AddToCartForm(),
             "custom_form": custom_form,

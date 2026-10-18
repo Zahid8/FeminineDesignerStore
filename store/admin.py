@@ -25,6 +25,7 @@ from store.models import (
     Coupon,
     Order,
     OrderEvent,
+    ProductReview,
     OrderItem,
     OrderRequest,
     Product,
@@ -508,3 +509,13 @@ class AddressAdmin(admin.ModelAdmin):
     list_display = ("user", "label", "name", "city", "pincode", "is_default")
     search_fields = ("user__username", "user__email", "name", "phone", "pincode", "city")
     list_filter = ("state", "is_default")
+
+
+
+@admin.register(ProductReview)
+class ProductReviewAdmin(admin.ModelAdmin):
+    list_display = ("product", "rating", "title", "author_name", "verified_purchase", "is_published", "created_at")
+    list_filter = ("is_published", "rating", "verified_purchase")
+    list_editable = ("is_published",)
+    search_fields = ("product__name", "author_name", "title", "body")
+    readonly_fields = ("product", "user", "order_item", "verified_purchase", "created_at", "updated_at")

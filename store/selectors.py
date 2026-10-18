@@ -9,6 +9,9 @@ def get_active_categories():
 
 
 def get_active_products():
+    from store.models import ProductReview
+
+    published = ProductReview.objects.filter(product=models.OuterRef("pk"), is_published=True).values("product")
     return (
         Product.objects.filter(is_active=True)
         .filter(
@@ -16,6 +19,10 @@ def get_active_products():
         )
         .select_related("category")
         .prefetch_related("images")
+        .annotate(
+            review_avg=models.Subquery(published.annotate(a=models.Avg("rating")).values("a")[:1]),
+            review_count=models.Subquery(published.annotate(c=models.Count("id")).values("c")[:1]),
+        )
     )
 
 

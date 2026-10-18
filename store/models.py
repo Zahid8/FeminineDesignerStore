@@ -5,7 +5,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
 from django.urls import reverse
 from django.utils import timezone as tz
@@ -906,6 +906,31 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
+
+
+class ProductReview(models.Model):
+    """A rating + review left by a customer who bought the piece."""
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews")
+    order_item = models.ForeignKey("OrderItem", on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews")
+    author_name = models.CharField(max_length=80)
+    rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    title = models.CharField(max_length=120, blank=True)
+    body = models.TextField(blank=True, max_length=2000)
+    fit = models.CharField(max_length=20, blank=True, choices=[("small", "Runs small"), ("true", "True to size"), ("large", "Runs large")])
+    photo = models.ImageField(upload_to="reviews/", blank=True, null=True)
+    verified_purchase = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=True, help_text="Untick to hide this review from the shop.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [models.UniqueConstraint(fields=["product", "user"], name="one_review_per_customer_per_product")]
+
+    def __str__(self):
+        return f"{self.rating}★ {self.product} by {self.author_name}"
 
 
 class OrderEvent(models.Model):

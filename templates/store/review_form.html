@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %} — Review {{ product.name }}{% endblock %}
+{% block content %}
+<header class="fd-page-header is-compact">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a></li><li aria-current="page">Review</li></ol>
+    <h1>{% if existing %}Edit your review{% else %}How was it?{% endif %}</h1>
+    <p>Your review helps other customers choose the right fit.</p>
+  </div>
+</header>
+<section class="pb-5">
+  <div class="container-lg">
+    <div class="row justify-content-center"><div class="col-lg-7">
+      <form method="post" enctype="multipart/form-data" class="fd-card p-4 p-md-5 fd-form" novalidate>
+        {% csrf_token %}
+        <div class="d-flex gap-3 align-items-center mb-4">
+          <span class="fd-order-thumb">{% with line=product %}{% load static %}{% with primary=product.primary_image %}<img src="{% if primary %}{{ primary.image.url }}{% else %}{% static 'store/images/femdes-placeholder.svg' %}{% endif %}" alt="">{% endwith %}{% endwith %}</span>
+          <strong>{{ product.name }}</strong>
+        </div>
+        <fieldset class="mb-4">
+          <legend class="fd-eyebrow">Your rating *</legend>
+          <div class="fd-star-input" role="radiogroup">
+            {% for n in "54321" %}
+            <input type="radio" name="rating" id="star-{{ n }}" value="{{ n }}"{% if form.rating.value|stringformat:"s" == n %} checked{% endif %}><label for="star-{{ n }}" title="{{ n }} star{{ n|pluralize }}">★</label>
+            {% endfor %}
+          </div>
+          {% for e in form.rating.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+        </fieldset>
+        <fieldset class="mb-3">
+          <legend class="fd-eyebrow">How did it fit?</legend>
+          <div class="fd-chip-choices">
+            {% for value, label in form.fields.fit.choices %}{% if value %}<label><input type="radio" name="fit" value="{{ value }}"{% if form.fit.value == value %} checked{% endif %}><span>{{ label }}</span></label>{% endif %}{% endfor %}
+          </div>
+        </fieldset>
+        <label for="id_title">Title</label>
+        <input type="text" name="title" id="id_title" class="form-control mb-3" maxlength="120" placeholder="Sum it up in a few words" value="{{ form.title.value|default:'' }}">
+        <label for="id_body">Review</label>
+        <textarea name="body" id="id_body" class="form-control mb-3" rows="5" maxlength="2000" placeholder="Fabric, fit, finishing, how it looked on the day…">{{ form.body.value|default:'' }}</textarea>
+        <label for="id_photo">Add a photo <span class="text-muted fw-normal">(optional)</span></label>
+        <input type="file" name="photo" id="id_photo" class="form-control" accept="image/*">
+        {% for e in form.photo.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+        <div class="d-flex gap-2 flex-wrap mt-4">
+          <button type="submit" class="btn btn-dark btn-lg rounded-pill">{% if existing %}Update review{% else %}Post review{% endif %}</button>
+          <a href="{% url 'product_detail' product.slug %}" class="btn btn-outline-dark btn-lg rounded-pill">Cancel</a>
+        </div>
+      </form>
+    </div></div>
+  </div>
+</section>
+{% endblock %}

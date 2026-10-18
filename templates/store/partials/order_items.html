@@ -8,6 +8,7 @@
       <small class="text-muted d-block">{% if item.color %}{{ item.color }}{% endif %}{% if item.color and item.size %} &middot; {% endif %}{% if item.size %}{{ item.size }}{% endif %}{% if item.color or item.size %} &middot; {% endif %}Qty {{ item.quantity }}</small>
       {% include "store/partials/custom_summary.html" with rows=item.customization|custom_rows notes=item.customization.notes compact=True %}
       <div class="fd-order-item-price"><b>{{ currency }}{{ item.line_total }}</b>{% if item.discount_amount > 0 %} <s class="text-muted">{{ currency }}{% widthratio item.unit_price 1 item.quantity %}</s>{% endif %}</div>
+      {% if item.product and user.is_authenticated and order.customer_user_id == user.pk and order.status in "delivered completed" %}<a href="{% url 'write_review' item.product.slug %}" class="fd-text-btn is-strong">★ Rate &amp; review</a>{% endif %}
     </div>
   </li>
   {% endfor %}

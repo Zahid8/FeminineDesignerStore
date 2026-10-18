@@ -65,6 +65,7 @@
       <div class="col-lg-5">
         <div class="fd-pdp-info" data-buy-panel>
           <h1>{{ product.name }}</h1>
+          {% if rating.count %}<a href="#reviews" class="fd-rating-chip"><b>{{ rating.average }}</b> <span aria-hidden="true">★</span><span class="fd-rating-sep" aria-hidden="true"></span>{{ rating.count }} rating{{ rating.count|pluralize }}</a>{% endif %}
           <div class="fd-pdp-meta">
             {% if product.sku %}<span>SKU: {{ product.sku }}</span>{% endif %}
             {% if product.category %}<span>{{ product.category.name }}</span>{% endif %}
@@ -417,6 +418,7 @@
               </div>
             </details>
           </div>
+          {% include "store/partials/reviews_section.html" %}
         </div>
       </div>
     </div>

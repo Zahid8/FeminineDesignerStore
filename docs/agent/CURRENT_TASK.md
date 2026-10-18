@@ -794,3 +794,15 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   sticky mobile Place order bar, policy link.
 - Billing API + app: coupon (code/discount) and gift message; Gift flag in
   the list and a gift card note on the order.
+
+## T56 — Ratings & reviews (2026-10-18)
+
+- `ProductReview` (migration 0032): 1–5 stars, title, text, fit (runs
+  small / true / large), optional photo, verified purchase, publish toggle
+  (admin list-editable), one review per customer per product (editable).
+- Only customers whose order with the piece is delivered can review
+  (`store/reviews.py`); "★ Rate & review" on delivered order items.
+- Product page: rating chip under the name, Ratings & reviews panel
+  (average, 5→1 bars, "Most say it runs small (x%)", review list with
+  Verified buyer); product cards show "4.7 ★ (3)" (subquery annotations on
+  get_active_products); JSON-LD aggregateRating for Google.

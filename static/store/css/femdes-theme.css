@@ -1469,3 +1469,46 @@ a.fd-address-card { display: flex; }
 .fd-label-input { max-width: 14rem; }
 .fd-checkout-items > li { padding: 0.7rem 0; }
 .fd-eta { display: flex; align-items: center; gap: 0.35rem; color: #1d6b43; font-size: 0.78rem; margin-top: 0.15rem; }
+/* ===== T56 ratings & reviews ===== */
+.fd-rating-chip { display: inline-flex; align-items: center; gap: 0.35rem; margin: 0.1rem 0 0.6rem; padding: 0.3rem 0.75rem; border-radius: var(--fd-r-pill); background: var(--fd-surface); box-shadow: var(--fd-raised-sm); color: var(--fd-ink); font-size: 0.85rem; text-decoration: none; }
+.fd-rating-chip span[aria-hidden] { color: #1d6b43; }
+.fd-rating-sep { width: 1px; height: 0.9rem; background: var(--fd-line); margin: 0 0.25rem; }
+.fd-card-rating { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.74rem; color: var(--fd-ink); padding: 0.1rem 0.45rem; border-radius: 6px; background: var(--fd-paper); margin-bottom: 0.25rem; }
+.fd-card-rating small { color: var(--fd-muted); }
+.fd-reviews { margin-top: 2rem; padding: 1.4rem 1.25rem; border-radius: var(--fd-r); background: var(--fd-surface); border: var(--fd-edge); box-shadow: var(--fd-raised-sm); }
+.fd-reviews-title { font-size: 0.72rem; letter-spacing: var(--fd-track); text-transform: uppercase; font-family: var(--fd-font-body); margin: 0; }
+.fd-rating-summary { display: grid; grid-template-columns: auto 1fr; gap: 1.25rem; align-items: center; margin: 1.1rem 0 0.6rem; }
+.fd-rating-big { display: grid; justify-items: center; padding-right: 1.25rem; border-right: 1px solid var(--fd-line); }
+.fd-rating-big b { font-family: var(--fd-font-display); font-size: 2.6rem; line-height: 1; color: var(--fd-ink); font-weight: 500; }
+.fd-rating-big > span { color: #1d6b43; }
+.fd-rating-big small { color: var(--fd-muted); font-size: 0.74rem; text-align: center; max-width: 7rem; }
+.fd-rating-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
+.fd-rating-bars li { display: grid; grid-template-columns: 2rem 1fr 2rem; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--fd-muted); }
+.fd-bar { height: 6px; border-radius: 999px; background: var(--fd-paper); box-shadow: var(--fd-pressed-sm); overflow: hidden; }
+.fd-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--fd-wine), var(--fd-rose)); border-radius: inherit; }
+.fd-fit-line { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--fd-ink); margin: 0.4rem 0 0; }
+.fd-review-list { list-style: none; margin: 1rem 0 0; padding: 0; }
+.fd-review { padding: 0.9rem 0; border-top: 1px solid var(--fd-line-soft); }
+.fd-review-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.fd-review p { margin: 0.4rem 0; color: var(--fd-ink); font-size: 0.92rem; }
+.fd-review small { color: var(--fd-muted); font-size: 0.76rem; }
+.fd-stars-chip { display: inline-block; padding: 0.1rem 0.45rem; border-radius: 6px; color: #fff; font-size: 0.74rem; font-weight: 600; background: #1d6b43; }
+.fd-stars-chip.is-3 { background: #b7791f; }
+.fd-stars-chip.is-2, .fd-stars-chip.is-1 { background: #a33a3a; }
+.fd-verified { color: #1d6b43; }
+.fd-review-photo img { width: 84px; height: 84px; object-fit: cover; border-radius: 12px; margin: 0.25rem 0 0.4rem; }
+.fd-star-input { display: inline-flex; flex-direction: row-reverse; gap: 0.25rem; }
+.fd-star-input input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.fd-star-input label { font-size: 2.2rem; line-height: 1; color: var(--fd-line); cursor: pointer; padding: 0 0.1rem; min-width: 44px; text-align: center; text-transform: none; letter-spacing: 0; margin: 0; }
+.fd-star-input label:hover, .fd-star-input label:hover ~ label, .fd-star-input input:checked ~ label { color: #d99a2b; }
+.fd-star-input input:focus-visible + label { outline: 2px solid var(--fd-gold); border-radius: 8px; }
+.fd-chip-choices { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.fd-chip-choices label { margin: 0; text-transform: none; letter-spacing: 0; cursor: pointer; }
+.fd-chip-choices input { position: absolute; opacity: 0; }
+.fd-chip-choices span { display: inline-flex; align-items: center; min-height: 40px; padding: 0.35rem 1rem; border-radius: var(--fd-r-pill); background: var(--fd-paper); box-shadow: var(--fd-pressed-sm); font-size: 0.86rem; color: var(--fd-ink); }
+.fd-chip-choices input:checked + span { background: var(--fd-surface); box-shadow: var(--fd-raised-sm); color: var(--fd-wine); font-weight: 600; }
+.fd-chip-choices input:focus-visible + span { outline: 2px solid var(--fd-gold); }
+@media (max-width: 575.98px) { .fd-rating-summary { grid-template-columns: 1fr; } .fd-rating-big { border-right: 0; padding-right: 0; border-bottom: 1px solid var(--fd-line); padding-bottom: 0.8rem; } }
+.fd-off { color: #9a3f0e; }
+.fd-sticky-pay a:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
+.fd-check input { width: 22px; height: 22px; }
