@@ -91,6 +91,17 @@ def mark_paid(order_pk, payment_id, signature="", source="checkout"):
                     Product.objects.filter(pk=item.product_id).update(stock_quantity=F("stock_quantity") - item.quantity)
                     Product.objects.filter(pk=item.product_id, stock_quantity__lt=0).update(stock_quantity=0)
             note += " Payment arrived after the order had been auto-cancelled; stock re-reserved, please check availability."
+            if order.coupon_code:
+                from store import coupons
+
+                try:
+                    coupons.check(order.coupon_code, order.subtotal - (order.discount_total - order.coupon_discount),
+                                  order.customer_user, order.customer_email)
+                except coupons.CouponError:
+                    # The customer already paid the discounted price: honour it, but don't count the code twice.
+                    note += (f" Coupon {order.coupon_code} had since been used up/expired; its ₹{order.coupon_discount} discount "
+                             "was honoured and the code is no longer counted on this order.")
+                    order.coupon_code = ""
         order.payment_notes = (order.payment_notes + "\n" if order.payment_notes else "") + note
         order.save()
     transaction.on_commit(lambda: send_payment_received_email(order))

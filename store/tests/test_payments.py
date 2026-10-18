@@ -154,3 +154,24 @@ class OrderAccessTests(_Base):
                                      "shipping_address": "Addr", "payment_method": "manual_upi"})
         order = Order.objects.exclude(pk=self.order.pk).get()
         self.assertEqual(c.get(reverse("order_success", kwargs={"order_number": order.order_number})).status_code, 200)
+
+
+@override_settings(STORE_NOTIFY_EMAIL="")
+class LatePaymentCouponTests(_Base):
+    def test_single_use_coupon_not_counted_twice(self):
+        from store.models import Coupon
+        from store import coupons
+
+        Coupon.objects.create(code="ONCE", discount_type="fixed", value=Decimal("100"), usage_limit=1, per_customer_limit=0)
+        Order.objects.filter(pk=self.order.pk).update(coupon_code="ONCE", coupon_discount=Decimal("100"), discount_total=Decimal("100"),
+                                                     subtotal=Decimal("1100"), created_at=timezone.now() - timedelta(minutes=90))
+        release_unpaid_orders(60)
+        # Someone else uses the freed-up coupon...
+        Order.objects.create(customer_name="B", customer_email="b@example.com", shipping_address="y", coupon_code="ONCE")
+        # ...then the late payment for the first order arrives.
+        with self.captureOnCommitCallbacks(execute=True):
+            mark_paid(self.order.pk, "pay_late", source="webhook")
+        self.order.refresh_from_db()
+        self.assertEqual((self.order.status, self.order.coupon_code, self.order.total), ("confirmed", "", Decimal("1000.00")))
+        self.assertIn("discount was honoured", self.order.payment_notes)
+        self.assertEqual(coupons._uses(Coupon.objects.get(code="ONCE")).count(), 1)
