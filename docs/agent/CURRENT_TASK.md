@@ -806,3 +806,15 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   (average, 5→1 bars, "Most say it runs small (x%)", review list with
   Verified buyer); product cards show "4.7 ★ (3)" (subquery annotations on
   get_active_products); JSON-LD aggregateRating for Google.
+
+## T57 — Account menu + catalogue photos (2026-10-18)
+
+- Header account icon opens a menu on hover (mouse) or tap (touch/keyboard):
+  signed in → greeting, My orders, Track an order, Wishlist (count), Saved
+  addresses, Profile, Store admin (staff), Sign out; guests → Sign in /
+  Create account, Track an order, Wishlist, Help. Phones get a bottom sheet
+  with a dimmed backdrop (tap outside / Esc closes). Green dot = signed in.
+- Decorative images now come from the catalogue (`selectors.catalogue_photos`,
+  named slots): sign-in/register visuals, home editorial + made-to-measure,
+  hero fallback, menu tiles. Categories without an image/cover use their
+  newest product's photo. Stock template photos remain only as fallbacks.

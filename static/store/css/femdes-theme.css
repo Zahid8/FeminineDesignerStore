@@ -1518,3 +1518,35 @@ a.fd-address-card { display: flex; }
 .category-image:has(.is-product-photo)::after { display: none; }
 .category-image img.is-product-photo { padding: 5% 7% 27%; }
 .category-item:has(.is-product-photo) .category-info h5, .category-item:has(.is-product-photo) .category-info span { color: var(--fd-wine-deep) !important; text-shadow: none; }
+/* Catalogue model photos in lifestyle spots: keep faces in frame */
+img.fd-catalogue-photo { object-position: 50% 18%; }
+.fd-mega-tile img.is-product-photo { object-fit: contain; background: var(--fd-product-bg); mix-blend-mode: multiply; }
+/* ===== T57 account menu (hover on desktop, tap on touch) ===== */
+.fd-account-menu { position: relative; display: inline-flex; }
+.fd-account-trigger { position: relative; border: 0; background: none; padding: 0; cursor: pointer; color: inherit; }
+.fd-account-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #1d6b43; box-shadow: 0 0 0 2px var(--fd-surface, #fff); }
+.fd-account-panel { position: absolute; top: calc(100% + 10px); right: -10px; z-index: 1060; width: 280px; padding: 0.6rem; border-radius: var(--fd-r); background: var(--fd-surface); border: var(--fd-edge); box-shadow: 0 24px 50px -24px rgba(70, 28, 42, 0.45), var(--fd-raised-sm); opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 0.18s, transform 0.18s, visibility 0s linear 0.18s; text-align: left; }
+.fd-account-panel::before { content: ""; position: absolute; top: -12px; left: 0; right: 0; height: 12px; } /* hover bridge */
+.fd-account-menu.is-open .fd-account-panel { opacity: 1; visibility: visible; transform: none; transition: opacity 0.18s, transform 0.18s; }
+@media (hover: hover) and (pointer: fine) {
+  .fd-account-menu:hover .fd-account-panel, .fd-account-menu:focus-within .fd-account-panel { opacity: 1; visibility: visible; transform: none; transition: opacity 0.18s, transform 0.18s; }
+}
+.fd-account-head { padding: 0.6rem 0.7rem 0.75rem; border-bottom: 1px solid var(--fd-line-soft); margin-bottom: 0.35rem; }
+.fd-account-head b { display: block; font-family: var(--fd-font-display); font-size: 1.25rem; font-weight: 500; color: var(--fd-ink); }
+.fd-account-head small { display: block; color: var(--fd-muted); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-account-panel a[role=menuitem], .fd-account-signout button { display: flex; align-items: center; gap: 0.7rem; width: 100%; min-height: 44px; padding: 0.55rem 0.7rem; border: 0; border-radius: var(--fd-r-sm); background: none; color: var(--fd-ink); font-size: 0.92rem; text-decoration: none; text-transform: none; letter-spacing: 0; text-align: left; cursor: pointer; }
+.fd-account-panel a[role=menuitem] svg { color: var(--fd-wine); flex: none; }
+.fd-account-panel a[role=menuitem]:hover, .fd-account-panel a[role=menuitem]:focus-visible, .fd-account-signout button:hover { background: var(--fd-paper); box-shadow: var(--fd-pressed-sm); }
+.fd-account-panel em { margin-left: auto; font-style: normal; font-size: 0.72rem; min-width: 1.4rem; padding: 0.05rem 0.45rem; border-radius: var(--fd-r-pill); background: rgba(125, 31, 54, 0.1); color: var(--fd-wine); text-align: center; }
+.fd-account-signout { margin: 0.35rem 0 0; padding-top: 0.35rem; border-top: 1px solid var(--fd-line-soft); }
+.fd-account-signout button { color: #8a1c2b; }
+.fd-account-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 0.35rem 0.4rem 0.6rem; }
+.fd-account-cta .btn { min-height: 42px; padding: 0.45rem 0.6rem; font-size: 0.72rem; }
+@media (max-width: 575.98px) {
+  .fd-account-menu { position: static; }
+  .fd-account-panel { position: fixed; top: auto; left: 0.6rem; right: 0.6rem; bottom: calc(0.6rem + env(safe-area-inset-bottom)); width: auto; max-height: 80vh; overflow: auto; transform: translateY(16px); border-radius: 22px; padding: 0.8rem; }
+  .fd-account-menu.is-open::before { content: ""; position: fixed; inset: 0; z-index: 1055; background: rgba(23, 20, 22, 0.35); backdrop-filter: blur(2px); }
+}
+body:has(.fd-account-menu.is-open) .fd-whatsapp-float, body:has(.fd-account-menu.is-open) .fd-to-top { opacity: 0; pointer-events: none; }
+.fd-account-head small { white-space: normal; }
+.fd-account-cta .btn { white-space: nowrap; letter-spacing: 0.08em; }

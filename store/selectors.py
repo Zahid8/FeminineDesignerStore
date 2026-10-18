@@ -237,3 +237,34 @@ def get_client_diaries(limit=8):
     from store.models import ClientDiary
 
     return ClientDiary.objects.filter(is_published=True).select_related("product")[:limit]
+
+
+
+def catalogue_photos():
+    """Photos from the live catalogue for decorative spots (auth pages, home editorial, menu tiles).
+
+    ``worn``: model shots (an extra photo after the product shots, e.g. the
+    imported lookbooks' 3rd photo); ``product``: each product's main photo.
+    Newest products first, so new collections show up automatically.
+    """
+    from store.models import ProductImage
+
+    rows = (ProductImage.objects.filter(product__is_active=True)
+            .order_by("-product__created_at", "product_id", "sort_order", "id")
+            .values_list("product_id", "image", "sort_order", "is_primary")[:240])
+    by_product = {}
+    for pid, image, order, primary in rows:
+        by_product.setdefault(pid, []).append((order, primary, image))
+    from django.core.files.storage import default_storage
+
+    worn, product = [], []
+    for photos in by_product.values():
+        main = next((img for _, primary, img in photos if primary), photos[0][2])
+        product.append(default_storage.url(main))
+        if len(photos) >= 3:
+            worn.append(default_storage.url(photos[2][2]))
+    worn = worn or product
+    pick = lambda items, i: items[i % len(items)] if items else ""
+    # Named slots so templates never index past the end of a list.
+    return {"worn": worn, "product": product, "login": pick(worn, 0), "register": pick(worn, 1),
+            "editorial": pick(worn, 2), "made_to_measure": pick(worn, 3), "hero": pick(product, 0), "menu": pick(product, 0)}

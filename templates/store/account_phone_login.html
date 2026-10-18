@@ -6,7 +6,7 @@
   <div class="container-lg">
     <div class="fd-auth">
       <div class="fd-auth-visual">
-        <img src="{% static 'store/images/banner-image-2.jpg' %}" alt="" aria-hidden="true">
+        {% static 'store/images/banner-image-2.jpg' as fb_banner_image_2 %}<img src="{{ catalogue_photos.login|default:fb_banner_image_2 }}" alt="" aria-hidden="true" class="fd-catalogue-photo">
         <span class="fd-eyebrow">Welcome</span>
         <h2>Sign in with <em>your mobile</em></h2>
         <p>We will text you a one-time code. No password needed.</p>

@@ -1,0 +1,34 @@
+{# Account dropdown: opens on hover (mouse) or tap (touch/keyboard). #}
+<div class="fd-account-menu" data-account-menu>
+  <button type="button" class="fd-nav-icon fd-account-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="account-panel" aria-label="{% if user.is_authenticated %}My account{% else %}Sign in or create an account{% endif %}">
+    <svg width="19" height="19" aria-hidden="true"><use xlink:href="#user"></use></svg>
+    {% if user.is_authenticated %}<span class="fd-account-dot" aria-hidden="true"></span>{% endif %}
+  </button>
+  <div class="fd-account-panel" id="account-panel" role="menu" aria-label="Account">
+    {% if user.is_authenticated %}
+    <div class="fd-account-head">
+      <b>Hello, {{ user.first_name|default:user.get_short_name|default:"there" }}</b>
+      <small>{% if user.profile.phone_e164 %}{{ user.profile.phone_e164 }}{% elif user.email %}{{ user.email }}{% else %}{{ user.username }}{% endif %}</small>
+    </div>
+    <a role="menuitem" href="{% url 'account_orders' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#shopping-bag"></use></svg>My orders</a>
+    <a role="menuitem" href="{% url 'order_track' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#truck"></use></svg>Track an order</a>
+    <a role="menuitem" href="{% url 'wishlist' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#heart"></use></svg>Wishlist{% if wishlist_count %}<em>{{ wishlist_count }}</em>{% endif %}</a>
+    <a role="menuitem" href="{% url 'account_addresses' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#location"></use></svg>Saved addresses</a>
+    <a role="menuitem" href="{% url 'account_profile' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#user"></use></svg>Profile &amp; sign-in</a>
+    {% if user.is_staff %}<a role="menuitem" href="{% url 'admin:index' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#shield"></use></svg>Store admin</a>{% endif %}
+    <form method="post" action="{% url 'account_logout' %}" class="fd-account-signout">{% csrf_token %}<button type="submit" role="menuitem">Sign out</button></form>
+    {% else %}
+    <div class="fd-account-head">
+      <b>Welcome</b>
+      <small>Sign in to track orders and check out faster.</small>
+    </div>
+    <div class="fd-account-cta">
+      <a href="{% url 'account_login' %}{% if request.path != '/' %}?next={{ request.path|urlencode }}{% endif %}" class="btn btn-dark rounded-pill">Sign in</a>
+      <a href="{% url 'account_register' %}" class="btn btn-outline-dark rounded-pill">Create account</a>
+    </div>
+    <a role="menuitem" href="{% url 'order_track' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#truck"></use></svg>Track an order</a>
+    <a role="menuitem" href="{% url 'wishlist' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#heart"></use></svg>Wishlist{% if wishlist_count %}<em>{{ wishlist_count }}</em>{% endif %}</a>
+    <a role="menuitem" href="{% url 'contact' %}"><svg width="17" height="17" aria-hidden="true"><use xlink:href="#chat"></use></svg>Help &amp; contact</a>
+    {% endif %}
+  </div>
+</div>

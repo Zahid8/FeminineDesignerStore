@@ -136,7 +136,11 @@ class Category(models.Model):
         if self.image:
             return self.image.url
         product = self.cover_product
-        if product is not None and product.is_active:
+        if product is None or not product.is_active:
+            # No cover chosen: the newest product in this category that has a photo.
+            product = (self.products.filter(is_active=True, images__isnull=False)
+                       .order_by("-created_at").prefetch_related("images").first())
+        if product is not None:
             primary = product.primary_image
             if primary and primary.image:
                 return primary.image.url

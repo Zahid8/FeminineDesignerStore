@@ -21,13 +21,7 @@
         {% endif %}
       </a>
       <div class="fd-util-right">
-        {% if user.is_authenticated %}
-        <a href="{% url 'account_profile' %}" class="fd-nav-icon" aria-label="My account"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#user"></use></svg></a>
-        {% else %}
-        <a href="{% url 'account_login' %}" class="fd-text-link d-none d-lg-inline">Login</a>
-        <a href="{% url 'account_register' %}" class="fd-text-link d-none d-lg-inline">Register</a>
-        <a href="{% url 'account_login' %}" class="fd-nav-icon d-lg-none" aria-label="Sign in"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#user"></use></svg></a>
-        {% endif %}
+        {% include "store/partials/account_menu.html" %}
         <a href="{% url 'wishlist' %}" class="fd-nav-icon d-none d-sm-inline-flex" aria-label="Wishlist ({{ wishlist_count }} item{{ wishlist_count|pluralize }})"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#heart"></use></svg>{% if wishlist_count %}<span class="cart-count-badge" data-wishlist-count>{{ wishlist_count }}</span>{% else %}<span class="cart-count-badge d-none" data-wishlist-count>0</span>{% endif %}</a>
         <a href="#search" class="search-button" aria-label="Search"><span class="fd-nav-icon"><svg width="19" height="19" aria-hidden="true"><use xlink:href="#search"></use></svg></span></a>
         <a href="{% url 'cart_detail' %}" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart" class="fd-nav-icon" aria-label="Open cart ({{ cart.item_count }} items)">
@@ -118,7 +112,7 @@
             {% for cat in categories|slice:":2" %}
             <div class="col-6">
               <a href="{% url 'product_list' %}?category={{ cat.slug }}" class="fd-mega-tile">
-                {% if cat.image %}<img src="{{ cat.image.url }}" alt="" loading="lazy">{% else %}<img src="{% static 'store/images/femdes-placeholder.svg' %}" alt="" loading="lazy">{% endif %}
+                {% if cat.tile_image_url %}<img src="{{ cat.tile_image_url }}" alt="" loading="lazy" class="is-product-photo">{% elif catalogue_photos.menu %}<img src="{{ catalogue_photos.menu }}" alt="" loading="lazy" class="is-product-photo">{% else %}<img src="{% static 'store/images/femdes-placeholder.svg' %}" alt="" loading="lazy">{% endif %}
                 <span>{{ cat.name }}</span>
               </a>
             </div>

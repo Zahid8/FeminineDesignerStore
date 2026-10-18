@@ -2,6 +2,7 @@ from django.contrib import messages
 import logging
 
 from django.conf import settings
+from django.utils.functional import SimpleLazyObject
 from urllib.parse import quote
 
 from django.http import Http404, HttpResponse, HttpResponseRedirect
@@ -53,6 +54,7 @@ def _base_context(request):
         "footer_pages": selectors.get_footer_pages(),
         "has_faq": selectors.has_faq(),
         "google_client_id": getattr(settings, "GOOGLE_CLIENT_ID", ""),
+        "catalogue_photos": SimpleLazyObject(selectors.catalogue_photos),
     }
     ctx.update(_cart_context(request))
     return ctx

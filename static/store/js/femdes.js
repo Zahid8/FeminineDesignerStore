@@ -516,6 +516,18 @@
     if (saved) { input.value = saved; show(saved); }
   }
 
+  // ---- Account menu: tap/click toggles (hover opens it on mouse devices via CSS) ----
+  function setupAccountMenu() {
+    document.querySelectorAll('[data-account-menu]').forEach(function (menu) {
+      var btn = menu.querySelector('.fd-account-trigger');
+      function set(open) { menu.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+      btn.addEventListener('click', function (e) { e.stopPropagation(); set(!menu.classList.contains('is-open')); if (menu.classList.contains('is-open')) { var first = menu.querySelector('[role=menuitem], .fd-account-cta a'); if (first && e.detail === 0) first.focus(); } });
+      document.addEventListener('click', function (e) { if (!menu.contains(e.target) || e.target === menu) set(false); });
+      menu.addEventListener('click', function (e) { if (e.target === menu) set(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('is-open')) { set(false); btn.focus(); } });
+    });
+  }
+
   // ---- Sticky mobile buy bar ----
   function setupStickyBuy() {
     var bar = document.querySelector('[data-sticky-buy]');
@@ -711,6 +723,7 @@
     setupPinLookup();
     setupDeliveryCheck();
     setupCheckoutEta();
+    setupAccountMenu();
     setupStickyBuy();
     setupAutoSubmit();
     setupSubmitFeedback();
