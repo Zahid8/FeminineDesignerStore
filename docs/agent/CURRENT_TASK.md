@@ -779,3 +779,18 @@ Deploy: set `WEBSTORE_API_TOKEN` on the webstore host and the same token plus
   to" PIN check on the bag and product page (remembers the PIN, prefilled
   from the default address) updates each line's "Delivery by …"; made-to-
   measure dates add the stitching lead time. DELIVERY_DAYS_MIN/MAX settings.
+
+## T55 — Checkout like Amazon (2026-10-18)
+
+- Address book (`Address`, `views_addresses.py`): My Addresses page (add,
+  edit, delete, make default — always one default), saved addresses as
+  radio cards at checkout (default preselected; "Add a new address" reveals
+  the form; new addresses saved with a label unless unticked; a different
+  recipient's name/phone go on the shipping label). Someone else's address
+  id is ignored.
+- Checkout: steps, item photos with MRP, per-line "Delivery by …" from the
+  chosen address / typed PIN, coupon box + offers, price details + You save,
+  delivery instructions, "This is a gift" message, Place order · ₹total,
+  sticky mobile Place order bar, policy link.
+- Billing API + app: coupon (code/discount) and gift message; Gift flag in
+  the list and a gift card note on the order.

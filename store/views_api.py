@@ -141,6 +141,8 @@ def serialize_order(request, order, site=None, order_counts=None):
         "currency": getattr(site, "currency_code", None) or "INR",
         "subtotal": str(order.subtotal),
         "discount_total": str(order.discount_total),
+        "coupon": {"code": order.coupon_code, "discount": str(order.coupon_discount)} if order.coupon_code else None,
+        "gift_message": order.gift_message,
         "shipping_total": str(order.shipping_total),
         "total": str(order.total),
         "item_count": sum(i.quantity for i in order.items.all()),

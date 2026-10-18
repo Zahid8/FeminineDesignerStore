@@ -62,6 +62,9 @@ class CheckoutForm(AddressFieldsMixin):
     location_url = forms.CharField(max_length=2000, required=False)
     notes = forms.CharField(widget=forms.Textarea, required=False)
     payment_method = forms.ChoiceField(required=False)
+    gift_message = forms.CharField(max_length=300, required=False)
+    save_address = forms.BooleanField(required=False)
+    address_label = forms.CharField(max_length=30, required=False)
 
     def __init__(self, *args, payment_methods=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -331,3 +334,22 @@ class OrderTrackForm(forms.Form):
                                    widget=forms.TextInput(attrs={"placeholder": "FD-20261017-123456", "class": "form-control"}))
     contact = forms.CharField(max_length=160, label="Email or phone used at checkout",
                               widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "email"}))
+
+
+
+class AddressBookForm(AddressFieldsMixin):
+    """One saved address in the customer's address book."""
+
+    label = forms.CharField(max_length=30, required=False)
+    name = forms.CharField(max_length=160)
+    phone = forms.CharField(max_length=20)
+    location_url = forms.CharField(max_length=2000, required=False)
+    is_default = forms.BooleanField(required=False)
+
+    def clean_phone(self):
+        return addresses.clean_indian_mobile(self.cleaned_data.get("phone"))
+
+    def clean_location_url(self):
+        from store.locations import clean_maps_link
+
+        return clean_maps_link(self.cleaned_data.get("location_url"))

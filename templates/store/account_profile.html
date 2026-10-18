@@ -33,6 +33,7 @@
       {% endif %}
       <div class="mt-4 d-flex flex-wrap gap-2">
         <a href="{% url 'account_orders' %}" class="btn btn-dark rounded-pill">My Orders</a>
+        <a href="{% url 'account_addresses' %}" class="btn btn-outline-dark rounded-pill">My Addresses</a>
         <a href="{% url 'account_profile_edit' %}" class="btn btn-outline-dark rounded-pill">Edit Profile</a>
         <form method="post" action="{% url 'account_logout' %}" class="d-inline">
           {% csrf_token %}<button type="submit" class="btn btn-outline-danger rounded-pill">Sign Out</button>

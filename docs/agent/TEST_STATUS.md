@@ -501,3 +501,9 @@ conda run -n femdes python manage.py runserver
 - Browser: pin_e2e (autofill + bad PIN message), signin_shots (Google button renders), e2e_mtm, mtm_guard, location_e2e, invoice_check, handoff — all pass (e2e fixtures restocked first)
 - qa_design: baseline + expected GSI console errors from the fake local client ID
 - Not testable here: real Razorpay keys/webhook, MSG91/2Factor delivery, real Google client — mocked in unit tests
+
+## T53–T55 — Orders, bag, checkout (2026-10-18)
+
+- `python manage.py test` — 604 OK (test_order_actions, test_bag_extras, test_checkout_addresses)
+- Billing: vitest 242 OK, tsc OK, eslint OK
+- Browser (390px): orders_shots, bag_e2e 13/13, checkout_e2e (saved address, ETA, coupon, gift, place order), billing_orders_e2e 11/11

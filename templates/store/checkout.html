@@ -1,15 +1,12 @@
 {% extends "base.html" %}
-
+{% load store_extras %}
 {% block title %} — Checkout{% endblock %}
 
 {% block content %}
-{% with currency=site_settings.currency_symbol|default:"$" %}
+{% with currency=site_settings.currency_symbol|default:"₹" %}
 <header class="fd-page-header is-compact">
   <div class="container-lg">
-    <ol class="fd-crumbs" aria-label="Breadcrumb">
-      <li><a href="{% url 'cart_detail' %}">Cart</a></li>
-      <li aria-current="page">Checkout</li>
-    </ol>
+    {% include "store/partials/checkout_steps.html" with step=2 %}
     <h1>Checkout</h1>
     <p>Just a few details and your blouse is on its way.</p>
   </div>
@@ -18,25 +15,33 @@
 <section class="pb-5">
   <div class="container-lg">
     {% if cart.lines %}
-    <div class="row g-5">
+    <div class="row g-4 g-lg-5">
       <!-- Order summary -->
       <div class="col-lg-5 order-lg-last">
-        <div class="fd-card p-4 fd-sticky">
-          <h5 class="fd-card-title">Order Summary</h5>
-          {% for line in cart.lines %}
-          <div class="d-flex justify-content-between align-items-start py-2 border-bottom gap-3">
-            <span><strong class="text-dark fw-semibold">{{ line.product_name }}</strong> <span class="text-muted">x {{ line.quantity }}</span>{% if line.color or line.size %}<small class="d-block text-muted">{{ line.color }}{% if line.color and line.size %} / {% endif %}{{ line.size }}</small>{% endif %}{% include "store/partials/custom_summary.html" with rows=line.custom_summary compact=True %}</span>
-            <span>{{ currency }}{{line.line_total }}</span>
-          </div>
-          {% endfor %}
-          <div class="pt-3">
-            <p class="fd-summary-row"><span>Subtotal</span><span>{{ currency }}{{ cart.subtotal }}</span></p>
-            {% if cart.discount_total > 0 %}
-            <p class="fd-summary-row text-success"><span>Discount</span><span>-{{ currency }}{{ cart.discount_total }}</span></p>
-            {% endif %}
-            <p class="fd-summary-row"><span>Shipping</span><span>{% if cart.shipping > 0 %}{{ currency }}{{ cart.shipping }}{% else %}Free{% endif %}</span></p>
-            <p class="fd-summary-row is-total"><span>Total:</span> <strong>{{ currency }}{{cart.total }}</strong></p>
-            {% if site_settings.price_note %}<p class="small text-muted mb-0">{{ site_settings.price_note }}</p>{% endif %}
+        <div class="fd-card p-4 fd-sticky" id="checkout-summary">
+          <h5 class="fd-card-title">Order summary ({{ cart.item_count }} item{{ cart.item_count|pluralize }})</h5>
+          <ul class="fd-order-items fd-checkout-items">
+            {% for line in cart.lines %}
+            <li>
+              <span class="fd-order-thumb">{% include "store/partials/line_thumb.html" %}</span>
+              <div class="fd-order-item-body">
+                <strong>{{ line.product_name }}</strong>
+                <small class="text-muted d-block">{% if line.color %}{{ line.color }} &middot; {% endif %}{% if line.size %}{{ line.size }} &middot; {% endif %}Qty {{ line.quantity }}</small>
+                {% include "store/partials/custom_summary.html" with rows=line.custom_summary compact=True %}
+                <div class="fd-cart-price"><b>{{ currency }}{{ line.line_total }}</b>{% if line.mrp_total > line.line_total %}<s>{{ currency }}{{ line.mrp_total }}</s>{% endif %}</div>
+                <small class="fd-eta" data-eta-line data-made-to-measure="{% if line.custom %}1{% endif %}"><svg width="13" height="13" aria-hidden="true"><use xlink:href="#truck"></use></svg><span>{% if line.custom %}Made to measure &middot; {{ line.lead_time|default:"3–4 weeks" }}{% else %}Enter your PIN code to see the delivery date{% endif %}</span></small>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+          <hr>
+          {% include "store/partials/coupon_box.html" %}
+          <hr>
+          {% include "store/partials/cart_price.html" %}
+          {% if site_settings.price_note %}<p class="small text-muted mb-0 mt-2">{{ site_settings.price_note }}</p>{% endif %}
+          <div class="fd-trust-row mt-3 mb-0">
+            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#shield"></use></svg>100% secure payments</div>
+            <div><svg width="16" height="16" aria-hidden="true"><use xlink:href="#truck"></use></svg>Easy 7-day exchange</div>
           </div>
         </div>
       </div>
@@ -45,13 +50,13 @@
         {% if not user.is_authenticated %}
         <div class="fd-note mb-4 fd-checkout-signin"><svg width="18" height="18" aria-hidden="true"><use xlink:href="#user"></use></svg><div><strong>Faster checkout:</strong> <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}">sign in</a> to fill in your saved details and track this order. Your bag stays as it is.</div></div>
         {% endif %}
-        <form method="post" id="checkout-form" class="fd-card p-4 p-md-5">
+        <form method="post" id="checkout-form" class="fd-card p-4 p-md-5" x-data="{ addr: '{{ selected_address }}', gift: {% if form.gift_message.value %}true{% else %}false{% endif %} }">
           {% csrf_token %}
           {% if form.errors %}
           <div class="alert alert-danger small">Please check the highlighted fields and try again.</div>
           {% endif %}
           <div class="row g-3">
-            <div class="col-12"><span class="fd-eyebrow mb-0">Step 1</span><h5>Contact Information</h5></div>
+            <div class="col-12"><span class="fd-eyebrow mb-0">Step 1</span><h5>Contact</h5></div>
             <div class="col-md-6">
               <label for="id_customer_name" class="form-label">Full Name *</label>
               <input type="text" name="customer_name" id="id_customer_name" class="form-control{% if form.customer_name.errors %} is-invalid{% endif %}" required maxlength="160" autocomplete="name" value="{{ form.customer_name.value|default:'' }}">
@@ -67,15 +72,56 @@
               <input type="tel" name="customer_phone" id="id_customer_phone" class="form-control{% if form.customer_phone.errors %} is-invalid{% endif %}" maxlength="20" autocomplete="tel" inputmode="numeric" placeholder="10-digit mobile number" required value="{{ form.customer_phone.value|default:'' }}">
               {% for e in form.customer_phone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
-            <div class="col-12 mt-4"><span class="fd-eyebrow mb-0">Step 2</span><h5>Shipping Address</h5></div>
-            {% include "store/partials/address_fields.html" with prefix="id_" required=True %}
+
+            <div class="col-12 mt-4"><span class="fd-eyebrow mb-0">Step 2</span><h5>Delivery address</h5></div>
+            {% if saved_addresses %}
             <div class="col-12">
-              {% include "store/partials/location_field.html" with field_id="id_location_url" %}
+              <fieldset class="fd-address-picker">
+                <legend class="visually-hidden">Choose a delivery address</legend>
+                {% for a in saved_addresses %}
+                <label class="fd-address-card">
+                  <input type="radio" name="address_id" value="{{ a.pk }}" data-pin="{{ a.pincode }}" x-model="addr"{% if selected_address == a.pk|stringformat:"d" %} checked{% endif %}>
+                  <span>
+                    <b>{{ a.name }}</b>{% if a.label %} <em class="fd-address-tag">{{ a.label }}</em>{% endif %}{% if a.is_default %} <em class="fd-address-tag is-default">Default</em>{% endif %}
+                    <small>{{ a.block|linebreaksbr }}</small>
+                    <small>Mobile: {{ a.phone }}</small>
+                  </span>
+                </label>
+                {% endfor %}
+                <label class="fd-address-card is-new">
+                  <input type="radio" name="address_id" value="new" x-model="addr"{% if selected_address == "new" %} checked{% endif %}>
+                  <span><b>+ Add a new address</b></span>
+                </label>
+              </fieldset>
+              <p class="small mt-2 mb-0"><a href="{% url 'account_addresses' %}">Manage addresses</a></p>
+            </div>
+            {% endif %}
+            <div class="col-12" {% if saved_addresses %}x-show="addr === 'new'" x-cloak{% endif %}>
+              <div class="row g-3">
+                {% include "store/partials/address_fields.html" with prefix="id_" required=False %}
+                <div class="col-12">
+                  {% include "store/partials/location_field.html" with field_id="id_location_url" %}
+                </div>
+                {% if user.is_authenticated %}
+                <div class="col-12 d-flex flex-wrap align-items-center gap-3">
+                  <label class="fd-check"><input type="checkbox" name="save_address" value="1" checked> Save to my address book</label>
+                  <input type="text" name="address_label" class="form-control fd-label-input" maxlength="30" placeholder="Label (Home, Work…)" aria-label="Address label">
+                </div>
+                {% endif %}
+              </div>
             </div>
             <div class="col-12">
-              <label for="id_notes" class="form-label">Order Notes</label>
-              <textarea name="notes" id="id_notes" class="form-control" rows="2" placeholder="Anything we should know?">{{ form.notes.value|default:'' }}</textarea>
+              <label for="id_notes" class="form-label">Delivery instructions <span class="text-muted fw-normal">(optional)</span></label>
+              <textarea name="notes" id="id_notes" class="form-control" rows="2" placeholder="Landmark, best time to call, anything we should know">{{ form.notes.value|default:'' }}</textarea>
             </div>
+            <div class="col-12">
+              <label class="fd-check"><input type="checkbox" x-model="gift"> This is a gift</label>
+              <div x-show="gift" x-cloak class="mt-2">
+                <label for="id_gift_message" class="form-label">Gift message</label>
+                <textarea name="gift_message" id="id_gift_message" class="form-control" rows="2" maxlength="300" placeholder="We'll write it on a card and leave prices off the packing slip.">{{ form.gift_message.value|default:'' }}</textarea>
+              </div>
+            </div>
+
             <div class="col-12 mt-4"><span class="fd-eyebrow mb-0">Step 3</span><h5>Payment</h5></div>
             <div class="col-12">
               <fieldset class="fd-pay-options">
@@ -93,16 +139,21 @@
             <div class="col-12"><div class="fd-terms"><p class="fd-label mb-1">Made-to-measure terms</p><p class="mb-0 small">{{ site_settings.customization_terms }}</p></div></div>
             {% endif %}
             <div class="col-12 mt-2">
-              <button type="submit" class="btn btn-dark btn-lg w-100">Place Order</button>
+              <button type="submit" class="btn btn-dark btn-lg w-100">Place order &middot; {{ currency }}{{ cart.total }}</button>
+              <p class="small text-muted text-center mt-2 mb-0">By placing the order you agree to our <a href="{% url 'faq' %}">terms, exchange and cancellation policy</a>.</p>
             </div>
           </div>
         </form>
       </div>
     </div>
+    <div class="fd-sticky-pay d-lg-none">
+      <div><b>{{ currency }}{{ cart.total }}</b><a href="#checkout-summary">View order summary</a></div>
+      <button type="submit" form="checkout-form" class="btn btn-dark rounded-pill">Place order</button>
+    </div>
     {% else %}
     <div class="empty-state">
-      <h4>Your cart is empty</h4>
-      <p class="text-center text-muted">Your cart is empty. <a href="{% url 'product_list' %}">Continue shopping</a>.</p>
+      <h4>Your bag is empty</h4>
+      <p class="text-center text-muted"><a href="{% url 'product_list' %}">Continue shopping</a>.</p>
     </div>
     {% endif %}
   </div>

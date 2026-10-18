@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %} — {% if address %}Edit{% else %}New{% endif %} address{% endblock %}
+{% block content %}
+<header class="fd-page-header is-compact">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{% url 'account_addresses' %}">Addresses</a></li><li aria-current="page">{% if address %}Edit{% else %}New{% endif %}</li></ol>
+    <h1>{% if address %}Edit address{% else %}New address{% endif %}</h1>
+  </div>
+</header>
+<section class="pb-5">
+  <div class="container-lg">
+    <div class="row justify-content-center"><div class="col-lg-7">
+      <form method="post" class="fd-card p-4 p-md-5" novalidate>
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+        {% if form.errors %}<div class="alert alert-danger small">Please check the highlighted fields.</div>{% endif %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="id_name" class="form-label">Recipient name *</label>
+            <input type="text" name="name" id="id_name" class="form-control{% if form.name.errors %} is-invalid{% endif %}" maxlength="160" autocomplete="name" required value="{{ form.name.value|default:'' }}">
+            {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label for="id_phone" class="form-label">Mobile number *</label>
+            <input type="tel" name="phone" id="id_phone" class="form-control{% if form.phone.errors %} is-invalid{% endif %}" inputmode="numeric" maxlength="20" autocomplete="tel" required value="{{ form.phone.value|default:'' }}">
+            {% for e in form.phone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          {% include "store/partials/address_fields.html" with prefix="id_" required=True %}
+          <div class="col-12">{% include "store/partials/location_field.html" with field_id="id_location_url" %}</div>
+          <div class="col-md-6">
+            <label for="id_label" class="form-label">Label <span class="text-muted fw-normal">(optional)</span></label>
+            <input type="text" name="label" id="id_label" class="form-control" maxlength="30" placeholder="Home, Work…" value="{{ form.label.value|default:'' }}">
+          </div>
+          <div class="col-md-6 d-flex align-items-end"><label class="fd-check"><input type="checkbox" name="is_default" value="1"{% if form.is_default.value %} checked{% endif %}> Make this my default address</label></div>
+          <div class="col-12 d-flex gap-2 flex-wrap mt-3">
+            <button type="submit" class="btn btn-dark btn-lg rounded-pill">Save address</button>
+            <a href="{% url 'account_addresses' %}" class="btn btn-outline-dark btn-lg rounded-pill">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div></div>
+  </div>
+</section>
+{% endblock %}

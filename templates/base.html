@@ -48,7 +48,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="{% static 'store/css/femdes-theme.css' %}">
 </head>
-<body data-fallback-img="{% static 'store/images/femdes-placeholder.svg' %}">
+<body data-fallback-img="{% static 'store/images/femdes-placeholder.svg' %}" data-delivery-url="{% url 'delivery_estimate' '000000' %}">
   <div class="fd-progress" aria-hidden="true"></div>
   {% include "store/partials/icons.html" %}
   {% include "store/partials/search_popup.html" %}

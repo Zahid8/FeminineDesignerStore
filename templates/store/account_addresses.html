@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %} — My addresses{% endblock %}
+{% block content %}
+<header class="fd-page-header is-compact">
+  <div class="container-lg">
+    <ol class="fd-crumbs" aria-label="Breadcrumb"><li><a href="{% url 'account_profile' %}">Account</a></li><li aria-current="page">Addresses</li></ol>
+    <h1>My addresses</h1>
+    <p>Pick one at checkout in a tap.</p>
+  </div>
+</header>
+<section class="pb-5">
+  <div class="container-lg page-shell-wide">
+    <a href="{% url 'account_address_new' %}" class="fd-address-card is-new mb-3 text-decoration-none"><span><b>+ Add a new address</b></span></a>
+    {% for a in addresses %}
+    <div class="fd-address-card is-static mb-3">
+      <span>
+        <b>{{ a.name }}</b>{% if a.label %} <em class="fd-address-tag">{{ a.label }}</em>{% endif %}{% if a.is_default %} <em class="fd-address-tag is-default">Default</em>{% endif %}
+        <small>{{ a.block|linebreaksbr }}</small>
+        <small>Mobile: {{ a.phone }}</small>
+        {% if a.location_url %}<small><a href="{{ a.location_url }}" target="_blank" rel="noopener">Map pin</a></small>{% endif %}
+        <span class="fd-cart-links mt-2">
+          <a href="{% url 'account_address_edit' a.pk %}" class="fd-text-btn is-strong">Edit</a>
+          {% if not a.is_default %}<form method="post" action="{% url 'account_address_default' a.pk %}" class="d-inline">{% csrf_token %}<button type="submit" class="fd-text-btn">Make default</button></form>{% endif %}
+          <form method="post" action="{% url 'account_address_delete' a.pk %}" class="d-inline" onsubmit="return confirm('Remove this address?')">{% csrf_token %}<button type="submit" class="fd-text-btn">Remove</button></form>
+        </span>
+      </span>
+    </div>
+    {% empty %}
+    <p class="text-muted">No saved addresses yet. They're saved automatically when you place an order.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -295,6 +295,20 @@ def _remember_address(request, order):
     CustomerProfile.objects.update_or_create(user=request.user, defaults=defaults)
 
 
+def _save_to_address_book(user, order, label=""):
+    from store.models import Address
+
+    exists = user.addresses.filter(address_line1__iexact=order.address_line1, pincode=order.pincode).exists()
+    if exists or not (order.address_line1 and order.city and order.pincode):
+        return
+    Address.objects.create(
+        user=user, label=(label or "")[:30], name=order.customer_name, phone=order.customer_phone[:20],
+        address_line1=order.address_line1, address_line2=order.address_line2, city=order.city, state=order.state,
+        pincode=order.pincode, country=order.country or "India", location_url=order.location_url,
+        is_default=not user.addresses.exists(),
+    )
+
+
 def checkout(request):
     from store.payments import release_unpaid_orders_soon
 
@@ -306,9 +320,23 @@ def checkout(request):
 
     site_settings = _get_site_settings()
     methods = services.payment_methods(site_settings)
+    saved_addresses = list(request.user.addresses.all()) if request.user.is_authenticated else []
+    chosen_address = None
     if request.method == "POST":
-        form = CheckoutForm(request.POST, payment_methods=methods)
+        data = request.POST.copy()
+        address_id = data.get("address_id", "")
+        if address_id and address_id != "new" and request.user.is_authenticated:
+            chosen_address = next((a for a in saved_addresses if str(a.pk) == address_id), None)
+            if chosen_address is not None:
+                # A saved address fills the delivery fields; contact details stay as typed.
+                for key in ADDRESS_PARTS:
+                    data[key] = getattr(chosen_address, key)
+                data["location_url"] = chosen_address.location_url or data.get("location_url", "")
+                data["save_address"] = ""
+        form = CheckoutForm(data, payment_methods=methods)
         if form.is_valid():
+            if chosen_address is not None and chosen_address.name.strip().lower() != form.cleaned_data["customer_name"].strip().lower():
+                form.cleaned_data["shipping_address"] = f"{chosen_address.name}, {chosen_address.phone}\n" + form.cleaned_data["shipping_address"]
             try:
                 order = services.create_order_from_cart(
                     request, form.cleaned_data
@@ -321,6 +349,8 @@ def checkout(request):
 
                 remember_order(request, order)
                 _remember_address(request, order)
+                if form.cleaned_data.get("save_address") and request.user.is_authenticated and chosen_address is None:
+                    _save_to_address_book(request.user, order, form.cleaned_data.get("address_label", ""))
                 services.send_order_emails(order, request)
                 if order.payment_method == "razorpay":
                     return redirect("razorpay_payment", order_number=order.order_number)
@@ -345,7 +375,11 @@ def checkout(request):
         form = CheckoutForm(initial=initial, payment_methods=methods)
 
     ctx = _base_context(request)
-    ctx.update({"form": form, "cart": summary, "payment_methods": methods})
+    selected = request.POST.get("address_id") if request.method == "POST" else (str(saved_addresses[0].pk) if saved_addresses else "new")
+    from store import coupons
+
+    ctx.update({"form": form, "cart": summary, "payment_methods": methods, "saved_addresses": saved_addresses,
+                "selected_address": selected or "new", "offers": coupons.visible_offers()})
     return render(request, "store/checkout.html", ctx)
 
 

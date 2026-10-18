@@ -1451,3 +1451,21 @@ a.fd-link-underline, a.btn-link.fd-link-underline, .fd-link-underline { border-b
 .fd-saved-list > li:last-child { padding-bottom: 0.85rem; }
 .fd-coupon-form .form-control { flex: 1 1 auto; min-width: 0; width: auto; }
 .fd-coupon-form .btn { flex: 0 0 auto; width: auto; padding-inline: 1.3rem; }
+[x-cloak] { display: none !important; }
+.fd-address-picker { display: grid; gap: 0.7rem; }
+.fd-address-card { display: flex; gap: 0.8rem; align-items: flex-start; padding: 1rem 1.1rem; border-radius: var(--fd-r-sm); background: var(--fd-surface); border: 1px solid var(--fd-line-soft); box-shadow: var(--fd-raised-sm); cursor: pointer; margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.92rem; color: var(--fd-ink); transition: border-color 0.2s, box-shadow 0.2s; }
+.fd-address-card:has(input:checked) { border-color: var(--fd-wine); box-shadow: 0 0 0 3px rgba(125, 31, 54, 0.12), var(--fd-raised-sm); }
+.fd-address-card input { margin-top: 0.25rem; accent-color: var(--fd-wine); flex: none; }
+.fd-address-card > span { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.fd-address-card b { font-weight: 600; }
+.fd-address-card small { color: var(--fd-muted); font-size: 0.84rem; line-height: 1.45; }
+.fd-address-card.is-new b { color: var(--fd-wine); }
+.fd-address-card.is-static { cursor: default; }
+a.fd-address-card { display: flex; }
+.fd-address-tag { font-style: normal; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: var(--fd-r-pill); background: var(--fd-paper); color: var(--fd-muted); margin-left: 0.35rem; vertical-align: middle; }
+.fd-address-tag.is-default { background: rgba(125, 31, 54, 0.1); color: var(--fd-wine); }
+.fd-check { display: inline-flex; align-items: center; gap: 0.55rem; min-height: 44px; margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.92rem; color: var(--fd-ink); cursor: pointer; }
+.fd-check input { width: 18px; height: 18px; accent-color: var(--fd-wine); }
+.fd-label-input { max-width: 14rem; }
+.fd-checkout-items > li { padding: 0.7rem 0; }
+.fd-eta { display: flex; align-items: center; gap: 0.35rem; color: #1d6b43; font-size: 0.78rem; margin-top: 0.15rem; }

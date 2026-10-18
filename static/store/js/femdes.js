@@ -459,6 +459,31 @@
     });
   }
 
+  // ---- Checkout: delivery dates follow the PIN (typed, or the chosen saved address) ----
+  function updateEtaLines(pin) {
+    var rows = document.querySelectorAll('[data-eta-line]');
+    var url = document.body.getAttribute('data-delivery-url');
+    if (!rows.length || !url || !/^[1-9][0-9]{5}$/.test(pin || '')) return;
+    fetch(url.replace('000000', pin), { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.found) return;
+        rows.forEach(function (row) { var span = row.querySelector('span'); if (span) span.textContent = row.getAttribute('data-made-to-measure') ? d.custom : d.ready; });
+      }).catch(function () {});
+  }
+  function setupCheckoutEta() {
+    var form = document.getElementById('checkout-form'); if (!form) return;
+    var pin = form.querySelector('input[name=pincode]');
+    function current() {
+      var chosen = form.querySelector('input[name=address_id]:checked');
+      if (chosen && chosen.value !== 'new') return chosen.getAttribute('data-pin');
+      return pin ? pin.value.replace(/\D/g, '') : '';
+    }
+    form.addEventListener('change', function (e) { if (e.target.name === 'address_id' || e.target.name === 'pincode') updateEtaLines(current()); });
+    if (pin) pin.addEventListener('input', function () { if (pin.value.replace(/\D/g, '').length === 6) updateEtaLines(current()); });
+    updateEtaLines(current());
+  }
+
   // ---- "Deliver to" PIN check → delivery dates on the bag / product page ----
   function setupDeliveryCheck() {
     var box = document.querySelector('[data-delivery-check]');
@@ -685,6 +710,7 @@
     setupGallery();
     setupPinLookup();
     setupDeliveryCheck();
+    setupCheckoutEta();
     setupStickyBuy();
     setupAutoSubmit();
     setupSubmitFeedback();

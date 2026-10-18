@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from store import views_cart, views_google, views_orders, views, views_api, views_extra, views_phone
+from store import views_addresses, views_cart, views_google, views_orders, views, views_api, views_extra, views_phone
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -90,6 +90,11 @@ urlpatterns = [
     ),
     path("accounts/profile/", views.account_profile, name="account_profile"),
     path("accounts/profile/edit/", views.account_profile_edit, name="account_profile_edit"),
+    path("accounts/addresses/", views_addresses.account_addresses, name="account_addresses"),
+    path("accounts/addresses/new/", views_addresses.account_address_edit, name="account_address_new"),
+    path("accounts/addresses/<int:pk>/edit/", views_addresses.account_address_edit, name="account_address_edit"),
+    path("accounts/addresses/<int:pk>/delete/", views_addresses.account_address_delete, name="account_address_delete"),
+    path("accounts/addresses/<int:pk>/default/", views_addresses.account_address_default, name="account_address_default"),
     path("accounts/orders/", views.account_orders, name="account_orders"),
     path("accounts/orders/<str:order_number>/", views.account_order_detail, name="account_order_detail"),
     path("accounts/orders/<str:order_number>/invoice/", views.account_order_invoice, name="account_order_invoice"),
